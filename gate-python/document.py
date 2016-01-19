@@ -1,6 +1,9 @@
 from collections import defaultdict
 from annotation_set import AnnotationSet
-from sourcedstring import SourcedString
+from sourcedstring import SimpleSourcedUnicodeString
+import HTMLParser
+
+html_parser = HTMLParser.HTMLParser()
 
 class _AnnotationSetsDict(defaultdict):
 	def __init__(self, doc, logger):
@@ -17,7 +20,8 @@ class Document(object):
 	def __init__(self, logger, text):
 		self.logger = logger
 		self.annotationSets = _AnnotationSetsDict(self, self.logger)
-		self._text = SourcedString(text, text)
+		text = html_parser.unescape(text)
+		self._text = SimpleSourcedUnicodeString(text, text)
 
 	@staticmethod
 	def load(json):

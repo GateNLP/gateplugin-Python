@@ -47,7 +47,7 @@ class AnnotationSet(object):
 			"startOffset": start, 
 			"endOffset": end, 
 			"annotationName": annotType, 
-			"featuresMap": features, 
+			"featureMap": features, 
 			"annotationID": annotation.id}
 			)
 
