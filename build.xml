@@ -1,0 +1,90 @@
+
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="gateplugin-python" default="dist">
+
+	<description>
+   		Plugin for Python integration in GATE.
+  	</description>
+	<property name="src" location="src" />
+	<property name="lib" location="lib" />
+	<property name="dist.dir" location="dist" />
+	<property name="dist.lib.dir" location="dist/lib" />
+
+	<!-- Make environment variables available -->
+	<property environment="env" />
+
+	<!-- If environment variable GATE_HOME is set, use it for
+           gate.home (unless it was already set in build.properties -->
+	<condition property="gate.home" value="${env.GATE_HOME}">
+		<isset property="env.GATE_HOME"/>
+	</condition>
+
+	<!-- If gate.home is not set from build.properties or the
+           environment variable GATE_HOME, assume that this
+           plugin is in GATE Developer's plugin directory -->
+	<property name="gate.home" location="../.." />
+
+
+	<property name="gate.lib" location="${gate.home}/lib" />
+	<property name="gate.jar" location="${gate.home}/bin/gate.jar" />
+
+	<property name="build" location="build"/>
+
+	<property environment="env"/>
+
+	<!-- Path to compile - includes gate.jar and GATE/lib/*.jar -->
+	<path id="gate.classpath">
+		<pathelement location="${gate.jar}" />
+		<fileset dir="${gate.lib}">
+			<include name="**/*.jar" />
+			<include name="**/*.zip" />
+		</fileset>
+	</path>
+
+	<taskdef resource="org/apache/ivy/ant/antlib.xml"
+	    uri="antlib:org.apache.ivy.ant">
+	    <classpath>
+	        <fileset dir="${lib}">
+	            <include name="*.jar"/>
+	        </fileset>
+
+	    </classpath>
+	</taskdef>
+	
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}"/>
+		<mkdir dir="${lib}"/>
+
+	</target>
+
+	<target name="compile" depends="init"
+	        description="Compile the source">
+
+		<javac srcdir="${src}" destdir="${build}" debug="true" source="1.7" target="1.7" debuglevel="lines,vars,source">
+			<classpath refid="default.classpath"></classpath>
+			<classpath refid="gate.classpath" />
+
+		</javac>
+	</target>
+	
+	<ivy:cachepath pathid="default.classpath" conf="default" />
+
+	<target name="dist" depends="compile,resolve"
+	        description="Generate the distribution">
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${dist.lib.dir}" />
+
+
+		<jar jarfile="gateplugin-python.jar" basedir="${build}" index="true">
+		</jar>
+	</target>
+
+	<target name="clean"
+	        description="Clean up">
+		<delete dir="${build}"/>
+	</target>
+	
+	<target name="resolve" description="Retrieve dependencies with ivy">
+		<ivy:retrieve />
+	</target>
+</project>
