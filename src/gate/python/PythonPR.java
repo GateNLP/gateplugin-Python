@@ -1,5 +1,8 @@
 package gate.python;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gate.Annotation;
 import gate.AnnotationSet;
 import gate.Utils;
@@ -24,13 +27,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Collection;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.TreeMap;
-import java.util.Map;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 
 import org.apache.commons.io.IOUtils;
@@ -104,6 +104,8 @@ public class PythonPR extends AbstractLanguageAnalyser {
 
 	private JsonGenerator pythonJsonG;
 
+	private ObjectMapper pythonObjectMapper;
+
 	private BufferedReader pythonOutput;
 		
 	public void execute() throws ExecutionException {
@@ -131,20 +133,22 @@ public class PythonPR extends AbstractLanguageAnalyser {
 				binPath += ".exe";
 			}
 
-			// Runs python some_script.py 
-			ProcessBuilder builder = new ProcessBuilder(binPath, Files.fileFromURL(script).getAbsolutePath());
+			// Runs python -u some_script.py  (unbuffered)
+			ProcessBuilder builder = new ProcessBuilder(binPath, "-u", Files.fileFromURL(script).getAbsolutePath());
 			lastPythonBinary = pythonBinary;
 			lastScript = script;
 
 			try {
 				pythonProcess = builder.start();
-				discard(pythonProcess.getErrorStream());
+				// discard(pythonProcess.getErrorStream());
 				pythonInput = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream(), "UTF-8"));
 				pythonOutput = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream(), "UTF-8"));
 
 				JsonFactory factory = new JsonFactory(); // Todo: maybe move this into Init if it causes problems
 
 				pythonJsonG = factory.createGenerator(pythonInput);
+				factory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+				pythonObjectMapper = new ObjectMapper(factory);
 			} catch(IOException e) {
 				throw new ExecutionException("Could not start python", e);
 			}
@@ -153,8 +157,13 @@ public class PythonPR extends AbstractLanguageAnalyser {
 		// Python is definitely running.
 		Map<String, Collection<Annotation>> allAnnotations = new TreeMap<String, Collection<Annotation>>();
 
+		System.out.println("Gathering annotations");
+		Set<String> annotationSetNames = new TreeSet<String>();
+		annotationSetNames.add(""); // Include the default annotation set.
+		annotationSetNames.addAll(getDocument().getAnnotationSetNames());
+
 		// Collect all annotations together in a format we can output directly to JSON
-		for (String annotationSetName : getDocument().getAnnotationSetNames()) {
+		for (String annotationSetName : annotationSetNames) {
 			AnnotationSet annotationSet = getDocument().getAnnotations(annotationSetName);
 
 			for (Annotation annotation : annotationSet) {
@@ -170,10 +179,15 @@ public class PythonPR extends AbstractLanguageAnalyser {
 			}
 		}
 
+		System.out.println("Done gathering annotations");
+
+		System.out.println("Outputting document");
+
 		// Output the document in JSON format on the pipe
 		try {
 			DocumentJsonUtils.writeDocument(getDocument(), 0l, getDocument().getContent().size(), allAnnotations, null, null,
 				"annotationID", pythonJsonG);
+			pythonJsonG.writeRaw("\n");
 			pythonJsonG.flush();
 		} catch (InvalidOffsetException e) {
 			log.error("Impossible document offset exception", e);
@@ -187,57 +201,53 @@ public class PythonPR extends AbstractLanguageAnalyser {
 			throw new ExecutionException("Unable to flush JSON to python process", e);
 		}
 
-		// try {
-		// 		// morfette replies with one line per token followed by a blank
-		// 		Iterator<String> stringIt = tokenStrings.iterator();
-		// 		for(Annotation tok : tokensInSentence) {
-		// 			String tokenString = stringIt.next(); // guaranteed to work as strings and tokens lists are parallel
-		// 			String line = pythonOutput.readLine();
-		// 			String[] fields = spacePattern.split(line, 3);
-		// 			// first field is the string, second the name, third the morphosyntactic tag
-		// 			if(!tokenString.equals(fields[0])) {
-		// 				// something wrong!
-		// 				throw new ExecutionException("Mismatched token returned by morfette - returned \"" + fields[0] + "\" but expected \"" + tokenString + "\"");
-		// 			}
-		// 			if(fields.length > 1) {
-		// 				tok.getFeatures().put("root", fields[1]);
-		// 			} else {
-		// 				log.warn("Morfette failed to return a root for token " + tok + " in document " + getDocument().getName());
-		// 			}
-		// 			if(fields.length > 2) {
-		// 				tok.getFeatures().put("morfetteTag", fields[2]);
-		// 			}
-		// 		}
-		// 		// read the blank line following sentence
-		// 		pythonOutput.readLine();
-		// 	} catch(Exception e) {
-		// 		// something went wrong, kill process to start clean next time
-		// 		cleanupProcess();
-		// 		if(e instanceof ExecutionException) {
-		// 			throw (ExecutionException)e;
-		// 		} else {
-		// 			throw new ExecutionException("Exception running python", e);
-		// 		}
-		// }
+		System.out.println("Done outputting document");
 
-		// AnnotationSet inputAS = getDocument().getAnnotations(annotationSetName);
-		// List<Annotation> sentences = Utils.inDocumentOrder(inputAS.get(sentenceAnnotationType));
-		// AnnotationSet allTokens = inputAS.get(tokenAnnotationType);
-		// for(Annotation sentence : sentences) {
-		// 	List<Annotation> tokensInSentence = Utils.inDocumentOrder(Utils.getContainedAnnotations(allTokens, sentence));
-		// 	List<String> tokenStrings = new ArrayList<>();
-		// 	for(Annotation tok : tokensInSentence) {
-		// 		String tokenString = String.valueOf(tok.getFeatures().get(tokenStringFeature));
-		// 		// morfette absolutely forbids spaces in token strings, so...
-		// 		Matcher m = upToSpacePattern.matcher(tokenString);
-		// 		m.find(); // cannot fail
-		// 		tokenString = m.group(1);
-		// 		tokenStrings.add(tokenString);
-		// 		pythonInput.println(tokenString);
-		// 	}
-			
-			
-		// }
+		// Parse the reply, which should be a list of commands.
+
+		AnnotationSet targetAnnotationSet;
+		Annotation targetAnnotation;
+		try {
+			List<Command> commands = (List<Command>) pythonObjectMapper.readValue(pythonOutput, new TypeReference<List<Command>>() {} );
+			for (Command command : commands) {
+				switch (command.getCommand()) {
+					case ADD_ANNOT:
+						getDocument().getAnnotations(command.getAnnotationSet()).
+										add(command.getStartOffset(), command.getEndOffset(),
+												command.getAnnotationName(), Utils.toFeatureMap(command.getFeatureMap()));
+						break;
+					case REMOVE_ANNOT:
+						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
+						targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
+						targetAnnotationSet.remove(targetAnnotation);
+						break;
+					case UPDATE_FEATURE:
+						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
+						targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
+						targetAnnotation.getFeatures().put(command.getFeatureName(), command.getFeatureValue());
+						break;
+					case CLEAR_FEATURES:
+						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
+						targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
+						targetAnnotation.getFeatures().clear();
+						break;
+					case REMOVE_FEATURE:
+						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
+						targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
+						targetAnnotation.getFeatures().remove(command.getFeatureName());
+						break;
+
+				}
+			}
+		} catch (IOException e) {
+			log.error("Unable to read JSON from python process, closing pipeline", e);
+
+			cleanupProcess();
+			throw new ExecutionException("Unable to read JSON from python process", e);
+		} catch (InvalidOffsetException e) {
+			cleanupProcess();
+			throw new ExecutionException("Unable to apply changes requested by python script", e);
+		}
 	}
 	
 	protected boolean processRunning() {
@@ -256,7 +266,7 @@ public class PythonPR extends AbstractLanguageAnalyser {
 		Thread t = new Thread() {
 			public void run() {
 				try {
-					IOUtils.copy(stream, (log.isDebugEnabled() ? System.err : NullOutputStream.NULL_OUTPUT_STREAM));
+					IOUtils.copy(stream, System.err);
 				} catch(IOException e) {
 					log.warn("Error discarding stderr output from python", e);
 				}
@@ -270,7 +280,7 @@ public class PythonPR extends AbstractLanguageAnalyser {
 		if(pythonProcess != null) {
 			IOUtils.closeQuietly(pythonInput);
 			try {
-				IOUtils.copy(pythonOutput, (log.isDebugEnabled() ? System.err : NullOutputStream.NULL_OUTPUT_STREAM));
+				IOUtils.copy(pythonOutput, (true ? System.err : NullOutputStream.NULL_OUTPUT_STREAM));
 			} catch(IOException e1) {
 				log.warn("Exception draining python output stream");
 			}

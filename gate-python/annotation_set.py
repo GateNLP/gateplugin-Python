@@ -41,8 +41,15 @@ class AnnotationSet(object):
 
 		annotation = Annotation(self.logger, self, _id, annotType, start, end, features)
 
-		self.logger.append(("ADD_ANNOT", self.name, start, end, annotType, features, 
-			annotation.id))
+		self.logger.append({
+			"command": "ADD_ANNOT", 
+			"annotationSet": self.name, 
+			"startOffset": start, 
+			"endOffset": end, 
+			"annotationName": annotType, 
+			"featuresMap": features, 
+			"annotationID": annotation.id}
+			)
 
 		self._annot_ids.add(annotation.id)
 		self._annotations_start.insert(annotation)
@@ -51,7 +58,10 @@ class AnnotationSet(object):
 		return annotation
 
 	def remove(self, annotation):
-		self.logger.append(("REMOVE_ANNOT", self.name, annotation.id))
+		self.logger.append({
+			"command": "REMOVE_ANNOT", 
+			"annotationSet": self.name, 
+			"annotationID": annotation.id})
 		self._annotations_start.remove(annotation)
 		self._annotations_end.remove(annotation)
 

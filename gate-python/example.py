@@ -1,31 +1,42 @@
 from document import Document
 from pprint import pprint
 import json
-import nltk
 import sys
 
-with open(sys.argv[1]) as f:
-	js = json.load(f)
 
-logger, doc = Document.load(js)
+test_log = open("/Users/dominic/Desktop/test_log.txt","a")
+# js = json.load(sys.stdin)
+line = sys.stdin.readline().strip()
+while line:
+	print >> test_log, line
 
-NLTK = doc.annotationSets["NLTK"]
+	if line:
+		js = json.loads(line)
 
-m = NLTK.getType("Token")
-for annotation in m:
-	try:
-		annotation.features["a_new_feature"] = "someValue3"
-		del annotation.features["feature1"]
-		annotation.features["feature2"] = "aTotallyNewValue"
-	except KeyError:
-		pass
+		print >> test_log, js
+		test_log.flush()
 
-m = NLTK.getType("Toke")
-for annotation in m:
-	annotation.features.clear()
+		logger, doc = Document.load(js)
 
 
-print json.dumps(logger)
+		NLTK = doc.annotationSets[""]
+
+		m = NLTK.getType("Token")
+		for annotation in m:
+			try:
+				# annotation.features["a_new_feature"] = "someValue3"
+				annotation.features["feature2"] = "aTotallyNewValue"
+				del annotation.features["a_new_feature"]
+			except KeyError:
+				pass
+
+
+		print json.dumps(logger)
+		print ""
+		sys.stdout.flush()
+
+		line = sys.stdin.readline().strip()
+
 # Mentions = doc.annotationSets["Mentions"]
 
 # userIDs = Mentions.getType("UserID")

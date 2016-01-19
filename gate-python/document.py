@@ -10,7 +10,7 @@ class _AnnotationSetsDict(defaultdict):
 	def __missing__(self, key):
 		annotationSet = AnnotationSet(self.doc, self.logger, key)
 		self[key] = annotationSet
-		self.logger.append(("CREATE_AS", key))
+		# self.logger.append(("CREATE_AS", key))
 		return annotationSet
 
 class Document(object):
@@ -27,13 +27,14 @@ class Document(object):
 
 		doc = Document(logger, json["text"])
 
-		for entity_key, instances in json["entities"].iteritems():
-			annotation_set, annotation_name = entity_key.split(":")
-			for entity in instances:
-				start, end = entity.pop("indices")
-				_id = entity.pop("annotationID")
-				doc.annotationSets[annotation_set].add(start, end, 
-					annotation_name, entity, _id)
+		if "entities" in json and len(json["entities"]):
+			for entity_key, instances in json["entities"].iteritems():
+				annotation_set, annotation_name = entity_key.split(":")
+				for entity in instances:	
+					start, end = entity.pop("indices")
+					_id = entity.pop("annotationID")
+					doc.annotationSets[annotation_set].add(start, end, 
+						annotation_name, entity, _id)
 
 		del logger[:]
 		return logger, doc

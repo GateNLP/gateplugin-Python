@@ -7,32 +7,40 @@ class InstrumentedFeaturesDict(dict):
 		self.annotation = annotation
 
 	def clear(self):
-		self.logger.append(("CLEAR_FEATURES", 
-			self.annotation.annotationSet.name, 
-			self.annotation.id))
+		self.logger.append(			{
+				"command": "CLEAR_FEATURES", 
+				"annotationSet": self.annotation.annotationSet.name, 
+				"annotationID": self.annotation.id
+			})
 		super(InstrumentedFeaturesDict, self).clear()
 
 	def pop(self, key, default = None):
-		self.logger.append(("REMOVE_FEATURE", 
-			self.annotation.annotationSet.name, 
-			self.annotation.id, 
-			key))
+		self.logger.append({
+			"command": "REMOVE_FEATURE", 
+			"annotationSet": self.annotation.annotationSet.name, 
+			"annotationID": self.annotation.id,
+			"featureName": key
+		})
 		return super(InstrumentedFeaturesDict, self).pop(key, default)
 
 	def __setitem__(self, key, value):
-		self.logger.append(("UPDATE_FEATURE", 
-			self.annotation.annotationSet.name, 
-			self.annotation.id, 
-			key,
-			value))
+		self.logger.append({
+			"command": "UPDATE_FEATURE", 
+			"annotationSet": self.annotation.annotationSet.name, 
+			"annotationID": self.annotation.id,
+			"featureName": key,
+			"featureValue": value
+		})
 		super(InstrumentedFeaturesDict, self).__setitem__(key, value)
 
 
 	def __delitem__(self, key):
-		self.logger.append(("REMOVE_FEATURE", 
-			self.annotation.annotationSet.name, 
-			self.annotation.id, 
-			key))
+		self.logger.append({
+			"command": "REMOVE_FEATURE", 
+			"annotationSet": self.annotation.annotationSet.name, 
+			"annotationID": self.annotation.id,
+			"featureName": key
+		})		
 		super(InstrumentedFeaturesDict, self).__delitem__(key)
 
 
