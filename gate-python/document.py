@@ -20,8 +20,7 @@ class Document(object):
 	def __init__(self, logger, text):
 		self.logger = logger
 		self.annotationSets = _AnnotationSetsDict(self, self.logger)
-		text = html_parser.unescape(text)
-		self._text = SimpleSourcedUnicodeString(text, text)
+		self._text = text
 
 	@staticmethod
 	def load(json):
@@ -29,7 +28,10 @@ class Document(object):
 			returns a document and a change logger"""
 		logger = []
 
-		doc = Document(logger, json["text"])
+		text = SimpleSourcedUnicodeString(json["text"], json["text"])
+		text = html_parser.unescape(text)
+
+		doc = Document(logger, text)
 
 		if "entities" in json and len(json["entities"]):
 			for entity_key, instances in json["entities"].iteritems():
@@ -39,6 +41,15 @@ class Document(object):
 					_id = entity.pop("annotationID")
 					doc.annotationSets[annotation_set].add(start, end, 
 						annotation_name, entity, _id)
+
+		# Compensate for text unescape. happens here to take advantage of indices.			
+		for real_offset, source in text.sources:
+			if source.begin != source.end and real_offset != source.begin:
+				for annotationSet in doc.annotationSets.values():
+					offset_adjust = source.begin - real_offset
+					for annotation in annotationSet.get(source.begin, source.end):
+						annotation.start -= offset_adjust
+						annotation.end -= offset_adjust
 
 		del logger[:]
 		return logger, doc
