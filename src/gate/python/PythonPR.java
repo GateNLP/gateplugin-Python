@@ -170,7 +170,6 @@ public class PythonPR extends AbstractLanguageAnalyser {
 		// Python is definitely running.
 		Map<String, Collection<Annotation>> allAnnotations = new TreeMap<String, Collection<Annotation>>();
 
-		System.out.println("Gathering annotations");
 		Set<String> annotationSetNames = new TreeSet<String>();
 		annotationSetNames.add(""); // Include the default annotation set.
 		annotationSetNames.addAll(getDocument().getAnnotationSetNames());
@@ -192,10 +191,6 @@ public class PythonPR extends AbstractLanguageAnalyser {
 			}
 		}
 
-		System.out.println("Done gathering annotations");
-
-		System.out.println("Outputting document");
-
 		// Output the document in JSON format on the pipe
 		try {
 			DocumentJsonUtils.writeDocument(getDocument(), 0l, getDocument().getContent().size(), allAnnotations, null, null,
@@ -214,7 +209,6 @@ public class PythonPR extends AbstractLanguageAnalyser {
 			throw new ExecutionException("Unable to flush JSON to python process", e);
 		}
 
-		System.out.println("Done outputting document");
 
 		// Parse the reply, which should be a list of commands.
 
