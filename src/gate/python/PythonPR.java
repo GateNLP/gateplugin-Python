@@ -3,11 +3,9 @@ package gate.python;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gate.Annotation;
-import gate.AnnotationSet;
-import gate.Gate;
-import gate.Utils;
+import gate.*;
 import gate.creole.AbstractLanguageAnalyser;
+import gate.creole.ControllerAwarePR;
 import gate.creole.ExecutionException;
 import gate.creole.metadata.CreoleParameter;
 import gate.creole.metadata.CreoleResource;
@@ -28,28 +26,26 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 
 @CreoleResource(name = "Python PR", comment = "Runs a Python script as a processing resource")
-public class PythonPR extends AbstractLanguageAnalyser {
+public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwarePR {
 
 	private static final Logger log = Logger.getLogger(PythonPR.class);
 	
-	private URL pythonBinary;
+	private String pythonBinary;
 	
-	private URL lastPythonBinary;
+	private String lastPythonBinary;
+
+	private Boolean forceRestart;
 
 	private URL script;
 	
@@ -59,16 +55,16 @@ public class PythonPR extends AbstractLanguageAnalyser {
 	
 	private String outputAS;
 	
-	private Map<String, Object> scriptParams;
+	private FeatureMap scriptParams;
 	
 
-	public URL getPythonBinary() {
+	public String getPythonBinary() {
 		return pythonBinary;
 	}
 
 	@RunTime
-	@CreoleParameter(defaultValue = "python", comment = "Location of the python binary")
-	public void setPythonBinary(URL pythonBinary) {
+	@CreoleParameter(defaultValue = "python", comment = "Python command to use")
+	public void setPythonBinary(String pythonBinary) {
 		this.pythonBinary = pythonBinary;
 	}
 
@@ -81,7 +77,9 @@ public class PythonPR extends AbstractLanguageAnalyser {
 	public void setScript(URL script) {
 		this.script = script;
 	}
-		@RunTime
+
+	@RunTime
+	@Optional
 	@CreoleParameter(comment = "Input annotation set to use")
 	public void setInputAS(String inputAS) {
 		this.inputAS = inputAS;
@@ -92,9 +90,32 @@ public class PythonPR extends AbstractLanguageAnalyser {
 	}
 
 	@RunTime
+	@Optional
 	@CreoleParameter(comment = "Output annotation set to use")
 	public void setOutputAS(String outputAS) {
 		this.outputAS = outputAS;
+	}
+
+
+	public Boolean getForceRestart() {
+		return forceRestart;
+	}
+
+	@RunTime
+	@CreoleParameter(defaultValue="false", comment = "Force a restart on the next document. Will toggle when executed.")
+	public void setForceRestart(Boolean forceRestart) {
+		this.forceRestart = forceRestart;
+	}
+
+	public FeatureMap getScriptParams() {
+		return scriptParams;
+	}
+
+	@RunTime
+	@Optional
+	@CreoleParameter(comment = "Extra parameters to pass to the string")
+	public void setScriptParams(FeatureMap scriptParams) {
+		this.scriptParams = scriptParams;
 	}
 
 	public String getOutputAS() {
@@ -112,60 +133,7 @@ public class PythonPR extends AbstractLanguageAnalyser {
 	private BufferedReader pythonOutput;
 		
 	public void execute() throws ExecutionException {
-		boolean needNewProcess = (!processRunning() || 
-					!ObjectUtils.equals(pythonBinary, lastPythonBinary) || 
-					!ObjectUtils.equals(script, lastScript));
-
-		// Close the existing long-running process before opening a new one, if needed
-		if(pythonProcess != null && needNewProcess) {
-			IOUtils.closeQuietly(pythonInput);
-			try {
-				pythonProcess.waitFor();
-			} catch(InterruptedException e) {
-				Thread.currentThread().interrupt();
-				throw new ExecutionException("Interrupted while waiting for python to exit");
-			}      
-		}
-
-		// Start the fresh process as needed.
-		if(needNewProcess) {
-			String binPath = Files.fileFromURL(pythonBinary).getAbsolutePath();
-
-			// Windows special case, ensure the binary name ends with .exe
-			if(SystemUtils.IS_OS_WINDOWS && !binPath.endsWith(".exe")) {
-				binPath += ".exe";
-			}
-
-			// Runs python -u some_script.py  (unbuffered)
-
-			ProcessBuilder builder = new ProcessBuilder(binPath, "-u", Files.fileFromURL(script).getAbsolutePath());
-			try {
-				// Todo: there must be a better way to achieve this
-				URL pythonPath = new URL(Gate.getCreoleRegister().get(this.getClass().getName()).getXmlFileUrl(), ".");
-				String oldPythonPath = System.getenv("PYTHONPATH");
-				oldPythonPath = oldPythonPath != null ? oldPythonPath : ".";
-				builder.environment().put("PYTHONPATH", oldPythonPath + ":" + pythonPath.getPath());
-			} catch (MalformedURLException e) {
-				throw new ExecutionException("Couldn't form python path for running PR", e);
-			}
-			lastPythonBinary = pythonBinary;
-			lastScript = script;
-
-			try {
-				pythonProcess = builder.start();
-				report(pythonProcess.getErrorStream());
-				pythonInput = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream(), "UTF-8"));
-				pythonOutput = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream(), "UTF-8"));
-
-				JsonFactory factory = new JsonFactory(); // Todo: maybe move this into Init if it causes problems
-
-				pythonJsonG = factory.createGenerator(pythonInput);
-				factory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
-				pythonObjectMapper = new ObjectMapper(factory);
-			} catch(IOException e) {
-				throw new ExecutionException("Could not start python", e);
-			}
-		}
+		ensureProcess();
 		
 		// Python is definitely running.
 		Map<String, Collection<Annotation>> allAnnotations = new TreeMap<String, Collection<Annotation>>();
@@ -193,8 +161,15 @@ public class PythonPR extends AbstractLanguageAnalyser {
 
 		// Output the document in JSON format on the pipe
 		try {
-			DocumentJsonUtils.writeDocument(getDocument(), 0l, getDocument().getContent().size(), allAnnotations, null, null,
-				"annotationID", pythonJsonG);
+			HashMap<String, Object> extraFeatures = new HashMap<>();
+			extraFeatures.put("inputAS", inputAS);
+			extraFeatures.put("outputAS", outputAS);
+			extraFeatures.put("scriptParams", scriptParams);
+			extraFeatures.put("documentFeatures", document.getFeatures());
+
+			DocumentJsonUtils.writeDocument(getDocument(), 0l, getDocument().getContent().size(), allAnnotations,
+					extraFeatures, null, "annotationID", pythonJsonG);
+
 			pythonJsonG.writeRaw("\n");
 			pythonJsonG.flush();
 		} catch (InvalidOffsetException e) {
@@ -220,8 +195,8 @@ public class PythonPR extends AbstractLanguageAnalyser {
 				switch (command.getCommand()) {
 					case ADD_ANNOT:
 						getDocument().getAnnotations(command.getAnnotationSet()).
-										add(command.getStartOffset(), command.getEndOffset(),
-												command.getAnnotationName(), Utils.toFeatureMap(command.getFeatureMap()));
+							add(command.getStartOffset(), command.getEndOffset(),
+							command.getAnnotationName(), Utils.toFeatureMap(command.getFeatureMap()));
 						break;
 					case REMOVE_ANNOT:
 						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
@@ -256,7 +231,61 @@ public class PythonPR extends AbstractLanguageAnalyser {
 			throw new ExecutionException("Unable to apply changes requested by python script", e);
 		}
 	}
-	
+
+	private void ensureProcess() throws ExecutionException {
+		boolean needNewProcess = forceRestart || (!processRunning() ||
+					!ObjectUtils.equals(pythonBinary, lastPythonBinary) ||
+					!ObjectUtils.equals(script, lastScript));
+
+		// Close the existing long-running process before opening a new one, if needed
+		if(pythonProcess != null && needNewProcess) {
+			IOUtils.closeQuietly(pythonInput);
+			try {
+				pythonProcess.waitFor();
+			} catch(InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new ExecutionException("Interrupted while waiting for python to exit");
+			}
+		}
+		// Start the fresh process as needed.
+		if(needNewProcess) {
+			// Runs python -u some_script.py  (unbuffered)
+			ProcessBuilder builder = new ProcessBuilder(pythonBinary, "-u", Files.fileFromURL(script).getAbsolutePath());
+			try {
+				// Todo: there must be a better way to achieve this
+				URL pythonPath = new URL(Gate.getCreoleRegister().get(this.getClass().getName()).getXmlFileUrl(), ".");
+				String oldPythonPath = System.getenv("PYTHONPATH");
+				oldPythonPath = oldPythonPath != null ? oldPythonPath : ".";
+				builder.environment().put("PYTHONPATH", oldPythonPath + ":" + pythonPath.getPath());
+
+				builder.directory(Files.fileFromURL(script).getAbsoluteFile().getParentFile());
+			} catch (MalformedURLException e) {
+				throw new ExecutionException("Couldn't form python path for running PR", e);
+			}
+
+			lastPythonBinary = pythonBinary;
+			lastScript = script;
+
+			try {
+				pythonProcess = builder.start();
+
+				setForceRestart(false);
+				report(pythonProcess.getErrorStream());
+				pythonInput = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream(), "UTF-8"));
+				pythonOutput = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream(), "UTF-8"));
+
+				JsonFactory factory = new JsonFactory(); // Todo: maybe move this into Init if it causes problems
+
+				pythonJsonG = factory.createGenerator(pythonInput);
+				factory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+				pythonObjectMapper = new ObjectMapper(factory);
+			} catch(IOException e) {
+				throw new ExecutionException("Could not start python", e);
+			}
+
+		}
+	}
+
 	protected boolean processRunning() {
 		if(pythonProcess == null) return false;
 		
@@ -304,5 +333,57 @@ public class PythonPR extends AbstractLanguageAnalyser {
 	public void cleanup() {
 		super.cleanup();
 		cleanupProcess();
+	}
+
+	@Override
+	public void controllerExecutionStarted(Controller controller) throws ExecutionException {
+		ensureProcess();
+		ExecutionCommand command = new ExecutionCommand();
+		command.setCommand(ExecutionCommandEnum.BEGIN_EXECUTION);
+
+		if (corpus != null) {
+			command.setCorpusName(corpus.getName());
+			command.setCorpusFeatures(corpus.getFeatures());
+		}
+
+		try {
+
+			pythonObjectMapper.writeValue(pythonJsonG, command);
+			pythonJsonG.writeRaw("\n");
+			pythonJsonG.flush();
+
+		} catch (IOException e) {
+			throw new ExecutionException("Unable to send begin execution command to python process");
+		}
+	}
+
+	@Override
+	public void controllerExecutionFinished(Controller controller) throws ExecutionException {
+		ensureProcess();
+		ExecutionCommand command = new ExecutionCommand();
+		command.setCommand(ExecutionCommandEnum.END_EXECUTION);
+
+		try {
+			pythonObjectMapper.writeValue(pythonJsonG, command);
+			pythonJsonG.writeRaw("\n");
+			pythonJsonG.flush();
+		} catch (IOException e) {
+			throw new ExecutionException("Unable to send end execution command to python process");
+		}
+	}
+
+	@Override
+	public void controllerExecutionAborted(Controller controller, Throwable throwable) throws ExecutionException {
+		ensureProcess();
+		ExecutionCommand command = new ExecutionCommand();
+		command.setCommand(ExecutionCommandEnum.ABORT_EXECUTION);
+
+		try {
+			pythonObjectMapper.writeValue(pythonJsonG, command);
+			pythonJsonG.writeRaw("\n");
+			pythonJsonG.flush();
+		} catch (IOException e) {
+			throw new ExecutionException("Unable to send abort execution command to python process");
+		}
 	}
 }
