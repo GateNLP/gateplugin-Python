@@ -12,24 +12,19 @@ The PythonPR transmits GATE documents in JSON format to the client, and waits fo
 
 ## The python GATE library
 
-This library consists of code to convert the JSON formatted document into a representation similar to that used within GATE itself. It allows for the modification of annotation sets and features, which will then be reflected in GATE. The following is an example using JSON. Note that at this stage the API is likely to change:
+This library consists of code to convert the JSON formatted document into a representation similar to that used within GATE itself. It allows for the modification of annotation sets and features, which will then be reflected in GATE. The following is a simple example:
 
 ```python
-json = json.loads(input_line)
-logger, doc = Document.load(json)
+self.document.text.split(" ")
+for token in self.document.annotationSets[""].getType("Token"):
+	print >> sys.stderr, repr(self.document.text[token.start:token.end])
 
-annotation_set = doc.annotationSets["testAnnotationSet"]
-
-annotations = annotation_set.getType("annotationType")
-
-for annotation in annotations:
-	annotation_text = doc.text[annotations.start:annotations.end]
-	topic_scores = lda[lda.id2word.doc2bow(annotation_text.lower().split())]
-
-	annotation_set.add(annotation.start, 
-		annotation.end, 
-		"LDA", {str(topic): score for topic, score in topic_scores})
-
+for token in self.document.text.split(" "):
+	print >> sys.stderr, repr(token)
+	self.document.annotationSets["PYTHON_TEST"].add(token.source.begin, 
+		token.source.end, 
+		"Token", 
+		{"string":token})
 ```
 
 ## Usage
@@ -46,23 +41,19 @@ Add the plugin within GATE (Creole Plugin Manager then click '+' then select the
 
 Create a new PythonPR and add it to an application, configure the location of your Python executable and the location of a new script.
 
-The script should use (for now) the following template:
+The script should use the following template:
 
 ```python
-from gate.document import Document
-import json
-import sys
+from gate import ProcessingResource
 
-input_line = sys.stdin.readline().strip()
-while input_line:
-	if input_line:
-		json = json.loads(input_line)
-		logger, doc = Document.load(json)
+class TemplatePR(ProcessingResource):
+	def init(self): 
+		pass
 
-		# INSERT YOUR CODE HERE
+	def execute(self):
+		pass
 
-		print json.dumps(logger)
-		sys.stdout.flush()
-
-		input_line = sys.stdin.readline().strip()
+if __name__ == "__main__":
+	pr = TemplatePR()
+	pr.start()
 ```
