@@ -49,7 +49,7 @@ Create a new PythonPR and add it to an application, configure the location of yo
 The script should use (for now) the following template:
 
 ```python
-from document import Document
+from gate.document import Document
 import json
 import sys
 
