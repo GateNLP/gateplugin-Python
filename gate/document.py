@@ -48,7 +48,8 @@ class Document(object):
 				for annotationSet in doc.annotationSets.values():
 					offset_adjust = source.begin - real_offset
 					for annotation in annotationSet.get(source.begin, source.end):
-						annotation.start -= offset_adjust
+						if annotation.start > source.begin:
+							annotation.start -= offset_adjust
 						annotation.end -= offset_adjust
 
 		del logger[:]

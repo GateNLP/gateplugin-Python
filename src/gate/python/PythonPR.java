@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gate.Annotation;
 import gate.AnnotationSet;
+import gate.Gate;
 import gate.Utils;
 import gate.creole.AbstractLanguageAnalyser;
 import gate.creole.ExecutionException;
@@ -26,6 +27,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -134,13 +137,23 @@ public class PythonPR extends AbstractLanguageAnalyser {
 			}
 
 			// Runs python -u some_script.py  (unbuffered)
+
 			ProcessBuilder builder = new ProcessBuilder(binPath, "-u", Files.fileFromURL(script).getAbsolutePath());
+			try {
+				// Todo: there must be a better way to achieve this
+				URL pythonPath = new URL(Gate.getCreoleRegister().get(this.getClass().getName()).getXmlFileUrl(), ".");
+				String oldPythonPath = System.getenv("PYTHONPATH");
+				oldPythonPath = oldPythonPath != null ? oldPythonPath : ".";
+				builder.environment().put("PYTHONPATH", oldPythonPath + ":" + pythonPath.getPath());
+			} catch (MalformedURLException e) {
+				throw new ExecutionException("Couldn't form python path for running PR", e);
+			}
 			lastPythonBinary = pythonBinary;
 			lastScript = script;
 
 			try {
 				pythonProcess = builder.start();
-				// discard(pythonProcess.getErrorStream());
+				report(pythonProcess.getErrorStream());
 				pythonInput = new PrintWriter(new OutputStreamWriter(pythonProcess.getOutputStream(), "UTF-8"));
 				pythonOutput = new BufferedReader(new InputStreamReader(pythonProcess.getInputStream(), "UTF-8"));
 
@@ -262,7 +275,7 @@ public class PythonPR extends AbstractLanguageAnalyser {
 		}
 	}
 	
-	protected void discard(final InputStream stream) {
+	protected void report(final InputStream stream) {
 		Thread t = new Thread() {
 			public void run() {
 				try {
