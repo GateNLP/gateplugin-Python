@@ -19,12 +19,7 @@ import gate.util.InvalidOffsetException;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -256,8 +251,8 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 				URL pythonPath = new URL(Gate.getCreoleRegister().get(this.getClass().getName()).getXmlFileUrl(), ".");
 				String oldPythonPath = System.getenv("PYTHONPATH");
 				oldPythonPath = oldPythonPath != null ? oldPythonPath : ".";
-				builder.environment().put("PYTHONPATH", oldPythonPath + ":" + pythonPath.getPath());
-
+				builder.environment().put("PYTHONPATH", oldPythonPath + File.pathSeparator +
+						Files.fileFromURL(pythonPath).getAbsolutePath());
 				builder.directory(Files.fileFromURL(script).getAbsoluteFile().getParentFile());
 			} catch (MalformedURLException e) {
 				throw new ExecutionException("Couldn't form python path for running PR", e);
