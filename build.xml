@@ -31,6 +31,7 @@
 
 	<property environment="env"/>
 
+
 	<!-- Path to compile - includes gate.jar and GATE/lib/*.jar -->
 	<path id="gate.classpath">
 		<pathelement location="${gate.jar}" />
@@ -55,6 +56,9 @@
 		<mkdir dir="${build}"/>
 		<mkdir dir="${lib}"/>
 
+		<manifest file="${build}/MANIFEST.MF">
+			<attribute name="Main-Class" value="gate.python.PythonGATEInstance"/>
+		</manifest>
 	</target>
 
 	<target name="compile" depends="init"
@@ -75,7 +79,7 @@
 		<mkdir dir="${dist.lib.dir}" />
 
 
-		<jar jarfile="gateplugin-python.jar" basedir="${build}" index="true">
+		<jar jarfile="gateplugin-python.jar" manifest="${build}/MANIFEST.MF" basedir="${build}" index="true">
 		</jar>
 	</target>
 

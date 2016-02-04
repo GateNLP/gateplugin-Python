@@ -15,10 +15,11 @@ class _AnnotationSetsDict(defaultdict):
 		return annotationSet
 
 class Document(object):
-	def __init__(self, logger, text, features):
+	def __init__(self, logger, text, features, src=None):
 		self.logger = logger
 		self.annotationSets = _AnnotationSetsDict(self, self.logger)
 		self._text = text
+		self.src = src
 
 	entitydefs = dict()
 	@staticmethod
@@ -54,7 +55,7 @@ class Document(object):
 		return re.sub(r"&(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));", replaceEntities, s)
 
 	@staticmethod
-	def load(json):
+	def load(json, src=None):
 		"""Loads the document from a dictionary that results from GATE json, 
 			returns a document and a change logger"""
 		logger = []
@@ -63,7 +64,7 @@ class Document(object):
 		text = Document.unescape(text)
 		features = json["documentFeatures"]
 
-		doc = Document(logger, text, features)
+		doc = Document(logger, text, features, src)
 
 		if "entities" in json and len(json["entities"]):
 			for entity_key, instances in json["entities"].iteritems():
@@ -87,7 +88,7 @@ class Document(object):
 		doc._text = SimpleSourcedUnicodeString(doc.text, doc.text)
 
 		del logger[:]
-		return logger, doc
+		return doc
 
 
 

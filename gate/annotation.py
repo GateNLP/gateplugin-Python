@@ -1,5 +1,3 @@
-import uuid
-
 class InstrumentedFeaturesDict(dict): 
 	def __init__(self, annotation, logger, features):
 		super(InstrumentedFeaturesDict, self).__init__(features)

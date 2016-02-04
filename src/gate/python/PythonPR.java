@@ -131,15 +131,91 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		ensureProcess();
 		
 		// Python is definitely running.
+		HashMap<String, Object> extraFeatures = new HashMap<>();
+		extraFeatures.put("inputAS", inputAS);
+		extraFeatures.put("outputAS", outputAS);
+		extraFeatures.put("scriptParams", scriptParams);
+
+		try {
+			exportDocument(getDocument(), extraFeatures, pythonJsonG);
+		} catch (ExecutionException e) {
+			log.error(e);
+			cleanupProcess();
+		}
+
+
+		try {
+			// Parse the reply, which should be a list of commands.
+			List<Command> commands = (List<Command>) pythonObjectMapper.readValue(pythonOutput,
+					new TypeReference<List<Command>>() {} );
+			transformDocument(getDocument(), commands);
+		} catch (IOException e) {
+			log.error("Unable to read JSON from python process, closing pipeline", e);
+
+			cleanupProcess();
+			throw new ExecutionException("Unable to read JSON from python process", e);
+		} catch (InvalidOffsetException e) {
+			cleanupProcess();
+			throw new ExecutionException("Unable to apply changes requested by python script", e);
+		}
+	}
+
+	/**
+	 * Applies the supplied list of document change commands to the given document, and returns it.
+	 *
+	 * @param document
+	 * @param commands
+	 * @return
+	 * @throws InvalidOffsetException
+	 */
+	public static Document transformDocument(Document document, List<Command> commands) throws InvalidOffsetException {
+		AnnotationSet targetAnnotationSet;
+		Annotation targetAnnotation;
+		for (Command command : commands) {
+            switch (command.getCommand()) {
+                case ADD_ANNOT:
+                    document.getAnnotations(command.getAnnotationSet()).
+							add(command.getStartOffset(), command.getEndOffset(),
+									command.getAnnotationName(), Utils.toFeatureMap(command.getFeatureMap()));
+                    break;
+                case REMOVE_ANNOT:
+                    targetAnnotationSet = document.getAnnotations(command.getAnnotationSet());
+                    targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
+                    targetAnnotationSet.remove(targetAnnotation);
+                    break;
+                case UPDATE_FEATURE:
+                    targetAnnotationSet = document.getAnnotations(command.getAnnotationSet());
+                    targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
+                    targetAnnotation.getFeatures().put(command.getFeatureName(), command.getFeatureValue());
+                    break;
+                case CLEAR_FEATURES:
+                    targetAnnotationSet = document.getAnnotations(command.getAnnotationSet());
+                    targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
+                    targetAnnotation.getFeatures().clear();
+                    break;
+                case REMOVE_FEATURE:
+                    targetAnnotationSet = document.getAnnotations(command.getAnnotationSet());
+                    targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
+                    targetAnnotation.getFeatures().remove(command.getFeatureName());
+                    break;
+
+            }
+        }
+		return document;
+	}
+
+	public static void exportDocument(Document document, HashMap<String, Object> extraFeatures, JsonGenerator jsonG) throws ExecutionException {
+		extraFeatures.put("documentFeatures", document.getFeatures());
+
 		Map<String, Collection<Annotation>> allAnnotations = new TreeMap<String, Collection<Annotation>>();
 
 		Set<String> annotationSetNames = new TreeSet<String>();
 		annotationSetNames.add(""); // Include the default annotation set.
-		annotationSetNames.addAll(getDocument().getAnnotationSetNames());
+		annotationSetNames.addAll(document.getAnnotationSetNames());
 
 		// Collect all annotations together in a format we can output directly to JSON
 		for (String annotationSetName : annotationSetNames) {
-			AnnotationSet annotationSet = getDocument().getAnnotations(annotationSetName);
+			AnnotationSet annotationSet = document.getAnnotations(annotationSetName);
 
 			for (Annotation annotation : annotationSet) {
 				String type = annotation.getType();
@@ -156,17 +232,12 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 
 		// Output the document in JSON format on the pipe
 		try {
-			HashMap<String, Object> extraFeatures = new HashMap<>();
-			extraFeatures.put("inputAS", inputAS);
-			extraFeatures.put("outputAS", outputAS);
-			extraFeatures.put("scriptParams", scriptParams);
-			extraFeatures.put("documentFeatures", document.getFeatures());
 
-			DocumentJsonUtils.writeDocument(getDocument(), 0l, getDocument().getContent().size(), allAnnotations,
-					extraFeatures, null, "annotationID", pythonJsonG);
+			DocumentJsonUtils.writeDocument(document, 0l, document.getContent().size(), allAnnotations,
+					extraFeatures, null, "annotationID", jsonG);
 
-			pythonJsonG.writeRaw("\n");
-			pythonJsonG.flush();
+			jsonG.writeRaw("\n");
+			jsonG.flush();
 		} catch (InvalidOffsetException e) {
 			log.error("Impossible document offset exception", e);
 			throw new ExecutionException("Unable to write entire document span", e);
@@ -174,56 +245,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 			log.error("Unable to generate JSON for document", e);
 		} catch (IOException e) {
 			log.error("Unable to flush JSON to python process, closing pipeline", e);
-
-			cleanupProcess();
 			throw new ExecutionException("Unable to flush JSON to python process", e);
-		}
-
-
-		// Parse the reply, which should be a list of commands.
-
-		AnnotationSet targetAnnotationSet;
-		Annotation targetAnnotation;
-		try {
-			List<Command> commands = (List<Command>) pythonObjectMapper.readValue(pythonOutput, new TypeReference<List<Command>>() {} );
-			for (Command command : commands) {
-				switch (command.getCommand()) {
-					case ADD_ANNOT:
-						getDocument().getAnnotations(command.getAnnotationSet()).
-							add(command.getStartOffset(), command.getEndOffset(),
-							command.getAnnotationName(), Utils.toFeatureMap(command.getFeatureMap()));
-						break;
-					case REMOVE_ANNOT:
-						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
-						targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
-						targetAnnotationSet.remove(targetAnnotation);
-						break;
-					case UPDATE_FEATURE:
-						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
-						targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
-						targetAnnotation.getFeatures().put(command.getFeatureName(), command.getFeatureValue());
-						break;
-					case CLEAR_FEATURES:
-						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
-						targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
-						targetAnnotation.getFeatures().clear();
-						break;
-					case REMOVE_FEATURE:
-						targetAnnotationSet = getDocument().getAnnotations(command.getAnnotationSet());
-						targetAnnotation = targetAnnotationSet.get(command.getAnnotationID());
-						targetAnnotation.getFeatures().remove(command.getFeatureName());
-						break;
-
-				}
-			}
-		} catch (IOException e) {
-			log.error("Unable to read JSON from python process, closing pipeline", e);
-
-			cleanupProcess();
-			throw new ExecutionException("Unable to read JSON from python process", e);
-		} catch (InvalidOffsetException e) {
-			cleanupProcess();
-			throw new ExecutionException("Unable to apply changes requested by python script", e);
 		}
 	}
 

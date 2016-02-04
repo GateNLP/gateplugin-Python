@@ -31,14 +31,14 @@ class ProcessingResource(object):
 					elif input_json["command"] == "END_EXECUTION":
 						self.endExecution()
 				else:
-					self.logger, self.document = Document.load(input_json)
+					self.document = Document.load(input_json)
 					self.scriptParams = input_json["scriptParams"]
 					self.inputAS  = self.document.annotationSets[input_json["inputAS"]]
 					self.outputAS = self.document.annotationSets[input_json["outputAS"]]
 
 					self.execute()
 
-					print json.dumps(self.logger)
+					print json.dumps(self.document.logger)
 					sys.stdout.flush()
 
 			line = sys.stdin.readline().strip()

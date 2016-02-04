@@ -26,6 +26,9 @@ class AnnotationSet(object):
 		self._annotations_start = avl.new(source = values, compare = compare_start)
 		self._annotations_end = avl.new(source = values, compare = compare_end) 
 
+	def __len__(self):
+		return len(self._annotations_start)
+		
 	def append(self, annotation):
 		raise NotImplementedError("Cannot append directly to annotation set. Use add() instead.")
 
