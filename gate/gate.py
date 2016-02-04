@@ -1,5 +1,5 @@
 """Utilities to work with a GATE instance from within Python"""
-import os, json, sys
+import os, json, sys, urllib
 from document import Document
 from contextlib import contextmanager
 from subprocess import Popen, PIPE
@@ -21,25 +21,38 @@ class Gate(object):
 
 	def __enter__(self):
 		self.start()
+		return self
 
 	def __exit__(self, type, value, traceback):
 		self.stop()
 
+	def readResponse(self):
+		response = self.gateProcess.stdout.readline().strip()
+
+		while not response:
+			response = self.gateProcess.stdout.readline().strip()
+
+		try:
+			return json.loads(response)
+		except ValueError:
+			print >> sys.stderr, response
+			raise Exception(response)
+
 	def load(self, document):
-		return self.loadURL("file:///"+os.path.abspath(document))
+		return self.loadURL("file:///"+urllib.quote(os.path.abspath(document)))
 
 	def loadURL(self, document):
 		command = {
 			"command": "LOAD_DOCUMENT", 
 			"targetURL": document
 		}
-
 		print >> self.gateProcess.stdin, json.dumps(command)
 
-		return Document.load(json.loads(self.gateProcess.stdout.readline()), src=document)
+		return Document.load(self.readResponse(), src=document)
+
 
 	def save(self, document, output):
-		return self.saveURL(document, "file:///"+os.path.abspath(output))
+		return self.saveURL(document, "file:///"+urllib.quote(os.path.abspath(output)))
 
 	def saveURL(self, document, output):
 		command = {
@@ -51,8 +64,4 @@ class Gate(object):
 
 		print >> self.gateProcess.stdin, json.dumps(command)
 
-		response = self.gateProcess.stdout.readline()
-		try:
-			return Document.load(json.loads(response), src=output)
-		except ValueError:
-			print >> sys.stderr, response
+		return Document.load(self.readResponse(), src=output)
