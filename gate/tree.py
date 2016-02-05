@@ -134,7 +134,7 @@ if __name__ == "__main__":
 	avl_start_tree = avl.new(source = annotations_list, compare = compare_start)
 
 
-	for i in range(100):
+	for i in range(10000):
 		left = random.randint(0, 100)
 		right = random.randint(0, 100)
 		list_slice = [v for v in ordered_list if v >= left and v <= right]
