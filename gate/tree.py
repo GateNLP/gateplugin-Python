@@ -15,11 +15,75 @@ class SliceableTree(object):
 
 
 	class Node(object):
-		def __init__(self, value, parent = None, left = None, right = None):
+		BLACK = False
+		RED = True
+
+		def __init__(self, value, parent = None, left = None, right = None, colour = BLACK):
 			self.value = value
 			self.left = left
 			self.right = right
 			self.parent = parent
+			self.colour = colour
+
+		def grandparent(self):
+			if self.parent != None:
+				return self.parent.parent
+			else:
+				return None
+
+		def auntie(self):
+			grandparent = self.grandparent()
+
+			if grandparent:
+				if grandparent.left == self:
+					return grandparent.right
+				else:
+					return grandparent.left
+
+		def rotate_left(self):
+			grandparent = self.grandparent()
+			grandparent.left, node.left, grandparent.left.right = node, grandparent.left, node.left
+
+		def rotate_right(self):
+			grandparent = self.grandparent()
+			grandparent.right, node.right, grandparent.right.left = node, grandparent.right, node.right
+
+
+		def post_insert(self):
+			return
+			node = self
+
+			auntie = node.auntie()
+			grandparent = node.grandparent()
+
+			if node.parent is None:
+				node.colour = node.BLACK
+			elif node.parent.colour == node.BLACK:
+				pass # DO nothing, tree is valid.
+			elif auntie and auntie.colour == node.RED:
+				node.parent.colour = node.BLACK
+				node.colour = node.BLACK
+				grandparent.colour = node.RED 
+				# WE may have broken the tree doing this, so do this again recursively.
+				grandparent.post_insert()
+			else:
+				if node == node.parent.right and node.parent == grandparent.left: # Rotate to prevent unbalancing.
+					node.parent.rotate_left()
+					node = node.left
+				elif node == node.parent.left and node.parent == grandparent.right:
+					node.parent.rotate_right()
+					node = node.right
+
+				auntie = node.auntie()
+				grandparent = node.grandparent()
+
+				node.parent.colour = node.BLACK
+				grandparent.colour = node.RED
+
+				if (node == node.parent.left):
+					grandparent.rotate_left()
+				else:
+					grandparent.rotate_right
 
 	ROOT_NODE = -1
 	def insert(self, value, parent = ROOT_NODE):
@@ -27,14 +91,15 @@ class SliceableTree(object):
 			parent = self.root
 
 		if parent is None:
-			parent = self.Node(value, parent)
+			parent = self.Node(value, parent, colour = self.Node.RED)
 			if self.root is None:
 				self.root=parent
 		elif self.compare(value, parent.value) < 0:
 			parent.left = self.insert(value, parent.left)
+			parent.left.post_insert()
 		else:
 			parent.right = self.insert(value, parent.right)
-
+			parent.right.post_insert()
 		return parent
 
 
@@ -78,9 +143,9 @@ class SliceableTree(object):
 
 		iter_stack = []
 		current_node = self.root
-		iteration_counter = 0
+		self.iteration_counter = 0
 		while (iter_stack or current_node):
-			iteration_counter += 1
+			self.iteration_counter += 1
 			if current_node:
 				iter_stack.append(current_node)
 
@@ -133,12 +198,14 @@ if __name__ == "__main__":
 	ordered_list = [a.start for a in start_tree]
 	avl_start_tree = avl.new(source = annotations_list, compare = compare_start)
 
-
+	iteration_counts = []
 	for i in range(10000):
 		left = random.randint(0, 100)
 		right = random.randint(0, 100)
 		list_slice = [v for v in ordered_list if v >= left and v <= right]
 		tree_slice = [a.start for a in start_tree[Index(start = left):Index(start = right)]]
+		iteration_counts.append(start_tree.iteration_counter)
+
 		lower, upper = avl_start_tree.span(Index(start = left), Index(start = right))
 		avl_slice = [a.start for a in avl_start_tree[lower:upper]]
 
@@ -157,6 +224,7 @@ if __name__ == "__main__":
 			print "Expected:", avl_slice
 			print "Got:",tree_slice
 
+	print float(sum(iteration_counts))/len(iteration_counts)
 	# end_tree = build(annotations_list, compare_end)
 
 	# import ipdb; ipdb.set_trace()
