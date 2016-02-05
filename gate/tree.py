@@ -1,59 +1,105 @@
 """Basic Python implementation of Red-Black tree for annotation lookups"""
+import avl
 
-class RBTreeNode(object):
-	def __init__(self, value, parent, left = None, right = None):
-		self.value = value
-		self.left = left
-		self.right = right
-		self.parent = parent
+class SliceableTree(object):
+	def __init__(self, values = [], compare = None):
+		self.compare = compare
+		if self.compare is None:
+			self.compare = lambda a, b: a - b
+		
+		value_iter = iter(values)
+		self.root = None
 
-def search(key, node, comp):
-	current_node = node
+		for value in value_iter:
+			self.insert(value)
 
-	while current_node is not None:
-		comp_val = comp(key, current_node.value)
 
-		if comp_val == 0:
-			return current_node
-		elif comp_val < 0:
-			current_node = current_node.left
+	class Node(object):
+		def __init__(self, value, parent = None, left = None, right = None):
+			self.value = value
+			self.left = left
+			self.right = right
+			self.parent = parent
+
+	ROOT_NODE = -1
+	def insert(self, value, parent = ROOT_NODE):
+		if (parent is -1):
+			parent = self.root
+
+		if parent is None:
+			parent = self.Node(value, parent)
+			if self.root is None:
+				self.root=parent
+		elif self.compare(value, parent.value) < 0:
+			parent.left = self.insert(value, parent.left)
 		else:
-			current_node = current_node.right
+			parent.right = self.insert(value, parent.right)
 
-	return None
+		return parent
 
-def insert(parent, value, comp):
-	if parent is None:
-		return RBTreeNode(value, parent, None, None)
 
-	comp_val = comp(value, parent.value)
+	def __iter__(self):
+		iter_stack = []
+		current_node = self.root
 
-	if comp_val == 0:
-		return RBTreeNode(value, parent, parent.left, parent.right)
-	elif comp_val < -1:
-		return RBTreeNode(value, parent, insert(parent.left, value, comp), parent.right)
-	else:
-		return RBTreeNode(value, parent, parent.left, insert(parent.right, value, comp))
+		while (iter_stack or current_node):
+			if current_node:
+				iter_stack.append(current_node)
+				current_node = current_node.left
+			else:
+				current_node = iter_stack.pop(-1)
+				yield current_node.value
+				current_node = current_node.right
 
-def build(values, comp):
-	root = None
+	def __getitem__(self, key):
+		if isinstance(key, slice):
+			return self._slice(key.start, key.stop)
+		else:
+			current_node = self.root
 
-	for value in values:
-		root = insert(root, value, comp)
+			while current_node is not None:
+				comp_val = self.compare(key, current_node.value)
 
-	return root
+				if comp_val == 0:
+					return current_node.value
+				elif comp_val < 0:
+					current_node = current_node.left
+				else:
+					current_node = current_node.right
 
-# def slice(left_key, right_key, node, comp):
-# 	current_node = search(left_key, node, comp)
+			return None
 
-# 	result = []
-# 	while current_node is not None and comp(right_key, current_node) >= 0:
-# 		result += current_node
+	def _slice(self, left, right):
+		newTree = SliceableTree([], self.compare)
 
-# 		if current_node.right:
-# 			current_node = current_node.right
-# 		elif current_node.parent and current_node.parent.
-# 	return result
+		# Deal with edge cases.
+		if self.compare(left, right) > 0:
+			left, right = right, left
+
+		iter_stack = []
+		current_node = self.root
+		iteration_counter = 0
+		while (iter_stack or current_node):
+			iteration_counter += 1
+			if current_node:
+				iter_stack.append(current_node)
+
+				if self.compare(left, current_node.value) <= 0:
+					current_node = current_node.left
+				else:
+					current_node = None
+			else:
+				current_node = iter_stack.pop(-1)
+
+				if self.compare(right, current_node.value) >= 0:
+					if (self.compare(left, current_node.value) <= 0):
+						newTree.insert(current_node.value)
+
+					current_node = current_node.right
+				else:
+					current_node = None
+
+		return newTree
 
 
 if __name__ == "__main__":
@@ -66,14 +112,51 @@ if __name__ == "__main__":
 	def compare_end(a, b):
 		return a.end - b.end
 
-	annotations_list = [
-		Annotation(None, None, 1, "TestAnnot", 0, 10, {}),
-		Annotation(None, None, 1, "TestAnnot", 5, 15, {}),
-		Annotation(None, None, 1, "TestAnnot", 10, 17, {}),
-		Annotation(None, None, 1, "TestAnnot", 12, 18, {}),
-		Annotation(None, None, 1, "TestAnnot", 19, 30, {})
-	]
-	start_tree = build(annotations_list, compare_start)
-	end_tree = build(annotations_list, compare_end)
+	class Index(object):
+		def __init__(self, start = None, end = None):
+			self.start = start
+			self.end = end
 
-	import ipdb; ipdb.set_trace()
+	import random
+	annotations_list = []
+	search_for_annot = None
+	for i in range(50):
+		left = random.randint(0, 100)
+		right = random.randint(min(left, 99)+1, 100)
+
+		if i == 4:
+			search_for_annot = Annotation(None, None, 1, "TestAnnot", left, 0, {})
+
+		annotations_list.append(Annotation(None, None, 1, "TestAnnot", left, right, {}))
+
+	start_tree = SliceableTree(annotations_list, compare_start)
+	ordered_list = [a.start for a in start_tree]
+	avl_start_tree = avl.new(source = annotations_list, compare = compare_start)
+
+
+	for i in range(100):
+		left = random.randint(0, 100)
+		right = random.randint(0, 100)
+		list_slice = [v for v in ordered_list if v >= left and v <= right]
+		tree_slice = [a.start for a in start_tree[Index(start = left):Index(start = right)]]
+		lower, upper = avl_start_tree.span(Index(start = left), Index(start = right))
+		avl_slice = [a.start for a in avl_start_tree[lower:upper]]
+
+		if list_slice != tree_slice and left < right: # My naive slicing here doesn't work with reversed indices
+			print "BROKEN:"
+			print ordered_list
+			print left, right
+			print "Expected:", list_slice
+			print "Got:",tree_slice
+
+
+		if avl_slice != tree_slice:
+			print "BROKEN:"
+			print ordered_list
+			print left, right
+			print "Expected:", avl_slice
+			print "Got:",tree_slice
+
+	# end_tree = build(annotations_list, compare_end)
+
+	# import ipdb; ipdb.set_trace()

@@ -62,5 +62,5 @@ class Annotation(object):
 		return hash(self.id)
 
 	def __repr__(self):
-		return "<%s annotation %d at (%d, %d) in %s>" % (self.type, self.id,
-			self.start, self.end, self.annotationSet.name)
+		return "<%s annotation %d at (%d, %d)>" % (self.type, self.id,
+			self.start, self.end)
