@@ -13,7 +13,6 @@ class SliceableTree(object):
 		for value in value_iter:
 			self.insert(value)
 
-
 	class Node(object):
 		BLACK = False
 		RED = True
@@ -50,12 +49,11 @@ class SliceableTree(object):
 
 
 		def post_insert(self):
-			return
 			node = self
 
 			auntie = node.auntie()
 			grandparent = node.grandparent()
-
+			print node.parent
 			if node.parent is None:
 				node.colour = node.BLACK
 			elif node.parent.colour == node.BLACK:
@@ -85,6 +83,7 @@ class SliceableTree(object):
 				else:
 					grandparent.rotate_right
 
+				
 	ROOT_NODE = -1
 	def insert(self, value, parent = ROOT_NODE):
 		if (parent is -1):
@@ -96,9 +95,11 @@ class SliceableTree(object):
 				self.root=parent
 		elif self.compare(value, parent.value) < 0:
 			parent.left = self.insert(value, parent.left)
+			parent.left.parent = parent
 			parent.left.post_insert()
 		else:
 			parent.right = self.insert(value, parent.right)
+			parent.right.parent = parent
 			parent.right.post_insert()
 		return parent
 
@@ -197,6 +198,8 @@ if __name__ == "__main__":
 	start_tree = SliceableTree(annotations_list, compare_start)
 	ordered_list = [a.start for a in start_tree]
 	avl_start_tree = avl.new(source = annotations_list, compare = compare_start)
+
+	import ipdb; ipdb.set_trace()
 
 	iteration_counts = []
 	for i in range(10000):
