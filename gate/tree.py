@@ -41,11 +41,11 @@ class SliceableTree(object):
 
 		def rotate_left(self):
 			grandparent = self.grandparent()
-			grandparent.left, node.left, grandparent.left.right = node, grandparent.left, node.left
+			grandparent.left, self.left, grandparent.left.right = self, grandparent.left, self.left
 
 		def rotate_right(self):
 			grandparent = self.grandparent()
-			grandparent.right, node.right, grandparent.right.left = node, grandparent.right, node.right
+			grandparent.right, self.right, grandparent.right.left = self, grandparent.right, self.right
 
 
 		def post_insert(self):
@@ -53,7 +53,7 @@ class SliceableTree(object):
 
 			auntie = node.auntie()
 			grandparent = node.grandparent()
-			print node.parent
+			
 			if node.parent is None:
 				node.colour = node.BLACK
 			elif node.parent.colour == node.BLACK:
@@ -65,6 +65,7 @@ class SliceableTree(object):
 				# WE may have broken the tree doing this, so do this again recursively.
 				grandparent.post_insert()
 			else:
+				import ipdb; ipdb.set_trace()
 				if node == node.parent.right and node.parent == grandparent.left: # Rotate to prevent unbalancing.
 					node.parent.rotate_left()
 					node = node.left
@@ -85,23 +86,31 @@ class SliceableTree(object):
 
 				
 	ROOT_NODE = -1
-	def insert(self, value, parent = ROOT_NODE):
-		if (parent is -1):
-			parent = self.root
+	def insert(self, value, target = ROOT_NODE):
+		if (target is self.ROOT_NODE):
+			target = self.root
 
-		if parent is None:
-			parent = self.Node(value, parent, colour = self.Node.RED)
-			if self.root is None:
-				self.root=parent
-		elif self.compare(value, parent.value) < 0:
-			parent.left = self.insert(value, parent.left)
-			parent.left.parent = parent
-			parent.left.post_insert()
+		if target is None:
+			node = self.Node(value, None, colour = self.Node.RED)
+		elif self.compare(value, target.value) < 0:
+			if target.left is None:
+				node = self.Node(value, target, colour = self.Node.RED)
+				target.left = node
+			else:
+				node = self.insert(value, target.left)
 		else:
-			parent.right = self.insert(value, parent.right)
-			parent.right.parent = parent
-			parent.right.post_insert()
-		return parent
+			if target.right is None:
+				node = self.Node(value, target, colour = self.Node.RED)
+				target.right = node
+			else:
+				node = self.insert(value, target.right)
+
+		if self.root is None:
+			self.root = node
+
+		node.post_insert()
+
+		return node
 
 
 	def __iter__(self):
@@ -199,10 +208,10 @@ if __name__ == "__main__":
 	ordered_list = [a.start for a in start_tree]
 	avl_start_tree = avl.new(source = annotations_list, compare = compare_start)
 
-	import ipdb; ipdb.set_trace()
+	# import ipdb; ipdb.set_trace()
 
 	iteration_counts = []
-	for i in range(10000):
+	for i in range(1000):
 		left = random.randint(0, 100)
 		right = random.randint(0, 100)
 		list_slice = [v for v in ordered_list if v >= left and v <= right]
