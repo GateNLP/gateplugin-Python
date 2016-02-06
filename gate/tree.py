@@ -1,5 +1,8 @@
-"""Basic Python implementation of Red-Black tree for annotation lookups"""
-import avl
+"""Basic Python implementation of Red-Black tree for annotation lookups.
+
+Implementation based on pseudo-code from:
+
+Cormen, Thomas H. Introduction to algorithms. MIT press, 2009."""
 
 class SliceableTree(object):
 	def __init__(self, values = [], compare = None):
@@ -17,12 +20,13 @@ class SliceableTree(object):
 		BLACK = False
 		RED = True
 
-		def __init__(self, value, parent = None, left = None, right = None, colour = BLACK):
+		def __init__(self, value, parent = None, left = None, right = None, colour = RED):
 			self.value = value
-			self.left = left
-			self.right = right
+			self.left = left 
+			self.right = right 
 			self.parent = parent
 			self.colour = colour
+
 
 		def grandparent(self):
 			if self.parent != None:
@@ -34,84 +38,166 @@ class SliceableTree(object):
 			grandparent = self.grandparent()
 
 			if grandparent:
-				if grandparent.left == self:
+				if grandparent.left == self.parent:
 					return grandparent.right
 				else:
 					return grandparent.left
 
-		def rotate_left(self):
-			grandparent = self.grandparent()
-			grandparent.left, self.left, grandparent.left.right = self, grandparent.left, self.left
+		def is_left(self):
+			return self.parent and self.parent.left == self
 
-		def rotate_right(self):
-			grandparent = self.grandparent()
-			grandparent.right, self.right, grandparent.right.left = self, grandparent.right, self.right
+		def is_right(self):
+			return self.parent and self.parent.right == self
 
 
-		def post_insert(self):
-			node = self
-
-			auntie = node.auntie()
-			grandparent = node.grandparent()
-			
-			if node.parent is None:
-				node.colour = node.BLACK
-			elif node.parent.colour == node.BLACK:
-				pass # DO nothing, tree is valid.
-			elif auntie and auntie.colour == node.RED:
-				node.parent.colour = node.BLACK
-				node.colour = node.BLACK
-				grandparent.colour = node.RED 
-				# WE may have broken the tree doing this, so do this again recursively.
-				grandparent.post_insert()
+		def par_colours(self, node):
+			if node.parent:
+				return [node.colour] + self.par_colours(node.parent)
 			else:
-				import ipdb; ipdb.set_trace()
-				if node == node.parent.right and node.parent == grandparent.left: # Rotate to prevent unbalancing.
-					node.parent.rotate_left()
-					node = node.left
-				elif node == node.parent.left and node.parent == grandparent.right:
-					node.parent.rotate_right()
-					node = node.right
+				return [node.colour]
 
-				auntie = node.auntie()
-				grandparent = node.grandparent()
-
-				node.parent.colour = node.BLACK
-				grandparent.colour = node.RED
-
-				if (node == node.parent.left):
-					grandparent.rotate_left()
-				else:
-					grandparent.rotate_right
-
-				
 	ROOT_NODE = -1
-	def insert(self, value, target = ROOT_NODE):
-		if (target is self.ROOT_NODE):
-			target = self.root
 
-		if target is None:
-			node = self.Node(value, None, colour = self.Node.RED)
-		elif self.compare(value, target.value) < 0:
-			if target.left is None:
-				node = self.Node(value, target, colour = self.Node.RED)
-				target.left = node
+	def insert(self, value):
+		y = None
+		x = self.root
+
+		while x is not None:
+			y = x
+			if self.compare(value, x.value) < 0:
+				x = x.left
 			else:
-				node = self.insert(value, target.left)
+				x = x.right
+
+		z = self.Node(value, y)
+
+		if y is None:
+			self.root = z
+		elif self.compare(value, y.value) < 0:
+			y.left = z
 		else:
-			if target.right is None:
-				node = self.Node(value, target, colour = self.Node.RED)
-				target.right = node
+			y.right = z
+
+		self.insert_fixup(z)
+
+
+	def insert_fixup(self, z):
+		while z.parent and z.parent.colour is z.RED:
+			if z.parent == z.parent.parent.left:
+				y = z.parent.parent.right
+				if y and y.colour is z.RED:
+					z.parent.colour = z.BLACK
+					y.colour = z.BLACK
+					z.parent.parent.colour = z.RED
+					z = z.parent.parent
+				else:
+					if z == z.parent.right:
+						z = z.parent
+						self._rotate_left(z)
+					z.parent.colour = z.BLACK
+					z.parent.parent.colour = z.RED
+					self._rotate_right(z.parent.parent)
 			else:
-				node = self.insert(value, target.right)
+				y = z.parent.parent.left
+				if y and y.colour is z.RED:
+					z.parent.colour = z.BLACK
+					y.colour = z.BLACK
+					z.parent.parent.colour = z.RED
+					z = z.parent.parent
+				else:
+					if z == z.parent.left:
+						z = z.parent
+						self._rotate_right(z)
+					z.parent.colour = z.BLACK
+					z.parent.parent.colour = z.RED
+					self._rotate_left(z.parent.parent)
+		self.root.colour = z.BLACK
 
-		if self.root is None:
-			self.root = node
+	def sanity_test(self):
+		is_sane = True
+		seen_nodes = set()
 
-		node.post_insert()
+		iter_stack = []
+		current_node = self.root
 
-		return node
+		while iter_stack or current_node:
+			if current_node:
+				iter_stack.append(current_node)
+				current_node = current_node.left
+			else:
+				current_node = iter_stack.pop(-1)
+				
+				if current_node:
+					if current_node in seen_nodes:
+						return False
+					else:
+						seen_nodes.add(current_node)
 
+					if current_node.left and current_node.left.parent != current_node:
+						return False
+					if current_node.right and current_node.right.parent != current_node:
+						return False
+
+					colours = current_node.par_colours(current_node)
+					last_colour = not colours[0]
+					for colour in colours:
+						if colour == last_colour:
+							print colours
+							return False
+				current_node = current_node.right
+
+		return True
+
+	def print_colours(self, node = None, depth = 0):
+		if node is None:
+			node = self.root
+
+		print " " * depth + ("B" if node.colour is node.BLACK else "R")
+
+		if node.left:
+			self.print_colours(node.left, depth + 1)
+		if node.right:
+			self.print_colours(node.right, depth + 1)
+
+
+	def _rotate_right(self, x):
+		y = x.left
+		x.left = y.right
+
+		if y.right is not None:
+			y.right.parent = x
+
+		y.parent = x.parent
+
+		if x.parent is None:
+			self.root = y
+		elif x == x.parent.right:
+			x.parent.right = y
+		else:
+			x.parent.left = y
+
+		y.right = x
+		x.parent = y
+
+
+	def _rotate_left(self, x):
+		y = x.right
+		x.right = y.left
+
+		if y.left is not None:
+			y.left.parent = x
+
+		y.parent = x.parent
+
+		if x.parent is None:
+			self.root = y
+		elif x == x.parent.left:
+			x.parent.left = y
+		else:
+			x.parent.right = y
+
+		y.left = x
+		x.parent = y
 
 	def __iter__(self):
 		iter_stack = []
@@ -192,7 +278,7 @@ if __name__ == "__main__":
 			self.start = start
 			self.end = end
 
-	import random
+	import random, avl
 	annotations_list = []
 	search_for_annot = None
 	for i in range(50):
@@ -205,9 +291,11 @@ if __name__ == "__main__":
 		annotations_list.append(Annotation(None, None, 1, "TestAnnot", left, right, {}))
 
 	start_tree = SliceableTree(annotations_list, compare_start)
+	print "Sanity:",start_tree.sanity_test()
+	start_tree.print_colours()
 	ordered_list = [a.start for a in start_tree]
 	avl_start_tree = avl.new(source = annotations_list, compare = compare_start)
-
+	print ordered_list
 	# import ipdb; ipdb.set_trace()
 
 	iteration_counts = []
