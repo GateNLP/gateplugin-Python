@@ -9,7 +9,7 @@ class _AnnotationSetsDict(defaultdict):
 		self.doc = doc
 
 	def __missing__(self, key):
-		annotationSet = AnnotationSet(self.doc, self.logger, key)
+		annotationSet = AnnotationSet(self.doc, name = key, logger = self.logger)
 		self[key] = annotationSet
 		# self.logger.append(("CREATE_AS", key))
 		return annotationSet
@@ -102,3 +102,6 @@ class Document(object):
 
 	def size(self):
 		return len(self.text)
+
+	def __len__(self):
+		return self.size
