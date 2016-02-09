@@ -15,11 +15,18 @@ The PythonPR transmits GATE documents in JSON format to the client, and waits fo
 This library consists of code to convert the JSON formatted document into a representation similar to that used within GATE itself. It allows for the modification of annotation sets and features, which will then be reflected in GATE. The following is a simple example:
 
 ```python
-for token in self.document.text.split(" "):
-	self.document.annotationSets["PYTHON_TEST"].add(token.source.begin, 
-		token.source.end, 
-		"Token", 
-		{"string":token})
+@gate.executable
+def tokenize(document, outputAS):
+	for token in document.text.split(" "):
+		outputAS.add(token.source.begin, 
+			token.source.end, 
+			"Token", 
+			{"string":token})
+
+	return document
+		
+if __name__ == "__main__":
+	tokenize.start()
 ```
 
 ## Usage

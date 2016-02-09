@@ -9,12 +9,11 @@ from gate import *
 import unittest, sys, os
 
 """Tests for the Annotation classes"""
+
+Gate = gate.Gate() # Use this for loading documents
 class TestAnnotationSet(unittest.TestCase):
   def setUp(self): 
-    self.gate = gate.Gate() # Use this for loading documents
-    self.gate.start()
-
-    self.document = self.gate.load("data/doc0.html")
+    self.document = Gate.load("data/doc0.html")
 
     self.basicAS = self.document.annotationSets[None]
 
@@ -43,6 +42,7 @@ class TestAnnotationSet(unittest.TestCase):
     self.basicAS.add(15, 40, "T1", fm)
     self.basicAS.add(15, 40, "T1", fm)
 
+
   def testOffsetIndex(self):
     """Test indexing by offset"""
     localAS = AnnotationSet(self.document)
@@ -50,19 +50,19 @@ class TestAnnotationSet(unittest.TestCase):
     newId = localAS.add(10, 20, "T", {}).id
     self.assertEquals(newId, 1)
 
-    a = localAS[newId]
+    a = localAS.byID(newId)
 
     self.assertEquals(a.start, 10)
     self.assertEquals(a.end, 20)
 
     newId = localAS.add(10, 30, "T", {}).id
     self.assertEquals(newId, 2)
-    a = localAS[newId]
+    a = localAS.byID(newId)
 
     self.assertEquals(a.start, 10)
     self.assertEquals(a.end, 30)
 
-    self.assertEquals(len(localAS.offsets[10]), 2)
+    self.assertEquals(len(localAS.at(10)), 2)
 
   # Immutability tests have been dropped because I don't think I need immutability
 
@@ -91,7 +91,7 @@ class TestAnnotationSet(unittest.TestCase):
 
   def testTypeIndex(self):
     """Test type index"""
-    doc = self.gate.load("data/doc0.html")
+    doc = Gate.load("data/doc0.html")
     localAS = AnnotationSet(doc)
 
 
@@ -125,102 +125,63 @@ class TestAnnotationSet(unittest.TestCase):
       # end offset
       self.assertEquals(20, a.end)
 
-  # testAddWithNodes skipped because I have not implemented nodes (just using offsets)
-
-  def testGetFeatureMapOffset(self):
-    """Test complex get (with type, offset and feature contraints)"""
-    constraints = {"pos": "NN"}
-
-    result = self.basicAS.constrain(constraints)["T1"]
-    self.assertEquals(3, result.size())
-    result = self.basicAS.constrain(constraints)["T3"]
-    self.assertEquals(1, result.size())
-    result = self.basicAS.getByOffsetAfter(12).constrain(constraints)["T1"]
-    self.assertEquals(2, result.size())
-    result = self.basicAS.getByOffsetAfter(10).constrain(constraints)["T1"]
-    self.assertEquals(1, result.size())
-    result = self.basicAS.getByOffsetAfter(11).constrain(constraints)["T1"]
-    self.assertEquals(2, result.size())
-    result = self.basicAS.getByOffsetAfter(9).constrain(constraints)["T1"]
-    self.assertEquals(1, result.size())
-
-    constraints["pos"] = "JJ"
-    result = self.basicAS.getByOffsetAfter(0).constrain(constraints)["T1"]
-    self.assertEquals(0, result.size())
-    result = self.basicAS.getByOffsetAfter(14).constrain(constraints)["T1"]
-    self.assertEquals(2, result.size())
-
-    constraints["author"] = "valentin"
-    result = self.basicAS.getByOffsetAfter(14).constrain(constraints)["T1"]
-    self.assertEquals(0, result.size())
-
-    constraints["author"] = "the devil himself"
-    result = self.basicAS.getByOffsetAfter(14).constrain(constraints)["T1"]
-    self.assertEquals(2, result.size())
-
-    result = self.basicAS.getByOffsetAfter(5).constrain(constraints)["T1"]
-    self.assertEquals(0, result.size())
-
-    constraints["this feature isn't"] = "there at all"
-    result = self.basicAS.getByOffsetAfter(14).constrain(constraints)["T1"]
-    self.assertEquals(0, result.size())
-
-
   def testGetCovering(self):
-    self.assertEquals(0, self.basicAS[None].covering[0:5].size())
-    self.assertEquals(0, self.basicAS["T1"].covering[0:5].size())
+    self.assertEquals(0, self.basicAS[None].covering(0,5).size())
+    self.assertEquals(0, self.basicAS["T1"].covering(0,5).size())
 
     #None and blank strings should be treated the same.  Just test
     #with both a couple of times.  Mostly can just test with None.
-    self.assertEquals(0, self.basicAS[None].covering[9:12].size())
-    # self.assertEquals(0, self.basicAS["  "].covering[9:12].size()) # REMOVED: I don't think this is a good idea
-    self.assertEquals(0, self.basicAS["T1"].covering[9:12].size())
+    self.assertEquals(0, self.basicAS[None].covering(9,12).size())
+    # self.assertEquals(0, self.basicAS["  "].covering(9,12).size()) # REMOVED: I don't think this is a good idea
+    self.assertEquals(0, self.basicAS["T1"].covering(9,12).size())
 
-    self.assertEquals(5, self.basicAS[None].covering[10:20].size())
-    # self.assertEquals(5, self.basicAS["  "].covering[10:20].size())
-    self.assertEquals(3, self.basicAS["T1"].covering[10:20].size())
+    self.assertEquals(5, self.basicAS[None].covering(10,20).size())
+    # self.assertEquals(5, self.basicAS["  "].covering(10,20).size())
+    self.assertEquals(3, self.basicAS["T1"].covering(10,20).size())
 
-    self.assertEquals(11, self.basicAS[None].covering[16:20].size())
-    self.assertEquals(7, self.basicAS["T1"].covering[16:20].size())
+    self.assertEquals(11, self.basicAS[None].covering(16,20).size())
+    self.assertEquals(7, self.basicAS["T1"].covering(16,20).size())
 
-    self.assertEquals(6, self.basicAS[None].covering[16:21].size())
-    self.assertEquals(4, self.basicAS["T1"].covering[16:21].size())
+    self.assertEquals(6, self.basicAS[None].covering(16,21).size())
+    self.assertEquals(4, self.basicAS["T1"].covering(16,21).size())
 
 
   def testRemove(self):
     result = self.basicAS["T1"]
     self.assertEquals(7, result.size())
 
-    result = self.basicAS.getByOffsetAfter(9)
+    result = self.basicAS.firstAfter(9)
     self.assertEquals(5, result.size())
 
-    annotation = self.basicAS.get(1)
-    self.basicAS.remove(annotation) # REmove annotation with index 0
+    annotation = self.basicAS.byID(1)
+    self.basicAS.remove(annotation) # REmove annotation with index 1
 
     self.assertEquals(10, self.basicAS.size())
     self.assertEquals(10, len(self.basicAS._annots))
 
-    result = self.basicAS.get("T1")
+    result = self.basicAS.type("T1")
     self.assertEquals(6, result.size())
 
-    result = self.basicAS.getByOffsetAfter(9)
+    result = self.basicAS.firstAfter(9)
     self.assertEquals(4, result.size())
 
     with self.assertRaises(KeyError):
-      self.basicAS.get(1)
+      self.basicAS.byID(1)
 
-    self.basicAS.remove(self.basicAS.get(8))
+    self.basicAS.remove(self.basicAS.byID(8))
     self.assertEquals(9, self.basicAS.size())
-    self.basicAS.removeAll(self.basicAS.get(None)) # Get is called because it makes a copy
+    for annotation in self.basicAS.type(None): # Type is called to create a clone in case iteration is unsafe.
+      self.basicAS.remove(annotation)
     self.assertEquals(0, self.basicAS.size())
-    self.assertEquals(0, self.basicAS.get("T1").size())
+    self.assertEquals(0, self.basicAS.type("T1").size())
 
     with self.assertRaises(KeyError):
-      self.basicAS.get(2)
+      self.basicAS.byID(2)
 
   def testRemoveInexistant(self):
     self.basicAS.add(0, 10, "Foo", {})
-    ann = self.basicAS.get("Foo").firstNode()
+    ann = self.basicAS.type("Foo").first()
+
     self.basicAS.remove(ann)
     with self.assertRaises(KeyError): # GATE allows this, but it doesn't seem like a good idea...
       self.basicAS.remove(ann)
@@ -228,8 +189,22 @@ class TestAnnotationSet(unittest.TestCase):
   # Iterator removal tests were removed because removing from an iterator is not very pythonic.
 
   def testSetMethods(self):
-     raise NotImplemented("Set methods for annotations are not implemented or tested yet")
+    T1 = self.basicAS.type("T1") # Remove all T1 annotations from the annotation set.
+    newAS = self.basicAS - T1 
 
+    self.assertEquals(4, newAS.size())
+
+    # Put T1 back in
+    newAS |= T1
+    self.assertEquals(11, newAS.size())
+
+    # Get *only* T1 using intersection (no idea why)
+    newAS &= T1
+    self.assertEquals(7, newAS.size())
+
+    # Get T2 using another convoluted method
+    newAS = self.basicAS ^ (T1 | self.basicAS.type("T3") | self.basicAS.type("T3"))
+    self.assertEquals(1, newAS.size())
 
   # def testGap(self):
   #   """Test get with offset and no annotation starting at given offset"""
@@ -653,4 +628,6 @@ class TestAnnotationSet(unittest.TestCase):
   
   
 if __name__ == '__main__':
+    Gate.start()
     unittest.main()
+    Gate.stop()
