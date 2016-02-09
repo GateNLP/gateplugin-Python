@@ -188,23 +188,6 @@ class TestAnnotationSet(unittest.TestCase):
 
   # Iterator removal tests were removed because removing from an iterator is not very pythonic.
 
-  def testSetMethods(self):
-    T1 = self.basicAS.type("T1") # Remove all T1 annotations from the annotation set.
-    newAS = self.basicAS - T1 
-
-    self.assertEquals(4, newAS.size())
-
-    # Put T1 back in
-    newAS |= T1
-    self.assertEquals(11, newAS.size())
-
-    # Get *only* T1 using intersection (no idea why)
-    newAS &= T1
-    self.assertEquals(7, newAS.size())
-
-    # Get T2 using another convoluted method
-    newAS = self.basicAS ^ (T1 | self.basicAS.type("T3") | self.basicAS.type("T3"))
-    self.assertEquals(1, newAS.size())
 
   # def testGap(self):
   #   """Test get with offset and no annotation starting at given offset"""

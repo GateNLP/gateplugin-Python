@@ -5,11 +5,27 @@ from tree import SliceableTree
 from collections import defaultdict
 
 class I(object):
-	"""Short for Index, represents a pair of offsets to be used when searchign the tree"""
+	"""Short for Index, represents a pair of offsets to be used when searching the tree"""
 	def __init__(self, offset):
 		self.start = offset
 		self.end = offset
 
+def support_annotation(method):
+	"""Decorator to allow a method that normally takes a start and end 
+		offset to take an annotation instead."""
+	def _support_annotation(self, *args):
+		if len(args) == 1: 
+			# Assume we have an annotation
+			try:
+				left, right = args[0].left, args[0].right 
+			except AttributeError:
+				raise ValueError("Supplied argument is not a range or an annotation")
+		else:
+			left, right = args
+
+		return method(self, left, right)
+
+	return _support_annotation
 class AnnotationSet(object):
 	def __init__(self, doc, values = [], name = "", logger = []):
 		self.logger = logger
@@ -78,6 +94,9 @@ class AnnotationSet(object):
 		return annotation
 
 	def append(self, annotation):
+		"""Appends an annotation to the annotation set. Do not try to add annotations
+			from another annotation set, as one annotation can belong to only one set, 
+			or a child of that set"""
 		if annotation.id and annotation.id in self._annots: # Prevents duplicate annotations
 			return None
 		elif annotation.id is None:
@@ -111,6 +130,7 @@ class AnnotationSet(object):
 		return annotation
 
 	def add(self, start, end, annotType, features, _id = None): 
+		"""Adds an new annotation with the given values"""
 		return self.append(Annotation(self.logger, self, _id, annotType, start, end, features))
 
 	def remove(self, annotation):
@@ -136,24 +156,11 @@ class AnnotationSet(object):
 		return self.type(key)
 
 	def byID(self, key):
+		"""Gets the annotation with the given ID"""
 		return self._annots[key]
 
-	def at(self, key):
-		result = self._annotations_start[I(key)]
-		return self.restrict(result)
-
-	def firstAfter(self, key):
-		result = self._annotations_start.nearest_after(I(key))
-		return self.restrict(result)
-
-	def overlapping(self, left, right = None):
-		"""Gets annotations between the two points"""
-		result = self._annotations_start[I(startOffset):I(endOffset)]
-		result += self._annotations_end[I(startOffset):I(endOffset)]
-
-		return self.restrict(result)
-
 	def type(self, annotType):
+		"""Gets annotations of the specified type"""
 		# Index the types the first time this is called
 		if self._annot_types is None:
 			self._indexByType()
@@ -163,18 +170,36 @@ class AnnotationSet(object):
 		else:
 			return self.restrict(self)
 
-	def covering(self, startOffset, endOffset):
-		result = set(self._annotations_start[I(0):I(startOffset)])
+	def at(self, offset):
+		"""Gets all annotations at the given offset (empty if none)"""
+		result = self._annotations_start[I(offset)]
+		return self.restrict(result)
 
-		result.intersection_update(set(self._annotations_end[I(endOffset):
-			I(self.doc.size())]))
+	def firstAfter(self, offset):
+		"""Gets all annotations at the first valid position after the given offset"""
+		result = self._annotations_start.nearest_after(I(offset))
+		return self.restrict(result)
+
+	@support_annotation
+	def overlapping(self, left, right):
+		"""Gets annotations between the two points"""
+		result = self._annotations_start[I(left):I(right)]
+		result += self._annotations_end[I(left):I(right)]
 
 		return self.restrict(result)
 
-	def within(self, startOffset, endOffset):
-		result = set(self._annotations_start[I(startOffset):I(endOffset)])
-		result.intersection_update(set(self._annotations_end[I(startOffset):
-			I(endOffset)]))
+	@support_annotation
+	def covering(self, left, right):
+		"""Gets annotations that completely cover the span given"""
+		result = set(self._annotations_start[I(0):I(left)])
+		result.intersection_update(set(self._annotations_end[I(right):I(self.doc.size())]))
+		return self.restrict(result)
+
+	@support_annotation
+	def within(self, left, right):
+		"""Gets annotations that fall completely within the left and right given"""
+		result = set(self._annotations_start[I(left):I(right)])
+		result.intersection_update(set(self._annotations_end[I(left):I(right)]))
 
 		return self.restrict(result)
 
@@ -187,30 +212,17 @@ class AnnotationSet(object):
 		return self.restrict(self._annotations_start[I(0):I(offset)])
 
 	def first(self):
+		"""Gets the first annotation within the annotation set"""
 		return self._annotations_start.min()
 
 	def last(self):
+		"""Gets the last annotation within the annotation set"""
 		return self._annotations_start.max()
 
-	def __and__(self, other):
-		keys = self._annots.viewitems() & other._annots.viewitems()
-		return self.restrict([v for k, v in keys])
-
-	def __sub__(self, other):
-		keys = self._annots.viewitems() - other._annots.viewitems()
-		return self.restrict([v for k, v in keys])
-
-	def __or__(self, other):
-		keys = self._annots.viewitems() | other._annots.viewitems()
-		return self.restrict([v for k, v in keys])
-
-	def __xor__(self, other):
-		keys = self._annots.viewitems() ^ other._annots.viewitems()
-		return self.restrict([v for k, v in keys])
-
 	def __contains__(self, value):
+		"""Provides annotation in annotation_set functionality"""
 		if hasattr(value, "id"): # Annotations have ids, so check those instead.
-			return value.id in self._annots
+			return value.id in self._annots and value in self._annots.viewvalues()
 		return value in self._annots # On the off chance someone passed an ID in directly
 
 	contains = __contains__
