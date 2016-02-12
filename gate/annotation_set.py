@@ -32,11 +32,7 @@ class AnnotationSet(object):
 		self.name = name
 		self.doc = doc
 
-		def compare_start(a, b):
-			return a.start - b.start
 
-		def compare_end(a, b):
-			return a.end - b.end
 
 		# I've commented this out because it's expensive and I don't understand it.
 		# values = list(set(values))
@@ -47,9 +43,10 @@ class AnnotationSet(object):
 		self._annots = {a.id: a for a in values}
 		self._annot_types = None # Will only be populated when needed
 
-		# Using itervalues for dict to populate the indices - this prevents duplicate annotations
-		self._annotations_start = SliceableTree(self._annots.itervalues(), compare = compare_start)
-		self._annotations_end = SliceableTree(self._annots.itervalues(), compare = compare_end) 
+		self._annotations_start = None
+		self._annotations_end = None
+
+		self._index_by_offset()
 
 	def restrict(self, annotations):
 		"""Copies this annotation set, but restricts it to the given values"""
@@ -62,7 +59,18 @@ class AnnotationSet(object):
 
 		return AnnotationSet(self.doc, values = annotations, name = self.name, logger = self.logger)
 
-	def _indexByType(self):
+	def _index_by_offset(self):
+		"""(Re)generates the offset index which is stored in the form of two red black trees"""
+		def compare_start(a, b):
+			return a.start - b.start
+
+		def compare_end(a, b):
+			return a.end - b.end
+
+		self._annotations_start = SliceableTree(self._annots.itervalues(), compare = compare_start)
+		self._annotations_end   = SliceableTree(self._annots.itervalues(), compare = compare_end) 
+
+	def _index_by_type(self):
 		"""Generates the type index. Only call this when you first need types, cos 
 			it's kind of expensive and also can't be used in init."""
 		self._annot_types = defaultdict(lambda: self.restrict([]))
@@ -93,7 +101,7 @@ class AnnotationSet(object):
 
 		return annotation
 
-	def append(self, annotation):
+	def append(self, annotation, check_offsets = True):
 		"""Appends an annotation to the annotation set. Do not try to add annotations
 			from another annotation set, as one annotation can belong to only one set, 
 			or a child of that set"""
@@ -106,7 +114,8 @@ class AnnotationSet(object):
 			else:
 				annotation.id = 1
 
-		self._check_offsets(annotation) # Will raise exception if the annotation is out of range
+		if check_offsets:
+			self._check_offsets(annotation) # Will raise exception if the annotation is out of range
 
 		# Log the new annotation
 		self.logger.append({
@@ -125,13 +134,13 @@ class AnnotationSet(object):
 		self._annotations_end.insert(annotation)
 
 		if self._annot_types:
-			self._annot_types[annotation.type].append(annotation)
+			self._annot_types[annotation.type].append(annotation, check_offsets)
 
 		return annotation
 
-	def add(self, start, end, annotType, features, _id = None): 
+	def add(self, start, end, annotType, features, _id = None, check_offsets = True): 
 		"""Adds an new annotation with the given values"""
-		return self.append(Annotation(self.logger, self, _id, annotType, start, end, features))
+		return self.append(Annotation(self.logger, self, _id, annotType, start, end, features), check_offsets)
 
 	def remove(self, annotation):
 		"""Remove the selected annotation"""
@@ -163,12 +172,26 @@ class AnnotationSet(object):
 		"""Gets annotations of the specified type"""
 		# Index the types the first time this is called
 		if self._annot_types is None:
-			self._indexByType()
+			self._index_by_type()
 
 		if annotType is not None:
 			return self._annot_types[annotType]
 		else:
 			return self.restrict(self)
+
+	def typeNames(self):
+		"""Gets the names of all types in this set"""
+		if self._annot_types is None:
+			self._index_by_type()
+
+		return self._annot_types.keys()
+
+	def types(self):
+		"""Returns the dictionary index of types of annotation in this set"""
+		if self._annot_types is None:
+			self._index_by_type()
+
+		return self._annot_types
 
 	def at(self, offset):
 		"""Gets all annotations at the given offset (empty if none)"""
@@ -182,9 +205,9 @@ class AnnotationSet(object):
 
 	@support_annotation
 	def overlapping(self, left, right):
-		"""Gets annotations between the two points"""
+		"""Gets annotations overlapping with the two points"""
 		result = self._annotations_start[I(left):I(right)]
-		result += self._annotations_end[I(left):I(right)]
+		result += self._annotations_end[I(left+1):I(max(right, left+1))] # Must not end at the left offset.
 
 		return self.restrict(result)
 
@@ -192,7 +215,7 @@ class AnnotationSet(object):
 	def covering(self, left, right):
 		"""Gets annotations that completely cover the span given"""
 		result = set(self._annotations_start[I(0):I(left)])
-		result.intersection_update(set(self._annotations_end[I(right):I(self.doc.size())]))
+		result.intersection_update(set(self._annotations_end[I(right+1):I(self.doc.size())]))
 		return self.restrict(result)
 
 	@support_annotation
@@ -205,7 +228,7 @@ class AnnotationSet(object):
 
 	def after(self, offset):
 		"""Gets annotations that start after the given offset"""
-		return self.restrict(self._annotations_start[I(offset):I(len(self.doc))])
+		return self.restrict(self._annotations_start[I(offset):I(self.doc.size())])
 
 	def before(self, offset):
 		"""Gets annotations that start after the given offset"""
@@ -228,4 +251,4 @@ class AnnotationSet(object):
 	contains = __contains__
 
 	def __repr__(self):
-		return repr(self._annotations_start)
+		return repr([annotation for annotation in self])

@@ -6,6 +6,8 @@ Implementation based on pseudo-code from:
 
 Cormen, Thomas H. Introduction to algorithms. MIT press, 2009."""
 
+import itertools
+
 BLACK = False # These aren't settings, they're constants to help readability.
 RED = True
 CHECK_SANITY = False
@@ -28,6 +30,10 @@ def check_sane(function):
 
 
 class SliceableTree(object):
+	"""A binary search tree with additional support for slicing and nearest miss finding.
+
+	This tree expects items to be unique (by the standard python semantics). Duplicate items will not
+	be added."""
 	def __init__(self, values = [], compare = None):
 		self.compare = compare
 		if self.compare is None:
@@ -105,8 +111,10 @@ class SliceableTree(object):
 			elif x_comp > 0:
 				x = x.right
 
+
 		if y and self.compare(value, y.value) == 0:
-			y.values.append(value)
+			if value not in y.values: # Don't allow duplicate items in the tree
+				y.values.append(value)
 		else:
 			z = self.Node(value, y)
 
@@ -278,6 +286,7 @@ class SliceableTree(object):
 					if len(list(self)) != start_size: import ipdb;ipdb.set_trace()		
 		x.colour = BLACK
 		if len(list(self)) != start_size: import ipdb;ipdb.set_trace()
+
 	@check_sane
 	def remove(self, value):
 		node  = self._search_node(value)
@@ -285,10 +294,7 @@ class SliceableTree(object):
 			if len(node.values) == 1:
 				self._delete_node(node)
 			else:
-				# print "Values:", node.values
-				# print "Removing:", value
 				node.values.remove(value)
-				# print "New values:", node.values
 		else:
 			raise ValueError("Value is not in tree")
 
@@ -493,6 +499,13 @@ class SliceableTree(object):
 					return current_node.values
 						
 				current_node = current_node.right
+
+	def add(self, other):
+		"""Adds this tree to the other tree to form a new tree"""
+		return SliceableTree(itertools.chain(self, other), self.compare)
+
+
+	__add__ = add
 
 if __name__ == "__main__":
 	from annotation_set import SearchOffset

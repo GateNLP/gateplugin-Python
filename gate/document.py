@@ -101,7 +101,7 @@ class Document(object):
 		raise NotImplementedError("Text cannot be modified in a Python processing resource")
 
 	def size(self):
-		return len(self.text)
+		return int(len(self.text))
 
 	def __len__(self):
-		return self.size
+		return self.size()
