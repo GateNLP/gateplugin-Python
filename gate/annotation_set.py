@@ -17,7 +17,7 @@ def support_annotation(method):
 		if len(args) == 1: 
 			# Assume we have an annotation
 			try:
-				left, right = args[0].left, args[0].right 
+				left, right = args[0].start, args[0].end 
 			except AttributeError:
 				raise ValueError("Supplied argument is not a range or an annotation")
 		else:
@@ -26,13 +26,24 @@ def support_annotation(method):
 		return method(self, left, right)
 
 	return _support_annotation
+
+def support_single(method):
+	"""Decorator to allow a method that normally takes a start and end 
+		offset to take a single argument that represents both."""
+	def _support_annotation(self, *args):
+		if len(args) == 1:
+			# Assume we have an annotation
+			if isinstance(args[0], int):
+				return method(self, args[0], args[0])
+		else:
+			return method(self, args[0])
+
+	return _support_annotation
 class AnnotationSet(object):
 	def __init__(self, doc, values = [], name = "", logger = []):
 		self.logger = logger
 		self.name = name
 		self.doc = doc
-
-
 
 		# I've commented this out because it's expensive and I don't understand it.
 		# values = list(set(values))
@@ -76,7 +87,7 @@ class AnnotationSet(object):
 		self._annot_types = defaultdict(lambda: self.restrict([]))
 
 		for annotation in self._annots.itervalues():
-			self._annot_types[annotation.type].append(annotation)
+			self._annot_types[annotation.type].append(annotation, log = False)
 
 	def __len__(self):
 		return len(self._annots)
@@ -101,7 +112,7 @@ class AnnotationSet(object):
 
 		return annotation
 
-	def append(self, annotation, check_offsets = True):
+	def append(self, annotation, check_offsets = True, log= True):
 		"""Appends an annotation to the annotation set. Do not try to add annotations
 			from another annotation set, as one annotation can belong to only one set, 
 			or a child of that set"""
@@ -118,15 +129,16 @@ class AnnotationSet(object):
 			self._check_offsets(annotation) # Will raise exception if the annotation is out of range
 
 		# Log the new annotation
-		self.logger.append({
-			"command": "ADD_ANNOT", 
-			"annotationSet": self.name, 
-			"startOffset": annotation.start, 
-			"endOffset": annotation.end, 
-			"annotationName": annotation.type, 
-			"featureMap": annotation.features, 
-			"annotationID": annotation.id}
-			)
+		if log:
+			self.logger.append({
+				"command": "ADD_ANNOT", 
+				"annotationSet": self.name, 
+				"startOffset": annotation.start, 
+				"endOffset": annotation.end, 
+				"annotationName": annotation.type, 
+				"featureMap": annotation.features, 
+				"annotationID": annotation.id}
+				)
 
 		# Add the annotation to the required indices
 		self._annots[annotation.id] = annotation
@@ -203,6 +215,7 @@ class AnnotationSet(object):
 		result = self._annotations_start.nearest_after(I(offset))
 		return self.restrict(result)
 
+	@support_single
 	@support_annotation
 	def overlapping(self, left, right):
 		"""Gets annotations overlapping with the two points"""
@@ -211,6 +224,7 @@ class AnnotationSet(object):
 
 		return self.restrict(result)
 
+	@support_single
 	@support_annotation
 	def covering(self, left, right):
 		"""Gets annotations that completely cover the span given"""

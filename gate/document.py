@@ -20,6 +20,7 @@ class Document(object):
 		self.annotationSets = _AnnotationSetsDict(self, self.logger)
 		self._text = text
 		self.src = src
+		self.features = features
 
 	entitydefs = dict()
 	@staticmethod
@@ -80,7 +81,7 @@ class Document(object):
 			if source.begin != source.end and real_offset != source.begin:
 				for annotationSet in doc.annotationSets.values():
 					offset_adjust = source.begin - real_offset
-					for annotation in annotationSet.get(source.begin, source.end):
+					for annotation in annotationSet.within(source.begin, source.end):
 						if annotation.start > source.begin:
 							annotation.start -= offset_adjust
 						annotation.end -= offset_adjust
