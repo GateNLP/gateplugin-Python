@@ -3,6 +3,7 @@ from functools import partial
 from gate_exceptions import InvalidOffsetException
 from tree import SliceableTree
 from collections import defaultdict
+import sys
 
 class I(object):
 	"""Short for Index, represents a pair of offsets to be used when searching the tree"""
@@ -106,6 +107,7 @@ class AnnotationSet(object):
 		if annotation.start > annotation.end:
 			raise InvalidOffsetException("Annotation ends before it starts")
 		if annotation.start > doc_size:
+			print >> sys.stderr, annotation.start, doc_size, self.doc.text, annotation
 			raise InvalidOffsetException("Annotation starts after document ends")
 		if annotation.end > doc_size: 
 			raise InvalidOffsetException("Annotation ends after document ends")

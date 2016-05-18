@@ -63,6 +63,13 @@ class Document(object):
 
 		text = SimpleSourcedUnicodeString(json["text"], json["text"])
 		text = Document.unescape(text)
+
+		# This unescape wreaks havok with the annotation offsets, so we 
+		# need to record how much to remove after which offsets.
+		adjustments = [(s.begin, s.begin - o) for o, s in text.sources if s.begin != s.end and o < s.begin]
+
+		adjustments = adjustments[::-1]
+
 		features = json["documentFeatures"]
 
 		doc = Document(logger, text, features, src)
@@ -73,18 +80,20 @@ class Document(object):
 				for entity in instances:	
 					start, end = entity.pop("indices")
 					_id = entity.pop("annotationID")
+
+					for offset, adjustment in adjustments:
+						if start >= offset: 
+							start = start - adjustment
+							break
+
+					for offset, adjustment in adjustments:
+						if end >= offset:
+							end = end - adjustment
+							break
+
 					doc.annotationSets[annotation_set].add(start, end, 
 						annotation_name, entity, _id)
 
-		# Compensate for text unescape. happens here to take advantage of indices.			
-		for real_offset, source in text.sources:
-			if source.begin != source.end and real_offset != source.begin:
-				for annotationSet in doc.annotationSets.values():
-					offset_adjust = source.begin - real_offset
-					for annotation in annotationSet.within(source.begin, source.end):
-						if annotation.start > source.begin:
-							annotation.start -= offset_adjust
-						annotation.end -= offset_adjust
 
 		doc._text = SimpleSourcedUnicodeString(doc.text, doc.text)
 
