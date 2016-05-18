@@ -321,7 +321,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 				try {
 					IOUtils.copy(stream, System.err);
 				} catch(IOException e) {
-					log.warn("Error discarding stderr output from python", e);
+					log.warn("Error printing stderr output from python", e);
 				}
 			}
 		};
@@ -384,6 +384,15 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 			pythonObjectMapper.writeValue(pythonJsonG, command);
 			pythonJsonG.writeRaw("\n");
 			pythonJsonG.flush();
+
+			// Expect python to exit at this point.
+			try {
+				pythonProcess.waitFor();
+				cleanupProcess();
+			} catch(InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new ExecutionException("Interrupted while waiting for python to exit");
+			}			
 		} catch (IOException e) {
 			throw new ExecutionException("Unable to send end execution command to python process");
 		}
