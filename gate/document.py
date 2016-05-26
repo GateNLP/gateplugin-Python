@@ -1,6 +1,6 @@
 from collections import defaultdict
 from annotation_set import AnnotationSet
-from sourcedstring import SimpleSourcedUnicodeString
+from _sourcedstring import SimpleSourcedUnicodeString
 import HTMLParser, re
 
 class _AnnotationSetsDict(defaultdict):
