@@ -11,7 +11,6 @@ import gate.Annotation;
 import gate.Document;
 import gate.Factory;
 import gate.Gate;
-import gate.corpora.DocumentJsonUtils;
 import gate.util.GateException;
 
 import java.io.*;

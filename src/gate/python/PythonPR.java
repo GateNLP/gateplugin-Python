@@ -14,7 +14,6 @@ import gate.creole.metadata.RunTime;
 import gate.util.Files;
 
 
-import gate.corpora.DocumentJsonUtils;
 import gate.util.InvalidOffsetException;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -233,7 +232,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		// Output the document in JSON format on the pipe
 		try {
 
-			DocumentJsonUtils.writeDocument(document, 0l, document.getContent().size(), allAnnotations,
+			PythonJsonUtils.writeDocument(document, 0l, document.getContent().size(), allAnnotations,
 					extraFeatures, null, "annotationID", jsonG);
 
 			jsonG.writeRaw("\n");

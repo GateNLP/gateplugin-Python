@@ -1,11 +1,12 @@
 import unittest, gate, sys, os
 
 class TestLoadAwkwardBoundaries(unittest.TestCase):
-	def setUp(self):
+	@classmethod
+	def setUpClass(self):
 		self.gate = gate.Gate()
 		self.gate.start()
-
-	def tearDown(self):
+	@classmethod
+	def tearDownClass(self):
 		self.gate.stop()
 
 	def test_load(self):
@@ -21,4 +22,4 @@ class TestLoadAwkwardBoundaries(unittest.TestCase):
 			self.assertEqual(token.features["string"], doc.text[token.start: token.end].strip("@"))
 
 if __name__ == '__main__':
-    unittest.main()
+	unittest.main()

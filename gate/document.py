@@ -62,13 +62,6 @@ class Document(object):
 		logger = []
 
 		text = SimpleSourcedUnicodeString(json["text"], json["text"])
-		text = Document.unescape(text)
-
-		# This unescape wreaks havok with the annotation offsets, so we 
-		# need to record how much to remove after which offsets.
-		adjustments = [(s.begin, s.begin - o) for o, s in text.sources if s.begin != s.end and o < s.begin]
-
-		adjustments = adjustments[::-1]
 
 		features = json["documentFeatures"]
 
@@ -81,21 +74,9 @@ class Document(object):
 					start, end = entity.pop("indices")
 					_id = entity.pop("annotationID")
 
-					for offset, adjustment in adjustments:
-						if start >= offset: 
-							start = start - adjustment
-							break
-
-					for offset, adjustment in adjustments:
-						if end >= offset:
-							end = end - adjustment
-							break
-
 					doc.annotationSets[annotation_set].add(start, end, 
 						annotation_name, entity, _id)
 
-
-		doc._text = SimpleSourcedUnicodeString(doc.text, doc.text)
 
 		del logger[:]
 		return doc

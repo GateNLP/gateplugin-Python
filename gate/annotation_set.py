@@ -37,7 +37,7 @@ def support_single(method):
 			if isinstance(args[0], int):
 				return method(self, args[0], args[0])
 		else:
-			return method(self, args[0])
+			return method(self, *args)
 
 	return _support_annotation
 class AnnotationSet(object):
@@ -231,7 +231,7 @@ class AnnotationSet(object):
 	def covering(self, left, right):
 		"""Gets annotations that completely cover the span given"""
 		result = set(self._annotations_start[I(0):I(left)])
-		result.intersection_update(set(self._annotations_end[I(right+1):I(self.doc.size())]))
+		result.intersection_update(set(self._annotations_end[I(right):I(self.doc.size())]))
 		return self.restrict(result)
 
 	@support_annotation

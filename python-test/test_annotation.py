@@ -10,10 +10,17 @@ import unittest, sys, os
 
 """Tests for the Annotation classes"""
 
-Gate = gate.Gate() # Use this for loading documents
 class TestAnnotationSet(unittest.TestCase):
+  @classmethod
+  def setUpClass(self):
+    self.gate = gate.Gate()
+    self.gate.start()
+  @classmethod
+  def tearDownClass(self):
+    self.gate.stop()
+
   def setUp(self): 
-    self.document = Gate.load("data/doc0.html")
+    self.document = self.gate.load("data/doc0.html")
 
     self.basicAS = self.document.annotationSets[None]
 
@@ -91,7 +98,7 @@ class TestAnnotationSet(unittest.TestCase):
 
   def testTypeIndex(self):
     """Test type index"""
-    doc = Gate.load("data/doc0.html")
+    doc = self.gate.load("data/doc0.html")
     localAS = AnnotationSet(doc)
 
 
@@ -135,14 +142,14 @@ class TestAnnotationSet(unittest.TestCase):
     # self.assertEquals(0, self.basicAS["  "].covering(9,12).size()) # REMOVED: I don't think this is a good idea
     self.assertEquals(0, self.basicAS["T1"].covering(9,12).size())
 
-    self.assertEquals(5, self.basicAS[None].covering(10,20).size())
+    self.assertEquals(5, self.basicAS.covering(10,20).size())
     # self.assertEquals(5, self.basicAS["  "].covering(10,20).size())
     self.assertEquals(3, self.basicAS["T1"].covering(10,20).size())
 
-    self.assertEquals(11, self.basicAS[None].covering(16,20).size())
+    self.assertEquals(11, self.basicAS.covering(16,20).size())
     self.assertEquals(7, self.basicAS["T1"].covering(16,20).size())
 
-    self.assertEquals(6, self.basicAS[None].covering(16,21).size())
+    self.assertEquals(6, self.basicAS.covering(16,21).size())
     self.assertEquals(4, self.basicAS["T1"].covering(16,21).size())
 
 
@@ -611,6 +618,4 @@ class TestAnnotationSet(unittest.TestCase):
   
   
 if __name__ == '__main__':
-    Gate.start()
     unittest.main()
-    Gate.stop()

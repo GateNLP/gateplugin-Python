@@ -1,12 +1,14 @@
 import unittest, gate, sys, os
 
 class TestSaveLoad(unittest.TestCase):
-	def setUp(self):
+	@classmethod
+	def setUpClass(self):
 		self.gate = gate.Gate()
 		self.gate.start()
-
-	def tearDown(self):
+	@classmethod
+	def tearDownClass(self):
 		self.gate.stop()
+
 
 	def test_load_txt(self):
 		doc = self.gate.load("data/ishmael.txt")
@@ -61,7 +63,7 @@ class TestSaveLoad(unittest.TestCase):
 		self.assertNotEqual(doc.text, "")
 
 		self.assertEqual(len(doc.text.split()), 2215)
-		self.assertEqual(len(doc.annotationSets[""].getType("Token")), 2215)
+		self.assertEqual(len(doc.annotationSets[""].type("Token")), 2215)
 
 
 

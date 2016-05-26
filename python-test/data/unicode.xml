@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<GateDocument version="3">
+<!-- The document's features-->
+
+<GateDocumentFeatures>
+<Feature>
+  <Name className="java.lang.String">gate.SourceURL</Name>
+  <Value className="java.lang.String">created from String</Value>
+</Feature>
+</GateDocumentFeatures>
+<!-- The document content area with serialized nodes -->
+
+<TextWithNodes>This is a GATE document<Node id="23"/>🙏🏻<Node id="27"/> with <Node id="33"/>ℳ<Node id="34"/>unicode<Node id="41"/> <Node id="42"/>🁓<Node id="44"/> in it<Node id="50"/>!<Node id="51"/></TextWithNodes>
+<!-- The default annotation set -->
+
+<AnnotationSet>
+<Annotation Id="0" Type="EMOJI" StartNode="23" EndNode="27">
+</Annotation>
+<Annotation Id="1" Type="UNICODE" StartNode="34" EndNode="41">
+</Annotation>
+<Annotation Id="2" Type="EXCLAMATION" StartNode="50" EndNode="51">
+</Annotation>
+<Annotation Id="3" Type="M" StartNode="33" EndNode="34">
+</Annotation>
+<Annotation Id="4" Type="DOMINO" StartNode="42" EndNode="44">
+</Annotation>
+</AnnotationSet>
+
+</GateDocument>
