@@ -6,3 +6,4 @@ from annotation_set import AnnotationSet
 from gate import Gate
 from gate_exceptions import InvalidOffsetException
 from iterator import iterate, GateIterator
+from sourcedstring import SourcedString

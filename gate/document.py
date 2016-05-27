@@ -28,7 +28,7 @@ class Document(object):
 			returns a document and a change logger"""
 		logger = []
 
-		text = SourcedString(json["text"])
+		text = json["text"]
 
 		features = json["documentFeatures"]
 
