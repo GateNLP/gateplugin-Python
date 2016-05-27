@@ -16,7 +16,7 @@ class TestSaveLoad(unittest.TestCase):
 		self.assertIsNotNone(doc.text)
 		self.assertNotEqual(doc.text, "")
 
-		self.assertEqual(len(doc.text.split()), 2215)
+		self.assertEqual(len(doc.text.split()), 2201)
 
 	def test_load_xml(self):
 		doc = self.gate.load("data/ishmael.xml")
@@ -24,7 +24,7 @@ class TestSaveLoad(unittest.TestCase):
 		self.assertIsNotNone(doc.text)
 		self.assertNotEqual(doc.text, "")
 
-		self.assertEqual(len(doc.text.split()), 2215)
+		self.assertEqual(len(doc.text.split()), 2201)
 
 	def test_save(self):
 		doc = self.gate.load("data/ishmael.xml")
@@ -41,7 +41,7 @@ class TestSaveLoad(unittest.TestCase):
 		self.assertIsNotNone(doc.text)
 		self.assertNotEqual(doc.text, "")
 
-		self.assertEqual(len(doc.text.split()), 2215)
+		self.assertEqual(len(doc.text.split()), 2201)
 
 	def test_annot_save(self):
 		doc = self.gate.load("data/ishmael.xml")
@@ -52,7 +52,7 @@ class TestSaveLoad(unittest.TestCase):
 			pass
 
 		for token in doc.text.split():
-			doc.annotationSets[""].add(token.source.begin, token.source.end, 
+			doc.annotationSets[""].add(token.sources[0].start, token.sources[0].end, 
 				"Token", {})
 
 		self.gate.save(doc, "data/ishmael_output_annots.xml")
@@ -62,8 +62,8 @@ class TestSaveLoad(unittest.TestCase):
 		self.assertIsNotNone(doc.text)
 		self.assertNotEqual(doc.text, "")
 
-		self.assertEqual(len(doc.text.split()), 2215)
-		self.assertEqual(len(doc.annotationSets[""].type("Token")), 2215)
+		self.assertEqual(len(doc.text.split()), 2201)
+		self.assertEqual(len(doc.annotationSets[""].type("Token")), 2201)
 
 
 

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from annotation_set import AnnotationSet
-from _sourcedstring import SimpleSourcedUnicodeString
+from sourcedstring import SourcedString
 import HTMLParser, re
 
 class _AnnotationSetsDict(defaultdict):
@@ -22,46 +22,13 @@ class Document(object):
 		self.src = src
 		self.features = features
 
-	entitydefs = dict()
-	@staticmethod
-	def unescape(s):
-		"""Based on source code from python STL"""
-		if '&' not in s:
-			return s
-		def replaceEntities(s):
-			s = s.groups()[0]
-			try:
-				if s[0] == "#":
-					s = s[1:]
-					if s[0] in ['x','X']:
-						c = int(s[1:], 16)
-					else:
-						c = int(s)
-					return SimpleSourcedUnicodeString(unichr(c), 0)
-			except ValueError:
-				return SimpleSourcedUnicodeString('&#'+s+';', 0)
-			else:
-				# Cannot use name2codepoint directly, because HTMLParser supports apos,
-				# which is not part of HTML 4
-				import htmlentitydefs
-				if HTMLParser.HTMLParser.entitydefs is None:
-					entitydefs = HTMLParser.HTMLParser.entitydefs = {'apos':u"'"}
-					for k, v in htmlentitydefs.name2codepoint.iteritems():
-						Document.entitydefs[k] = unichr(v)
-				try:
-					return SimpleSourcedUnicodeString(Document.entitydefs[s], 0)
-				except KeyError:
-					return SimpleSourcedUnicodeString('&'+s+';')
-
-		return re.sub(r"&(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));", replaceEntities, s)
-
 	@staticmethod
 	def load(json, src=None):
 		"""Loads the document from a dictionary that results from GATE json, 
 			returns a document and a change logger"""
 		logger = []
 
-		text = SimpleSourcedUnicodeString(json["text"], json["text"])
+		text = SourcedString(json["text"])
 
 		features = json["documentFeatures"]
 
