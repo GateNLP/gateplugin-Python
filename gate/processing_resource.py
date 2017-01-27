@@ -28,8 +28,7 @@ class ProcessingResource(object):
 		self.input_line = ""
 
 	def start(self):
-		self.init()
-
+		isFirst = False
 		line = sys.stdin.readline().strip()
 		while line:
 			line = codecs.decode(line, "utf8")
@@ -56,6 +55,10 @@ class ProcessingResource(object):
 
 					self.inputAS = self.scriptParams["inputAS"]
 					self.outputAS = self.scriptParams["outputAS"]
+
+					if isFirst: 
+						self.init()
+						isFirst = False
 
 					self.document = self.execute(self.document, **fill_params(self.scriptParams, self.execute))
 
