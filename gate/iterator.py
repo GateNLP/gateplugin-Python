@@ -11,6 +11,28 @@ class GateIterator(object):
 	def __init__(self):
 		self.scriptParams = {}
 
+	def params(): 
+		"""Waits for parameters to come down the line and returns them. May block on the client."""
+		line = sys.stdin.readline().strip()
+		while line:
+			line = codecs.decode(line, "utf8")
+
+			if line:
+				input_line = line
+				input_json = json.loads(line)
+
+				if "command" in input_json:
+					if input_json["command"] == "BEGIN_EXECUTION":
+						corpus = Corpus(input_json)
+						self.scriptParams = input_json["parameterMap"]
+						return self.scriptParams
+					elif input_json["command"] == "ABORT_EXECUTION":
+						return
+					elif input_json["command"] == "END_EXECUTION":
+						return
+			line = sys.stdin.readline().strip()
+
+
 	def __iter__(self):
 		line = sys.stdin.readline().strip()
 		while line:
@@ -23,6 +45,7 @@ class GateIterator(object):
 				if "command" in input_json:
 					if input_json["command"] == "BEGIN_EXECUTION":
 						corpus = Corpus(input_json)
+						self.scriptParams = input_json["parameterMap"]
 					elif input_json["command"] == "ABORT_EXECUTION":
 						return
 					elif input_json["command"] == "END_EXECUTION":
