@@ -12,6 +12,8 @@ public class ExecutionCommand {
     private String corpusName;
     private FeatureMap corpusFeatures;
 
+    private FeatureMap parameterMap;
+
     public ExecutionCommandEnum getCommand() {
         return command;
     }
@@ -36,4 +38,13 @@ public class ExecutionCommand {
     public void setCorpusFeatures(FeatureMap corpusFeatures) {
         this.corpusFeatures = corpusFeatures;
     }
+
+    public FeatureMap getParameterMap() {
+        return parameterMap;
+    }
+
+    public void setParameterMap(FeatureMap featureMap) {
+        this.parameterMap = parameterMap;
+    }
+
 }

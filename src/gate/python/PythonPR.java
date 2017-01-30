@@ -12,7 +12,7 @@ import gate.creole.metadata.CreoleResource;
 import gate.creole.metadata.Optional;
 import gate.creole.metadata.RunTime;
 import gate.util.Files;
-
+import gate.Utils;
 
 import gate.util.InvalidOffsetException;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -130,13 +130,9 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		ensureProcess();
 		
 		// Python is definitely running.
-		HashMap<String, Object> extraFeatures = new HashMap<>();
-		extraFeatures.put("inputAS", inputAS);
-		extraFeatures.put("outputAS", outputAS);
-		extraFeatures.put("scriptParams", scriptParams);
 
 		try {
-			exportDocument(getDocument(), extraFeatures, pythonJsonG);
+			exportDocument(getDocument(), pythonJsonG);
 		} catch (ExecutionException e) {
 			log.error(e);
 			cleanupProcess();
@@ -203,9 +199,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		return document;
 	}
 
-	public static void exportDocument(Document document, HashMap<String, Object> extraFeatures, JsonGenerator jsonG) throws ExecutionException {
-		extraFeatures.put("documentFeatures", document.getFeatures());
-
+	public static void exportDocument(Document document, JsonGenerator jsonG) throws ExecutionException {
 		Map<String, Collection<Annotation>> allAnnotations = new TreeMap<String, Collection<Annotation>>();
 
 		Set<String> annotationSetNames = new TreeSet<String>();
@@ -233,7 +227,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		try {
 
 			PythonJsonUtils.writeDocument(document, 0l, document.getContent().size(), allAnnotations,
-					extraFeatures, null, "annotationID", jsonG);
+					document.getFeatures(), null, "annotationID", jsonG);
 
 			jsonG.writeRaw("\n");
 			jsonG.flush();
@@ -356,6 +350,13 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		ensureProcess();
 		ExecutionCommand command = new ExecutionCommand();
 		command.setCommand(ExecutionCommandEnum.BEGIN_EXECUTION);
+
+		HashMap<Object, Object> params = new HashMap<>();
+		params.put("inputAS", inputAS);
+		params.put("outputAS", outputAS);
+		params.putAll(scriptParams);
+		
+		command.setParameterMap(Utils.toFeatureMap(params));
 
 		if (corpus != null) {
 			command.setCorpusName(corpus.getName());
