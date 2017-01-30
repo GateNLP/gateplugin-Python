@@ -11,7 +11,7 @@ class GateIterator(object):
 	def __init__(self):
 		self.scriptParams = {}
 
-	def params(): 
+	def params(self): 
 		"""Waits for parameters to come down the line and returns them. May block on the client."""
 		line = sys.stdin.readline().strip()
 		while line:
