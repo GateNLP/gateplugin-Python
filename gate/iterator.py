@@ -24,6 +24,7 @@ class GateIterator(object):
 				if "command" in input_json:
 					if input_json["command"] == "BEGIN_EXECUTION":
 						corpus = Corpus(input_json)
+						print >> sys.stderr, input_json
 						self.scriptParams = input_json["parameterMap"]
 						return self.scriptParams
 					elif input_json["command"] == "ABORT_EXECUTION":

@@ -43,7 +43,7 @@ public class ExecutionCommand {
         return parameterMap;
     }
 
-    public void setParameterMap(FeatureMap featureMap) {
+    public void setParameterMap(FeatureMap parameterMap) {
         this.parameterMap = parameterMap;
     }
 
