@@ -24,7 +24,6 @@ class GateIterator(object):
 				if "command" in input_json:
 					if input_json["command"] == "BEGIN_EXECUTION":
 						corpus = Corpus(input_json)
-						print >> sys.stderr, input_json
 						self.scriptParams = input_json["parameterMap"]
 						return self.scriptParams
 					elif input_json["command"] == "ABORT_EXECUTION":
@@ -42,7 +41,7 @@ class GateIterator(object):
 			if line:
 				input_line = line
 				input_json = json.loads(line)
-
+				print >> sys.stderr, input_json
 				if "command" in input_json:
 					if input_json["command"] == "BEGIN_EXECUTION":
 						corpus = Corpus(input_json)
@@ -54,14 +53,6 @@ class GateIterator(object):
 				else:
 					try:
 						document = Document.load(input_json)
-						self.scriptParams = input_json.get("scriptParams")
-						self.scriptParams = self.scriptParams if self.scriptParams else {}
-
-						self.scriptParams["inputAS"] = document.annotationSets[input_json["inputAS"]]
-						self.scriptParams["outputAS"] = document.annotationSets[input_json["outputAS"]]
-
-						inputAS = self.scriptParams["inputAS"]
-						outputAS = self.scriptParams["outputAS"]
 
 						yield document
 						print json.dumps(document.logger)

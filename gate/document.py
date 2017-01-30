@@ -62,13 +62,13 @@ class Document(object):
 		logger = []
 
 		text = SimpleSourcedUnicodeString(json["text"], json["text"])
-
-		features = json["documentFeatures"]
+		entities = json.pop("entities", None)
+		features = json
 
 		doc = Document(logger, text, features, src)
 
-		if "entities" in json and len(json["entities"]):
-			for entity_key, instances in json["entities"].iteritems():
+		if entities and len(entities):
+			for entity_key, instances in entities.iteritems():
 				annotation_set, annotation_name = entity_key.split(":")
 				for entity in instances:	
 					start, end = entity.pop("indices")
