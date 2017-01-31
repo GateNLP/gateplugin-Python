@@ -26,9 +26,9 @@ class ProcessingResource(object):
 		self.inputAS = None
 		self.outputAS = None
 		self.input_line = ""
+		self.document = None
 
 	def start(self):
-		isFirst = False
 		line = sys.stdin.readline().strip()
 		while line:
 			line = codecs.decode(line, "utf8")
@@ -40,25 +40,20 @@ class ProcessingResource(object):
 				if "command" in input_json:
 					if input_json["command"] == "BEGIN_EXECUTION":
 						self.corpus = Corpus(input_json)
+						self.scriptParams = input_json["parameterMap"]
+
+						self.init(**fill_params(self.scriptParams, self.init))
 						self.beginExecution()
+
 					elif input_json["command"] == "ABORT_EXECUTION":
 						self.abortExecution()
 					elif input_json["command"] == "END_EXECUTION":
 						self.endExecution()
 				else:
-					self.document = Document.load(input_json)
-					self.scriptParams = input_json.get("scriptParams")
-					self.scriptParams = self.scriptParams if self.scriptParams else {}
+					self.document = Document.load(input_json)			
 
-					self.scriptParams["inputAS"] = self.document.annotationSets[input_json["inputAS"]]
-					self.scriptParams["outputAS"] = self.document.annotationSets[input_json["outputAS"]]
-
-					self.inputAS = self.scriptParams["inputAS"]
-					self.outputAS = self.scriptParams["outputAS"]
-
-					if isFirst: 
-						self.init()
-						isFirst = False
+					self.inputAS = self.document.annotationSets[self.scriptParams["inputAS"]]
+					self.outputAS = self.document.annotationSets[self.scriptParams["outputAS"]]
 
 					self.document = self.execute(self.document, **fill_params(self.scriptParams, self.execute))
 
