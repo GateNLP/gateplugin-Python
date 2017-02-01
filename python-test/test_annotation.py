@@ -135,6 +135,7 @@ class TestAnnotationSet(unittest.TestCase):
   def testGetCovering(self):
     self.assertEquals(0, self.basicAS[None].covering(0,5).size())
     self.assertEquals(0, self.basicAS["T1"].covering(0,5).size())
+    self.assertEquals(2, self.basicAS["T1"].covering(10,20).size())
 
     #None and blank strings should be treated the same.  Just test
     #with both a couple of times.  Mostly can just test with None.
