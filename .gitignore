@@ -12,3 +12,14 @@ __pycache__
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+.DS_Store
+*.iml
+python-test/data/*output*
+*.json
+gate/log.txt
+build
+dist
+
+gate_python.egg-info
+.idea
