@@ -9,6 +9,7 @@
 	<property name="dist.dir" location="dist" />
 	<property name="dist.lib.dir" location="dist/lib" />
 
+	<property file="build.properties" />
 	<!-- Make environment variables available -->
 	<property environment="env" />
 
