@@ -46,7 +46,30 @@ public class PythonPRTest {
     @Test
     public void addDocumentSpan() throws Exception {
         pythonPR.setScript(new File("examples/add_document_span.py").toURI().toURL());
+
+        controller.controllerExecutionStarted(controller);
         controller.execute();
+        controller.controllerExecutionFinished(controller);
+
+        // Check that we got a new annotation in the document.
+        assertTrue(document.getAnnotationSetNames().contains("python"));
+        assertEquals(document.getAnnotations("python").size(), 1);
+        assertEquals(document.getAnnotations("python").get(0).getStartNode().getOffset().longValue(), 0l);
+        assertEquals(document.getAnnotations("python").get(0).getEndNode().getOffset().intValue(),
+                TEST_TEXT.length());
+        assertEquals(document.getAnnotations("python").get(0).getFeatures().get("text"),
+                TEST_TEXT);
+
+    }
+
+    @Test
+    public void testFunctionPR() throws Exception {
+        pythonPR.setScript(new File("examples/add_document_span_function.py").toURI().toURL());
+        pythonPR.setOutputAS("python");
+
+        controller.controllerExecutionStarted(controller);
+        controller.execute();
+        controller.controllerExecutionFinished(controller);
 
         // Check that we got a new annotation in the document.
         assertTrue(document.getAnnotationSetNames().contains("python"));

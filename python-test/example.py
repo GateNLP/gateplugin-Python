@@ -1,5 +1,5 @@
 from gate import executable
-import twokenize, sys, codecs
+import sys, codecs
 
 @executable
 def tokenize(document, outputAS, addText):

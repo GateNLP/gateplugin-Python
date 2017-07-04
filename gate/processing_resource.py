@@ -53,8 +53,8 @@ class ProcessingResource(object):
 						return
 				else:
 					self.document = Document.load(input_json)			
-					self.inputAS = self.document.annotationSets[self.scriptParams["inputAS"]]
-					self.outputAS = self.document.annotationSets[self.scriptParams["outputAS"]]
+					self.inputAS = self.document.annotationSets[self.scriptParams.get("inputAS", None)]
+					self.outputAS = self.document.annotationSets[self.scriptParams.get("outputAS", None)]
 
 					self.execute(self.document, **fill_params(self.scriptParams, self.execute))
 
