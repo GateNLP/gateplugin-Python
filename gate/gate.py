@@ -9,12 +9,13 @@ class Gate(object):
 		self.jarLocation = jarLocation
 		if self.jarLocation == None:
 			self.jarLocation = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-			self.jarLocation = os.path.join(self.jarLocation, "gateplugin-python.jar")
 			
 	def start(self):
-		self.gateProcess = Popen(["java", "-cp",
-			os.environ['CLASSPATH']+":"+self.jarLocation, 
-			"gate.python.PythonGATEInstance"], stdout=PIPE, stdin=PIPE)
+		command = ["java", "-cp",
+			os.environ['CLASSPATH']+":"+self.jarLocation+"/gateplugin-python.jar" +
+			":"+self.jarLocation+"/lib/*:", 
+			"gate.python.PythonGATEInstance"]
+		self.gateProcess = Popen(command, stdout=PIPE, stdin=PIPE)
 
 	def stop(self):
 		self.gateProcess.terminate()

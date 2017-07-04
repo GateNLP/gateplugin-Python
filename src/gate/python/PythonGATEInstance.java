@@ -42,7 +42,7 @@ public class PythonGATEInstance {
 
                 if (command.getCommand().equals(HostExecutionCommandEnum.LOAD_DOCUMENT)) {
                     Document document = Factory.newDocument(command.getTargetURL());
-                    PythonPR.exportDocument(document, new HashMap<String, Object>(), jsonG);
+                    PythonPR.exportDocument(document, jsonG);
                     jsonG.writeRaw("\n");
                     Factory.deleteResource(document);
                 } else if (command.getCommand().equals(HostExecutionCommandEnum.SAVE_DOCUMENT)) {
@@ -59,7 +59,7 @@ public class PythonGATEInstance {
 
                     out.close();
 
-                    PythonPR.exportDocument(document, new HashMap<String, Object>(), jsonG);
+                    PythonPR.exportDocument(document, jsonG);
                     jsonG.writeRaw("\n");
                     Factory.deleteResource(document);
                 }

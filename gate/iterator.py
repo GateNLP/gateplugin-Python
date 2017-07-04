@@ -41,7 +41,6 @@ class GateIterator(object):
 			if line:
 				input_line = line
 				input_json = json.loads(line)
-				print >> sys.stderr, input_json
 				if "command" in input_json:
 					if input_json["command"] == "BEGIN_EXECUTION":
 						corpus = Corpus(input_json)

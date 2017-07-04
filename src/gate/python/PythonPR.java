@@ -148,7 +148,8 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 			log.error("Unable to read JSON from python process, closing pipeline", e);
 
 			cleanupProcess();
-			throw new ExecutionException("Unable to read JSON from python process", e);
+			throw new ExecutionException("Unable to read JSON from python process - " +
+				"perhaps process printed to stdout? (use stderr instead)", e);
 		} catch (InvalidOffsetException e) {
 			cleanupProcess();
 			throw new ExecutionException("Unable to apply changes requested by python script", e);
@@ -354,7 +355,9 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		HashMap<Object, Object> params = new HashMap<>();
 		params.put("inputAS", inputAS);
 		params.put("outputAS", outputAS);
-		params.putAll(scriptParams);
+		if (scriptParams != null) {
+			params.putAll(scriptParams);
+		}
 		
 		command.setParameterMap(Utils.toFeatureMap(params));
 
