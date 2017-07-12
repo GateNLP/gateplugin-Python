@@ -52,7 +52,7 @@ class ProcessingResource(object):
 						self.endExecution()
 						return
 				else:
-					self.document = Document.load(input_json)			
+					self.document = Document.load(input_json)
 					self.inputAS = self.document.annotationSets[self.scriptParams.get("inputAS", None)]
 					self.outputAS = self.document.annotationSets[self.scriptParams.get("outputAS", None)]
 

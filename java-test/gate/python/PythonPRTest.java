@@ -1,6 +1,7 @@
 package gate.python;
 
 import gate.*;
+import gate.creole.ResourceInstantiationException;
 import gate.creole.SerialAnalyserController;
 import org.junit.After;
 import org.junit.Before;
@@ -34,14 +35,37 @@ public class PythonPRTest {
         pythonPR = (PythonPR) Factory.createResource("gate.python.PythonPR");
 
         controller.add(pythonPR);
-        corpus = Factory.newCorpus("test_corpus");
-        document = Factory.newDocument(TEST_TEXT);
+        loadDocument(TEST_TEXT);
+    }
 
-        corpus.add(document);
+    public void setDocument(Document document) throws ResourceInstantiationException {
+        if (corpus != null) {
+            Factory.deleteResource(corpus);
+        }
+
+        if (this.document != null) {
+            Factory.deleteResource(this.document);
+        }
+
+        corpus = Factory.newCorpus("test_corpus");
+        this.document = document;
+
+        corpus.add(this.document);
 
         controller.setCorpus(corpus);
-        controller.setDocument(document);
+        controller.setDocument(this.document);
+
     }
+
+    public void loadDocument(String documentText) throws ResourceInstantiationException {
+        setDocument(Factory.newDocument(documentText));
+    }
+
+    public void loadDocumentXML(URL url) throws ResourceInstantiationException {
+        setDocument(Factory.newDocument(url));
+    }
+
+
 
     @Test
     public void addDocumentSpan() throws Exception {
@@ -82,13 +106,45 @@ public class PythonPRTest {
 
     }
 
+    @Test
+    public void testNullKeyInMap() throws Exception {
+        pythonPR.setScript(new File("examples/tokenise_badly.py").toURI().toURL());
+
+        loadDocumentXML(this.getClass().getResource("/bad_document.xml"));
+
+        controller.controllerExecutionStarted(controller);
+        controller.execute();
+        controller.controllerExecutionFinished(controller);
+
+        // Check that we got a new annotation in the document.
+        assertEquals(document.getAnnotations().size(), 13);
+    }
+
+
+    @Test
+    public void testAnnotationInDefaultSet() throws Exception {
+        pythonPR.setScript(new File("examples/tokenise_badly.py").toURI().toURL());
+
+        Document document = Factory.newDocument("anything goes");
+
+        document.getAnnotations().add(0l, 4l, "test", Factory.newFeatureMap());
+
+        controller.controllerExecutionStarted(controller);
+        controller.execute();
+        controller.controllerExecutionFinished(controller);
+
+        // Check that we got a new annotation in the document.
+            assertEquals(document.getAnnotations().size(), 1);
+    }
+
     @After
     public void tearDown() throws Exception {
         Factory.deleteResource(pythonPR);
         Factory.deleteResource(controller);
         Factory.deleteResource(corpus);
         Factory.deleteResource(document);
-
+        corpus = null;
+        document = null;
     }
 
 }

@@ -134,8 +134,9 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		try {
 			exportDocument(getDocument(), pythonJsonG);
 		} catch (ExecutionException e) {
-			log.error(e);
+			log.error("Couldn't export document",e);
 			cleanupProcess();
+			throw e;
 		}
 
 
@@ -237,6 +238,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 			throw new ExecutionException("Unable to write entire document span", e);
 		} catch (JsonGenerationException e) {
 			log.error("Unable to generate JSON for document", e);
+			throw new ExecutionException("Unable to generate JSON for document", e);
 		} catch (IOException e) {
 			log.error("Unable to flush JSON to python process, closing pipeline", e);
 			throw new ExecutionException("Unable to flush JSON to python process", e);
