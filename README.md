@@ -41,7 +41,7 @@ And compile the code, making sure that $GATEHOME is set to the location of your 
 
 Add the plugin within GATE (Creole Plugin Manager then click '+' then select the directory of the plugin)
 
-Create a new PythonPR and add it to an application, configure the location of your Python executable and the location of a new script.
+Create a new PythonPR and add it to an application, configure the location of your Python executable (either as a URL to a specific binary or as the name of a command on the PATH) and the location of a new script.
 
 The script should use the following template:
 
