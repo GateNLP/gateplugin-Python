@@ -36,6 +36,8 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 	private static final Logger log = Logger.getLogger(PythonPR.class);
 	
 	private String pythonBinary;
+
+	private URL pythonBinaryUrl;
 	
 	private String lastPythonBinary;
 
@@ -57,9 +59,20 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 	}
 
 	@RunTime
-	@CreoleParameter(defaultValue = "python", comment = "Python command to use")
+	@CreoleParameter(defaultValue = "python", comment = "Python command to use, which is expected to be resolvable as a command on the system PATH - if you need to run a specific binary at a fixed path use pythonBinaryUrl instead. If both pythonBinary and pythonBinaryUrl are set, then the URL takes precedence.")
 	public void setPythonBinary(String pythonBinary) {
 		this.pythonBinary = pythonBinary;
+	}
+
+	public URL getPythonBinaryUrl() {
+		return pythonBinaryUrl;
+	}
+
+	@Optional
+	@RunTime
+	@CreoleParameter(comment = "URL to the Python command to use, use this if you need to run Python in a particular virtual environment rather than relying on the system PATH")
+	public void setPythonBinaryUrl(URL pythonBinaryUrl) {
+		this.pythonBinaryUrl = pythonBinaryUrl;
 	}
 
 	public URL getScript() {
@@ -246,8 +259,12 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 	}
 
 	private void ensureProcess() throws ExecutionException {
+		String pythonBinaryToRun = pythonBinary;
+		if(pythonBinaryUrl != null) {
+			pythonBinaryToRun = Files.fileFromURL(pythonBinaryUrl).getAbsolutePath();
+		}
 		boolean needNewProcess = forceRestart || (!processRunning() ||
-					!ObjectUtils.equals(pythonBinary, lastPythonBinary) ||
+					!ObjectUtils.equals(pythonBinaryToRun, lastPythonBinary) ||
 					!ObjectUtils.equals(script, lastScript));
 
 		// Close the existing long-running process before opening a new one, if needed
@@ -263,7 +280,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		// Start the fresh process as needed.
 		if(needNewProcess) {
 			// Runs python -u some_script.py  (unbuffered)
-			ProcessBuilder builder = new ProcessBuilder(pythonBinary, "-u", Files.fileFromURL(script).getAbsolutePath());
+			ProcessBuilder builder = new ProcessBuilder(pythonBinaryToRun, "-u", Files.fileFromURL(script).getAbsolutePath());
 			try {
 				// Todo: there must be a better way to achieve this
 				URL pythonPath = new URL(Gate.getCreoleRegister().get(this.getClass().getName()).getXmlFileUrl(), ".");
@@ -276,7 +293,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 				throw new ExecutionException("Couldn't form python path for running PR", e);
 			}
 
-			lastPythonBinary = pythonBinary;
+			lastPythonBinary = pythonBinaryToRun;
 			lastScript = script;
 
 			try {
