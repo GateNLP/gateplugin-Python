@@ -79,8 +79,6 @@
                 <classpath refid="default.classpath" />
                 <classpath refid="gate.classpath" />
                 <classpath>
-                    <pathelement location="junit-4.12.jar" />
-                    <pathelement location="hamcrest-core-1.3.jar" />
                     <pathelement location="${build}" />
                 </classpath>
             </javac>
