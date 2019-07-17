@@ -40,7 +40,7 @@ class Gate(object):
 			raise Exception(response)
 
 	def load(self, document):
-		return self.loadURL("file:///"+urllib.quote(os.path.abspath(document)))
+		return self.loadURL("file://"+urllib.quote(os.path.abspath(document)))
 
 	def loadURL(self, document):
 		command = {
@@ -53,7 +53,7 @@ class Gate(object):
 
 
 	def save(self, document, output):
-		return self.saveURL(document, "file:///"+urllib.quote(os.path.abspath(output)))
+		return self.saveURL(document, "file://"+urllib.quote(os.path.abspath(output)))
 
 	def saveURL(self, document, output):
 		command = {
