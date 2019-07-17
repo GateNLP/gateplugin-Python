@@ -86,19 +86,19 @@
             </javac>
         </target>
 
+
         <target name="test" depends="compile,compile-test"
             description="Run the (Junit) unit tests">
-            <java fork="yes"
-                classname="org.junit.runner.JUnitCore">
-                <classpath refid="gate.classpath" />
-                <classpath>
-                    <pathelement location="junit-4.12.jar" />
-                    <pathelement location="hamcrest-core-1.3.jar" />
-                    <pathelement location="${build}" />
-                    <pathelement location="test-compiled" />
-                </classpath>
-                <arg value="gate.python.PythonPRTest" />
-            </java>
+            <junit fork="true" showoutput="yes" printsummary="yes">
+              <test name="gate.python.PythonPRTest" />
+              <formatter type="plain" />
+              <formatter type="xml" />
+              <classpath refid="gate.classpath" />
+              <classpath>
+                  <pathelement location="${build}" />
+                  <pathelement location="test-compiled" />
+              </classpath>
+            </junit>
         </target>
 	
 	<ivy:cachepath pathid="default.classpath" conf="default" />
