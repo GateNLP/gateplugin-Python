@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="UTF-8"?>
 <project
   name="gateplugin-python" default="dist"
   xmlns:maven="antlib:org.eclipse.aether.ant">
