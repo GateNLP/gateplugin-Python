@@ -85,7 +85,7 @@
         </target>
 
 
-        <target name="test" depends="compile,compile-test"
+        <target name="test" depends="compile,compile-test,dist"
             description="Run the (Junit) unit tests">
             <junit fork="true" showoutput="yes" printsummary="yes">
               <test name="gate.python.PythonPRTest" />
