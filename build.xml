@@ -1,5 +1,7 @@
 
-<project xmlns:ivy="antlib:org.apache.ivy.ant" name="gateplugin-python" default="dist">
+<project
+  name="gateplugin-python" default="dist"
+  xmlns:maven="antlib:org.eclipse.aether.ant">
 
 	<description>
    		Plugin for Python integration in GATE.
@@ -33,22 +35,34 @@
 	<property environment="env"/>
 
 
-	<!-- Path to compile - includes gate.jar and GATE/lib/*.jar -->
-	<path id="gate.classpath">
-		<pathelement location="${gate.jar}" />
-		<fileset dir="${gate.lib}">
-			<include name="**/*.jar" />
-			<include name="**/*.zip" />
-		</fileset>
-	</path>
+        <!-- download a copy of aether ant tasks if we don't have them already
+          NOTE: switch to using Apache Maven Resolver for this? -->
+	<get src="http://search.maven.org/remotecontent?filepath=org/eclipse/aether/aether-ant-tasks/1.0.0.v20140518/aether-ant-tasks-1.0.0.v20140518-uber.jar" dest="aether-ant-tasks-uber.jar" verbose="true" skipexisting="true" />
+	<fail message="Checksum mismatch for 'aether-ant-tasks-uber.jar'. Please delete it and rerun ant to redownload.">
+            <condition>
+                <not>
+                    <checksum file="aether-ant-tasks-uber.jar" algorithm="SHA" property="95dadd03392a75564904da45108cf048abe6e5bb" verifyproperty="checksum.matches" />
+                </not>
+            </condition>
+	</fail>
 
-        <path id="ivy.lib.path">
-          <fileset file="${gate.home}/build/lib/ivy.jar" />
-        </path>
-	<taskdef resource="org/apache/ivy/ant/antlib.xml"
-	    uri="antlib:org.apache.ivy.ant" 
-            classpathref="ivy.lib.path"/>
-	
+	<path id="aether-ant-tasks.classpath" path="aether-ant-tasks-uber.jar" />
+	<typedef resource="org/eclipse/aether/ant/antlib.xml" uri="antlib:org.eclipse.aether.ant" classpathref="aether-ant-tasks.classpath" />
+
+
+	<!-- build the gate-core classpath via maven -->
+	<maven:resolve>
+		<maven:dependencies>
+			<maven:dependency
+                          groupid="uk.ac.gate"
+                          artifactid="gate-core"
+                          version="8.4.1" />
+		</maven:dependencies>
+		<path refid="gate.classpath" classpath="compile" />
+		<path refid="gate.runtime.classpath" classpath="runtime" />
+	</maven:resolve>
+
+
 	<target name="init">
 		<tstamp/>
 		<mkdir dir="${build}"/>
@@ -63,7 +77,6 @@
 	        description="Compile the source">
 
 		<javac srcdir="${src}" destdir="${build}" debug="true" source="1.7" target="1.7" debuglevel="lines,vars,source">
-			<classpath refid="default.classpath"></classpath>
 			<classpath refid="gate.classpath" />
 
 		</javac>
@@ -98,10 +111,8 @@
               </classpath>
             </junit>
         </target>
-	
-	<ivy:cachepath pathid="default.classpath" conf="default" />
 
-	<target name="dist" depends="compile,resolve"
+	<target name="dist" depends="compile"
 	        description="Generate the distribution">
 		<mkdir dir="${dist.dir}" />
 		<mkdir dir="${dist.lib.dir}" />
@@ -114,9 +125,5 @@
 	<target name="clean"
 	        description="Clean up">
 		<delete dir="${build}"/>
-	</target>
-	
-	<target name="resolve" description="Retrieve dependencies with ivy">
-		<ivy:retrieve />
 	</target>
 </project>
