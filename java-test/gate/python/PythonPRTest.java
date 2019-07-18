@@ -79,12 +79,12 @@ public class PythonPRTest {
 
         // Check that we got a new annotation in the document.
         assertTrue(document.getAnnotationSetNames().contains("python"));
-        assertEquals(document.getAnnotations("python").size(), 1);
-        assertEquals(document.getAnnotations("python").get(0).getStartNode().getOffset().longValue(), 0l);
-        assertEquals(document.getAnnotations("python").get(0).getEndNode().getOffset().intValue(),
-                TEST_TEXT.length());
-        assertEquals(document.getAnnotations("python").get(0).getFeatures().get("text"),
-                TEST_TEXT);
+        assertEquals(1, document.getAnnotations("python").size());
+        assertEquals(0L, document.getAnnotations("python").get(0).getStartNode().getOffset().longValue());
+        assertEquals(TEST_TEXT.length(),
+            document.getAnnotations("python").get(0).getEndNode().getOffset().intValue());
+        assertEquals(TEST_TEXT,
+            document.getAnnotations("python").get(0).getFeatures().get("text"));
 
     }
 
@@ -99,12 +99,12 @@ public class PythonPRTest {
 
         // Check that we got a new annotation in the document.
         assertTrue(document.getAnnotationSetNames().contains("python"));
-        assertEquals(document.getAnnotations("python").size(), 1);
-        assertEquals(document.getAnnotations("python").get(0).getStartNode().getOffset().longValue(), 0l);
-        assertEquals(document.getAnnotations("python").get(0).getEndNode().getOffset().intValue(),
-                TEST_TEXT.length());
-        assertEquals(document.getAnnotations("python").get(0).getFeatures().get("text"),
-                TEST_TEXT);
+        assertEquals(1, document.getAnnotations("python").size());
+        assertEquals(0L, document.getAnnotations("python").get(0).getStartNode().getOffset().longValue());
+        assertEquals(TEST_TEXT.length(),
+            document.getAnnotations("python").get(0).getEndNode().getOffset().intValue());
+        assertEquals(TEST_TEXT,
+            document.getAnnotations("python").get(0).getFeatures().get("text"));
 
     }
 
@@ -122,7 +122,7 @@ public class PythonPRTest {
         controller.controllerExecutionFinished(controller);
 
         // Check that we got a new annotation in the document.
-        assertEquals(document.getAnnotations().size(), 13);
+        assertEquals(13, document.getAnnotations().size());
     }
 
 
