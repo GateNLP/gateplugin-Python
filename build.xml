@@ -120,6 +120,9 @@
                   <pathelement location="${build}" />
                   <pathelement location="${build.test}" />
               </classpath>
+              <syspropertyset>
+                <propertyref prefix="gate.python" />
+              </syspropertyset>
             </junit>
         </target>
 

@@ -35,6 +35,10 @@ public class PythonPRTest {
         controller = (SerialAnalyserController) Factory.createResource("gate.creole.SerialAnalyserController");
 
         pythonPR = (PythonPR) Factory.createResource("gate.python.PythonPR");
+        String python = System.getProperty("gate.python.binary");
+        if(python != null) {
+            pythonPR.setParameterValue("pythonBinary", python);
+        }
 
         controller.add(pythonPR);
         loadDocument(TEST_TEXT);
