@@ -59,7 +59,6 @@ public class PythonPRTest {
         corpus.add(this.document);
 
         controller.setCorpus(corpus);
-        controller.setDocument(this.document);
 
     }
 
@@ -77,9 +76,7 @@ public class PythonPRTest {
     public void addDocumentSpan() throws Exception {
         pythonPR.setScript(new File("examples/add_document_span.py").toURI().toURL());
 
-        controller.controllerExecutionStarted(controller);
         controller.execute();
-        controller.controllerExecutionFinished(controller);
 
         // Check that we got a new annotation in the document.
         assertTrue(document.getAnnotationSetNames().contains("python"));
@@ -97,9 +94,7 @@ public class PythonPRTest {
         pythonPR.setScript(new File("examples/add_document_span_function.py").toURI().toURL());
         pythonPR.setOutputAS("python");
 
-        controller.controllerExecutionStarted(controller);
         controller.execute();
-        controller.controllerExecutionFinished(controller);
 
         // Check that we got a new annotation in the document.
         assertTrue(document.getAnnotationSetNames().contains("python"));
@@ -121,9 +116,7 @@ public class PythonPRTest {
 
         loadDocumentXML(this.getClass().getResource("/bad_document.xml"));
 
-        controller.controllerExecutionStarted(controller);
         controller.execute();
-        controller.controllerExecutionFinished(controller);
 
         // Check that we got a new annotation in the document.
         assertEquals(13, document.getAnnotations().size());
@@ -141,9 +134,7 @@ public class PythonPRTest {
 
         assertEquals(0, document.getAnnotations().size());
 
-        controller.controllerExecutionStarted(controller);
         controller.execute();
-        controller.controllerExecutionFinished(controller);
 
         // Check that we got a new annotation in the document.
         assertEquals(1, document.getAnnotations().size());
