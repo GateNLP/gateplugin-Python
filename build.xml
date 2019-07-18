@@ -32,6 +32,9 @@
 
 	<property name="build" location="build"/>
 
+        <!-- compilation products for tests -->
+        <property name="build.test" location="build-test" />
+
 	<property environment="env"/>
 
 
@@ -56,9 +59,14 @@
 			<maven:dependency
                           groupid="uk.ac.gate"
                           artifactid="gate-core"
-                          version="8.4.1" />
+                          version="8.6" />
+                        <maven:dependency
+                          groupid="junit"
+                          artifactid="junit"
+                          version="4.12" />
 		</maven:dependencies>
 		<path refid="gate.classpath" classpath="compile" />
+		<path refid="gate.test.classpath" classpath="test" />
 		<path refid="gate.runtime.classpath" classpath="runtime" />
 	</maven:resolve>
 
@@ -83,13 +91,14 @@
 	</target>
 
         <target name="compile-test" depends="compile">
-            <mkdir dir="test-compiled" />
-            <javac destdir="test-compiled" srcdir="java-test"
+            <mkdir dir="${build.test}" />
+            <javac destdir="${build.test}" srcdir="java-test"
                 debug="true"
                 source="1.7"
                 target="1.7"
-                debuglevel="lines,vars,source">
-                <classpath refid="default.classpath" />
+                includeantruntime="false"
+                debuglevel="lines,vars,source"
+                >
                 <classpath refid="gate.classpath" />
                 <classpath>
                     <pathelement location="${build}" />
@@ -100,14 +109,16 @@
 
         <target name="test" depends="compile,compile-test,dist"
             description="Run the (Junit) unit tests">
-            <junit fork="true" showoutput="yes" printsummary="yes">
+            <junit fork="true" showoutput="yes" printsummary="yes"
+              includeantruntime="true"
+              >
               <test name="gate.python.PythonPRTest" />
               <formatter type="plain" />
               <formatter type="xml" />
-              <classpath refid="gate.classpath" />
+              <classpath refid="gate.runtime.classpath" />
               <classpath>
                   <pathelement location="${build}" />
-                  <pathelement location="test-compiled" />
+                  <pathelement location="${build.test}" />
               </classpath>
             </junit>
         </target>
@@ -125,5 +136,6 @@
 	<target name="clean"
 	        description="Clean up">
 		<delete dir="${build}"/>
+		<delete dir="${build.test}"/>
 	</target>
 </project>
