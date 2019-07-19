@@ -1,4 +1,3 @@
 <CREOLE-DIRECTORY>
 	<JAR SCAN="true">gateplugin-python.jar</JAR>
-	<IVY/>
 </CREOLE-DIRECTORY>
