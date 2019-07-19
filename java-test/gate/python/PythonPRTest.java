@@ -123,21 +123,19 @@ public class PythonPRTest {
     }
 
 
-    // In GATE 8.4.1 and 8.6 test fails because
-    // some problem with default annotation set?
-    @Ignore
     @Test
     public void testAnnotationInDefaultSet() throws Exception {
         pythonPR.setScript(new File("examples/tokenise_badly.py").toURI().toURL());
 
-        Document document = Factory.newDocument("anything goes");
+        // send an annotation over to python
+        document.getAnnotations().add(0l, 4l, "test", Factory.newFeatureMap());
 
-        assertEquals(0, document.getAnnotations().size());
+        assertEquals(1, document.getAnnotations().size());
 
         controller.execute();
 
-        // Check that we got a new annotation in the document.
-        assertEquals(1, document.getAnnotations().size());
+        // Check that we got usual token annotations added in addition to the one we sent
+        assertEquals(6, document.getAnnotations().size());
     }
 
     @After
