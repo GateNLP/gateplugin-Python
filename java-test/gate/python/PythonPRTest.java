@@ -108,13 +108,13 @@ public class PythonPRTest {
     }
 
     // In GATE 8.4.1 and 8.6 test fails because
-    // some problem with default annotation set?
+    // we don't do anything sensible with null map keys
     @Ignore
     @Test
     public void testNullKeyInMap() throws Exception {
         pythonPR.setScript(new File("examples/tokenise_badly.py").toURI().toURL());
 
-        loadDocumentXML(this.getClass().getResource("/bad_document.xml"));
+        loadDocumentXML(new File("test-resources/bad_document.xml").toURI().toURL());
 
         controller.execute();
 
