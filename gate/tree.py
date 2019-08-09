@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 """Basic Python implementation of Red-Black tree for annotation lookups.
 
 This code still contains a lot of debugging apparatus, because I don't quite trust it yet.
