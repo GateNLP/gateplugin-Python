@@ -59,3 +59,11 @@ if __name__ == "__main__":
 	pr = TemplatePR()
 	pr.start()
 ```
+
+## Testing
+
+A part of the Python code (`sourcedstring`) has a small number
+of unit tests.
+Run with:
+
+    python3 -m unittest
