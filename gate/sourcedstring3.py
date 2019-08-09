@@ -425,10 +425,10 @@ class SourcedString(object):
 
     _WHITESPACE_RE = re.compile(r'\s+')
 
-    def split(self, sep=None, maxsplit=None):
+    def split(self, sep=None, maxsplit=-1):
         return self._splitter(sep=sep, maxsplit=maxsplit, forward=True)
 
-    def rsplit(self, sep=None, maxsplit=None):
+    def rsplit(self, sep=None, maxsplit=-1):
         return self._splitter(sep=sep, maxsplit=maxsplit, forward=False)
 
     def _splitter(self, sep, maxsplit, forward):
@@ -448,7 +448,7 @@ class SourcedString(object):
             sep_re = re.compile(re.escape(sep))
 
         seps = list(sep_re.finditer(self))
-        if maxsplit:
+        if maxsplit != -1:
             if forward:
                 seps = seps[:maxsplit]
             else:
