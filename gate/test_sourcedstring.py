@@ -3,18 +3,12 @@ from __future__ import print_function
 # https://docs.python.org/2.7/library/unittest.html
 import unittest
 
-try:
-    if __package__:
-        from . import _sourcedstring as sourcedstring
-    else:
-        import _sourcedstring as sourcedstring
-except SyntaxError:
-    # Assume that we get here when when we are in Python 2,
-    # attempting to import the Python 3-only _sourcedstring
-    if __package__:
-        from . import sourcedstring
-    else:
-        import sourcedstring
+
+if __package__:
+    from . import sourcedstring
+else:
+    import sourcedstring
+
 
 class TestSomething(unittest.TestCase):
     def test_split(self):

@@ -6,7 +6,7 @@ from six.moves import html_parser as HTMLParser
 from six.moves import html_entities
 
 from .annotation_set import AnnotationSet
-from ._sourcedstring import SimpleSourcedUnicodeString
+from .sourcedstring import SimpleSourcedUnicodeString
 
 class _AnnotationSetsDict(collections.defaultdict):
 	def __init__(self, doc, logger):
