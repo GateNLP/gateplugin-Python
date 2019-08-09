@@ -429,8 +429,13 @@ class SourcedString(object):
         # Use a regexp to split self.
         if sep is None: sep_re = self._WHITESPACE_RE
         else: sep_re = re.compile(re.escape(sep))
-        if maxsplit is None: return sep_re.split(self)
-        else: return sep_re.split(self, maxsplit)
+        if maxsplit is None:
+            return sep_re.split(self)
+        if maxsplit == 0:
+            # string split and re split have a different
+            # convention for the maxsplit = 0 case.
+            return sep_re.split(self, -1)
+        return sep_re.split(self, maxsplit)
 
     def rsplit(self, sep=None, maxsplit=None):
         # Check for unicode/bytestring mismatches:
