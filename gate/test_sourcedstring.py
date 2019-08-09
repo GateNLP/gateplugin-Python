@@ -15,22 +15,32 @@ class TestSomething(unittest.TestCase):
         s = sourcedstring.SimpleSourcedUnicodeString("banana", None)
         l = s.split("n")
         print(l)
-        assert l[0].source.begin == 0
+        bs = begins(l)
+        assert bs == [0, 3, 5]
 
     def test_split_default(self):
         s = sourcedstring.SimpleSourcedUnicodeString("a ban na", None)
         l = s.split()
         print(l)
-        assert l[1].source.begin == 2
+        bs = begins(l)
+        assert bs == [0, 2, 6]
 
     def test_rsplit(self):
         s = sourcedstring.SimpleSourcedUnicodeString("banana", None)
         l = s.rsplit("n")
         print(l)
-        assert l[0].source.begin == 0
+        bs = begins(l)
+        assert bs == [0, 3, 5]
 
     def test_rsplit_default(self):
         s = sourcedstring.SimpleSourcedUnicodeString("b n na", None)
         l = s.rsplit()
         print(l)
-        assert l[1].source.begin == 2
+        bs = begins(l)
+        assert bs == [0, 2, 4]
+
+def begins(seq):
+    """
+    Collect all the .begin values for a sequence of sourced strings.
+    """
+    return [ss.source.begin for ss in seq]
