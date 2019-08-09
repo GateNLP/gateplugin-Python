@@ -1,9 +1,14 @@
-from collections import defaultdict
-from annotation_set import AnnotationSet
-from sourcedstring import SimpleSourcedUnicodeString
-import HTMLParser, re
+import collections
+import re
 
-class _AnnotationSetsDict(defaultdict):
+# https://six.readthedocs.io/
+from six.moves import html_parser as HTMLParser
+from six.moves import html_entities
+
+from .annotation_set import AnnotationSet
+from ._sourcedstring import SimpleSourcedUnicodeString
+
+class _AnnotationSetsDict(collections.defaultdict):
 	def __init__(self, doc, logger):
 		self.logger = logger
 		self.doc = doc
@@ -43,7 +48,6 @@ class Document(object):
 			else:
 				# Cannot use name2codepoint directly, because HTMLParser supports apos,
 				# which is not part of HTML 4
-				import htmlentitydefs
 				if HTMLParser.HTMLParser.entitydefs is None:
 					entitydefs = HTMLParser.HTMLParser.entitydefs = {'apos':u"'"}
 					for k, v in htmlentitydefs.name2codepoint.iteritems():
@@ -57,7 +61,7 @@ class Document(object):
 
 	@staticmethod
 	def load(json, src=None):
-		"""Loads the document from a dictionary that results from GATE json, 
+		"""Loads the document from a dictionary that results from GATE json,
 			returns a document and a change logger"""
 		logger = []
 
@@ -68,13 +72,13 @@ class Document(object):
 		doc = Document(logger, text, features, src)
 
 		if entities and len(entities):
-			for entity_key, instances in entities.iteritems():
+			for entity_key, instances in entities.items():
 				annotation_set, annotation_name = entity_key.split(":")
 				for entity in instances:	
 					start, end = entity.pop("indices")
 					_id = entity.pop("annotationID")
 
-					doc.annotationSets[annotation_set].add(start, end, 
+					doc.annotationSets[annotation_set].add(start, end,
 						annotation_name, entity, _id)
 
 

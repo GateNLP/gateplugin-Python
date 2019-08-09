@@ -21,7 +21,7 @@ def check_sane(function):
 		start_sanity = self.sanity_test()
 		result = function(self, *args,**kwargs)
 		if start_sanity and not self.sanity_test():
-			print "Sanity broken by function", repr(function)
+			print("Sanity broken by function", repr(function))
 			import ipdb; ipdb.set_trace()
 		else:
 			return result
@@ -91,8 +91,11 @@ class SliceableTree(object):
 			self.values = []
 			self.value = None
 
-		def __nonzero__(self):
+		def __bool__(self):
 			return False
+
+		# For compatibility with Python 2
+		__nonzero__ = __bool__
 
 	nil = Leaf()
 
@@ -196,7 +199,7 @@ class SliceableTree(object):
 
 	@check_sane
 	def _delete_node(self, z):
-		y = z 
+		y = z
 		y_orig_colour = y.colour
 
 		if not z.left:
@@ -316,18 +319,18 @@ class SliceableTree(object):
 				
 				if current_node:
 					if current_node in seen_nodes:
-						print "Seen current node twice"
+						print("Seen current node twice")
 						return False
 					else:
 						seen_nodes.add(current_node)
 
 					if current_node.left and current_node.left.parent != current_node:
-						print "Node %s thinks its parent is %s, but it's actually %s (left)." % \
-							(current_node.value, current_node.parent.value, current_node.left.value) 
+						print("Node %s thinks its parent is %s, but it's actually %s (left)." % \
+							(current_node.value, current_node.parent.value, current_node.left.value))
 						return False
 					if current_node.right and current_node.right.parent != current_node:
-						print "Node %s thinks its parent is %s, but it's actually %s (right)." % \
-							(current_node.value, current_node.parent.value, current_node.right.value) 
+						print("Node %s thinks its parent is %s, but it's actually %s (right)." % \
+							(current_node.value, current_node.parent.value, current_node.right.value))
 
 						return False
 
@@ -344,7 +347,7 @@ class SliceableTree(object):
 		if not node:
 			node = self.root
 
-		print " " * depth + ("B" if node.colour is BLACK else "R")
+		print(" " * depth + ("B" if node.colour is BLACK else "R"))
 
 		if node.left:
 			self.print_colours(node.left, depth + 1)
@@ -508,8 +511,8 @@ class SliceableTree(object):
 	__add__ = add
 
 if __name__ == "__main__":
-	from annotation_set import SearchOffset
-	from annotation import Annotation
+	from .annotation_set import SearchOffset
+	from .annotation import Annotation
 
 	def compare_start(a, b):
 		return a.start - b.start
@@ -529,17 +532,17 @@ if __name__ == "__main__":
 
 	def save_sequence(filename, to_delete_idx, original_annotation_list):
 		with open(sys.argv[1], "w") as f:
-			print >> f, ",".join(map(str, to_delete_idx))
-			print >> f, ",".join(map(repr, original_annotation_list))
+			print(",".join(map(str, to_delete_idx)), file=f)
+			print(",".join(map(repr, original_annotation_list)), file=f)
 
 	def replay_sequence(filename):
 		with open(filename) as f:
 			to_delete, original_annotations_list = f.readlines()
 
-			annotations_list = [Index(*map(int, annot.split(":"))) for annot in original_annotations_list.split(",")]
+			annotations_list = [Index(*list(map(int, annot.split(":")))) for annot in original_annotations_list.split(",")]
 			to_delete = [(int(annot), annotations_list[int(annot)]) for annot in to_delete.split(",")]
 			to_delete = sorted(to_delete, reverse = True)
-			print to_delete
+			print(to_delete)
 			start_tree = SliceableTree(annotations_list, compare_start)
 
 			for index, annotation in to_delete:
@@ -547,14 +550,14 @@ if __name__ == "__main__":
 				del annotations_list[index]
 
 				if not start_tree.sanity_test():
-					print "Tree is insane prior to copying"
+					print("Tree is insane prior to copying")
 				old_start_tree = SliceableTree(start_tree, compare_start)
 				start_tree.remove(annotation)
 
 				if sorted(annotations_list, key=lambda x: x.start) != list(start_tree):
-					print "Expected:".ljust(10), sorted(annotations_list, key=lambda x: x.start)
-					print "Got:".ljust(10), list(start_tree)
-					print "Failed to remove:", annotation
+					print("Expected:".ljust(10), sorted(annotations_list, key=lambda x: x.start))
+					print("Got:".ljust(10), list(start_tree))
+					print("Failed to remove:", annotation)
 					import ipdb; ipdb.set_trace()
 
 
@@ -588,14 +591,14 @@ if __name__ == "__main__":
 			# print "Deleting %s (%s):" % (annotation, annotations_list[index])
 			del annotations_list[index]
 			if not start_tree.sanity_test():
-				print "Tree is insane prior to copying"
+				print("Tree is insane prior to copying")
 			old_start_tree = SliceableTree(start_tree, compare_start)
 			start_tree.delete(annotation)
 
 			if sorted(annotations_list, key=lambda x: x.start) != list(start_tree):
-				print "Expected:".ljust(10), sorted(annotations_list, key=lambda x: x.start)
-				print "Got:".ljust(10), list(start_tree)
-				print "Failed to remove:", annotation
+				print("Expected:".ljust(10), sorted(annotations_list, key=lambda x: x.start))
+				print("Got:".ljust(10), list(start_tree))
+				print("Failed to remove:", annotation)
 				import ipdb; ipdb.set_trace()
 			# print "New list:", sorted(annotations_list, key=lambda x: x.start)
 			# print "New tree:", list(start_tree)
@@ -603,7 +606,7 @@ if __name__ == "__main__":
 		# start_tree.print_colours()
 		ordered_list = [a.start for a in start_tree]
 		avl_start_tree = avl.new(source = annotations_list, compare = compare_start)
-		print "Searching in list", ordered_list
+		print("Searching in list", ordered_list)
 		# import ipdb; ipdb.set_trace()
 
 		iteration_counts = []
@@ -618,21 +621,21 @@ if __name__ == "__main__":
 			avl_slice = [a.start for a in avl_start_tree[lower:upper]]
 
 			if list_slice != tree_slice and left < right: # My naive slicing here doesn't work with reversed indices
-				print "BROKEN:"
-				print ordered_list
-				print left, right
-				print "Expected:".ljust(10), list_slice
-				print "Got:".ljust(10),tree_slice
+				print("BROKEN:")
+				print(ordered_list)
+				print(left, right)
+				print("Expected:".ljust(10), list_slice)
+				print("Got:".ljust(10),tree_slice)
 
 
 			if avl_slice != tree_slice:
-				print "BROKEN:"
-				print ordered_list
-				print left, right
-				print "Expected:".ljust(10), avl_slice
-				print "Got:".ljust(10),tree_slice
+				print("BROKEN:")
+				print(ordered_list)
+				print(left, right)
+				print("Expected:".ljust(10), avl_slice)
+				print("Got:".ljust(10),tree_slice)
 
-		print "Done! Iterations needed:", float(sum(iteration_counts))/len(iteration_counts)
+		print("Done! Iterations needed:", float(sum(iteration_counts))/len(iteration_counts))
 		# end_tree = build(annotations_list, compare_end)
 
 		# import ipdb; ipdb.set_trace()

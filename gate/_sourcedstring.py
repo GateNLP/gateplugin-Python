@@ -31,18 +31,18 @@ def slice_bounds(sequence, slice_obj, allow_step=False):
     Given a slice, return the corresponding (start, stop) bounds,
     taking into account None indices and negative indices.  The
     following guarantees are made for the returned start and stop values:
-     
+
       - 0 <= start <= len(sequence)
       - 0 <= stop <= len(sequence)
       - start <= stop
-     
+
     :raise ValueError: If ``slice_obj.step`` is not None.
     :param allow_step: If true, then the slice object may have a
         non-None step.  If it does, then return a tuple
         (start, stop, step).
     """
     start, stop = (slice_obj.start, slice_obj.stop)
-     
+
     # If allow_step is true, then include the step in our return
     # value tuple.
     if allow_step:
@@ -55,30 +55,30 @@ def slice_bounds(sequence, slice_obj, allow_step=False):
             start, stop = slice_bounds(sequence, slice(stop, start))
         else:
             start, stop = slice_bounds(sequence, slice(start, stop))
-        return start, stop, step 
+        return start, stop, step
     # Otherwise, make sure that no non-default step value is used.
     elif slice_obj.step not in (None, 1):
         raise ValueError('slices with steps are not supported by %s' %
                          sequence.__class__.__name__)
-     
+
     # Supply default offsets.
     if start is None: start = 0
     if stop is None: stop = len(sequence)
-     
+
     # Handle negative indices.
     if start < 0: start = max(0, len(sequence)+start)
     if stop < 0: stop = max(0, len(sequence)+stop)
-     
+
     # Make sure stop doesn't go past the end of the list.  Note that
     # we avoid calculating len(sequence) if possible, because for lazy
     # sequences, calculating the length of a sequence can be expensive.
     if stop > 0:
         try: sequence[stop-1]
         except IndexError: stop = len(sequence)
-     
+
     # Make sure start isn't past stop.
     start = min(start, stop)
-     
+
     # That's all folks!
     return start, stop
 
@@ -183,23 +183,25 @@ class StringSource(object):
         """
         if isinstance(index, slice):
             start, stop = slice_bounds(self, index)
-            return self.__getslice__(start, stop)
+            return self._simpleslice(start, stop)
         else:
-            if index < 0: index += len(self)
+            if index < 0:
+                index += len(self)
             if index < 0 or index >= len(self):
                 raise IndexError('StringSource index out of range')
-            return self.__getslice__(index, index+1)
+            return self._simpleslice(index, index+1)
 
-    
-    def __getslice__(self, start, stop):
+
+    def _simpleslice(self, start, stop):
         """
         Return a ``StringSource`` describing the location where the
         specified substring was found.  In particular, if ``s`` is the
         string that this source describes, then return a
         ``StringSource`` describing the location of ``s[start:stop]``.
         """
+        # Implemented in subclasses
 
-    
+
     def __len__(self):
         """
         Return the length of the string described by this
@@ -261,7 +263,7 @@ class ConsecutiveCharStringSource(StringSource):
     def __len__(self):
         return self.end-self.begin
 
-    def __getslice__(self, start, stop):
+    def _simpleslice(self, start, stop):
         start = max(0, min(len(self), start))
         stop = max(start, min(len(self), stop))
         return ConsecutiveCharStringSource(
@@ -317,7 +319,7 @@ class ContiguousCharStringSource(StringSource):
     def __len__(self):
         return len(self.offsets)-1
 
-    def __getslice__(self, start, stop):
+    def _simpleslice(self, start, stop):
         start = max(0, min(len(self), start))
         stop = max(start, min(len(self), stop))
         return ContiguousCharStringSource(
@@ -389,7 +391,7 @@ class SourcedString(object):
         # If the SourcedString constructor is called directly, then
         # choose one of its subclasses to delegate to.
         if cls is SourcedString:
-            if isinstance(contents, str):
+            if isinstance(contents, bytes):
                 cls = SimpleSourcedByteString
             elif isinstance(contents, str):
                 cls = SimpleSourcedUnicodeString
@@ -422,43 +424,42 @@ class SourcedString(object):
         return self.lstrip(chars).rstrip(chars)
 
     _WHITESPACE_RE = re.compile(r'\s+')
+
     def split(self, sep=None, maxsplit=None):
-        # Check for unicode/bytestring mismatches:
-        if self._mixed_string_types(sep, maxsplit):
-            return self._decode_and_call('split', sep, maxsplit)
-        # Use a regexp to split self.
-        if sep is None: sep_re = self._WHITESPACE_RE
-        else: sep_re = re.compile(re.escape(sep))
-        if maxsplit is None: return sep_re.split(self)
-        else: return sep_re.split(self, maxsplit)
+        return self._splitter(sep=sep, maxsplit=maxsplit, forward=True)
 
     def rsplit(self, sep=None, maxsplit=None):
+        return self._splitter(sep=sep, maxsplit=maxsplit, forward=False)
+
+    def _splitter(self, sep, maxsplit, forward):
+        """
+        Implements both .split() and .rsplit(),
+        according to value of `forward` argument.
+        """
+
         # Check for unicode/bytestring mismatches:
         if self._mixed_string_types(sep, maxsplit):
             return self._decode_and_call('rsplit', sep, maxsplit)
-        # Split on whitespace use a regexp.
+
+        # Convert separator in sep to regular expression
         if sep is None:
-            seps = list(self._WHITESPACE_RE.finditer(self))
-            if maxsplit: seps = seps[-maxsplit:]
-            if not seps: return [self]
-            result = [self[:seps[0].start()]]
-            for i in range(1, len(seps)):
-                result.append(self[seps[i-1].end():seps[i].start()])
-            result.append(self[seps[-1].end():])
-            return result
-        # Split on a given string: use rfind.
+            sep_re = self._WHITESPACE_RE
         else:
-            result = []
-            piece_end = len(self)
-            while maxsplit != 0:
-                sep_pos = self.rfind(sep, 0, piece_end)
-                if sep_pos < 0: break
-                result.append(self[sep_pos+len(sep):piece_end])
-                piece_end = sep_pos
-                if maxsplit is not None: maxsplit -= 1
-            if piece_end > 0:
-                result.append(self[:piece_end])
-            return result[::-1]
+            sep_re = re.compile(re.escape(sep))
+
+        seps = list(sep_re.finditer(self))
+        if maxsplit:
+            if forward:
+                seps = seps[:maxsplit]
+            else:
+                seps = seps[-maxsplit:]
+        if not seps:
+            return [self]
+        result = [self[:seps[0].start()]]
+        for i in range(1, len(seps)):
+            result.append(self[seps[i-1].end():seps[i].start()])
+        result.append(self[seps[-1].end():])
+        return result
 
     def partition(self, sep):
         head, sep, tail = self._stringtype.partition(self, sep)
@@ -734,7 +735,7 @@ class SourcedString(object):
 
         return SourcedString.concat(result)
 
-    
+
     def _decode_one_to_one(unicode_chars):
         """
         Helper for ``self.decode()``.  Returns a unicode-decoded
@@ -756,11 +757,10 @@ class SourcedString(object):
         calling decode() before the operation is performed.  You can
         do this automatically using ``_decode_and_call()``.
         """
-        any_unicode = isinstance(self, str)
-        any_bytestring = isinstance(self, str)
-        for arg in args:
-            any_unicode = any_unicode or isinstance(arg, str)
-            any_bytestring = any_bytestring or isinstance(arg, str)
+
+        items = [self, *args]
+        any_unicode = any(isinstance(item, str) for item in items)
+        any_bytestring = any(isinstance(item, bytes) for item in items)
         return any_unicode and any_bytestring
 
     def _decode_and_call(self, op, *args):
@@ -774,10 +774,10 @@ class SourcedString(object):
         # Make sure all args are decoded to unicode.
         args = list(args)
         for i in range(len(args)):
-            if isinstance(args[i], str):
+            if isinstance(args[i], bytes):
                 args[i] = args[i].decode()
         # Make sure self is decoded to unicode.
-        if isinstance(self, str):
+        if isinstance(self, bytes):
             self = self.decode()
         # Retry the operation.
         method = getattr(self, op)
@@ -1028,11 +1028,13 @@ class SimpleSourcedString(SourcedString):
                 return result
             else:
                 start, stop = slice_bounds(self, index)
-                return self.__getslice__(start, stop)
+                return self._simpleslice(start, stop)
         else:
             return SourcedString(result, self.source[index])
 
-    def __getslice__(self, start, stop):
+    def _simpleslice(self, start, stop):
+        """Return a simple slice, as in self[start:stop]."""
+
         # Negative indices get handled *before* __getslice__ is
         # called.  Restrict start/stop to be within the range of the
         # string, to prevent negative indices from being adjusted
@@ -1041,7 +1043,7 @@ class SimpleSourcedString(SourcedString):
         stop = max(start, min(len(self), stop))
 
         return SourcedString(
-            self._stringtype.__getslice__(self, start, stop),
+            self._stringtype.__getitem__(self, slice(start, stop)),
             self.source[start:stop])
 
     def capitalize(self):
@@ -1156,14 +1158,14 @@ class CompoundSourcedString(SourcedString):
                 return self._stringtype.__getitem__(self, index)
             else:
                 start, stop = slice_bounds(self, index)
-                return self.__getslice__(start, stop)
+                return self._simpleslice(start, stop)
         else:
             if index < 0: index += len(self)
             if index < 0 or index >= len(self):
                 raise IndexError('StringSource index out of range')
-            return self.__getslice__(index, index+1)
+            return self._simpleslice(index, index+1)
 
-    def __getslice__(self, start, stop):
+    def _simpleslice(self, start, stop):
         # Bounds checking.
         start = max(0, min(len(self), start))
         stop = max(start, min(len(self), stop))
@@ -1176,7 +1178,8 @@ class CompoundSourcedString(SourcedString):
                 s, e = max(0, start-offset), stop-offset
                 result_substrings.append(substring[s:e])
             offset += len(substring)
-            if offset >= stop: break
+            if offset >= stop:
+                break
 
         # Concatentate the resulting substrings.
         if len(result_substrings) == 0:
@@ -1382,17 +1385,17 @@ class SourcedStringStream(object):
     #/////////////////////////////////////////////////////////////////
 
     @property
-    def closed(self): 
+    def closed(self):
         """True if the underlying stream is closed."""
         return self.stream.closed
 
     @property
-    def name(self): 
+    def name(self):
         """The name of the underlying stream."""
         return self.stream.name
 
     @property
-    def mode(self): 
+    def mode(self):
         """The mode of the underlying stream."""
         return self.stream.mode
 

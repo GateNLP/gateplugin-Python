@@ -1,9 +1,9 @@
-from annotation import Annotation
-from functools import partial
-from gate_exceptions import InvalidOffsetException
-from tree import SliceableTree
 from collections import defaultdict
 import sys
+
+from .annotation import Annotation
+from .gate_exceptions import InvalidOffsetException
+from .tree import SliceableTree
 
 class I(object):
 	"""Short for Index, represents a pair of offsets to be used when searching the tree"""
@@ -12,13 +12,13 @@ class I(object):
 		self.end = offset
 
 def support_annotation(method):
-	"""Decorator to allow a method that normally takes a start and end 
+	"""Decorator to allow a method that normally takes a start and end
 		offset to take an annotation instead."""
 	def _support_annotation(self, *args):
-		if len(args) == 1: 
+		if len(args) == 1:
 			# Assume we have an annotation
 			try:
-				left, right = args[0].start, args[0].end 
+				left, right = args[0].start, args[0].end
 			except AttributeError:
 				raise ValueError("Supplied argument is not a range or an annotation")
 		else:
@@ -29,7 +29,7 @@ def support_annotation(method):
 	return _support_annotation
 
 def support_single(method):
-	"""Decorator to allow a method that normally takes a start and end 
+	"""Decorator to allow a method that normally takes a start and end
 		offset to take a single argument that represents both."""
 	def _support_annotation(self, *args):
 		if len(args) == 1:
@@ -40,6 +40,7 @@ def support_single(method):
 			return method(self, *args)
 
 	return _support_annotation
+
 class AnnotationSet(object):
 	def __init__(self, doc, values = [], name = "", logger = []):
 		self.logger = logger
@@ -63,7 +64,7 @@ class AnnotationSet(object):
 	def restrict(self, annotations):
 		"""Copies this annotation set, but restricts it to the given values"""
 		# I have disabled this check for now so we can do set intersections. If this turns out to be evil I can add it
-		# back in 
+		# back in
 		# We really don't want to copy annotations that aren't in this set to begin with
 		# for annotation in annotations:
 		# 	if annotation not in self:
@@ -79,11 +80,11 @@ class AnnotationSet(object):
 		def compare_end(a, b):
 			return a.end - b.end
 
-		self._annotations_start = SliceableTree(self._annots.itervalues(), compare = compare_start)
-		self._annotations_end   = SliceableTree(self._annots.itervalues(), compare = compare_end) 
+		self._annotations_start = SliceableTree(self._annots.values(), compare=compare_start)
+		self._annotations_end   = SliceableTree(self._annots.values(), compare=compare_end)
 
 	def _index_by_type(self):
-		"""Generates the type index. Only call this when you first need types, cos 
+		"""Generates the type index. Only call this when you first need types, cos
 			it's kind of expensive and also can't be used in init."""
 		self._annot_types = defaultdict(lambda: self.restrict([]))
 
@@ -98,7 +99,7 @@ class AnnotationSet(object):
 
 	def _check_offsets(self, annotation):
 		"""Checks the offsets for the given annotation against the document boundaries"""
-		doc_size = self.doc.size()  
+		doc_size = self.doc.size()
 
 		if annotation.start < 0:
 			raise InvalidOffsetException("Annotation starts before 0")
@@ -109,14 +110,14 @@ class AnnotationSet(object):
 		if annotation.start > doc_size:
 			print >> sys.stderr, annotation.start, doc_size, self.doc.text, annotation
 			raise InvalidOffsetException("Annotation starts after document ends")
-		if annotation.end > doc_size: 
+		if annotation.end > doc_size:
 			raise InvalidOffsetException("Annotation ends after document ends")
 
 		return annotation
 
 	def append(self, annotation, check_offsets = True, log= True):
 		"""Appends an annotation to the annotation set. Do not try to add annotations
-			from another annotation set, as one annotation can belong to only one set, 
+			from another annotation set, as one annotation can belong to only one set,
 			or a child of that set"""
 		if annotation.id and annotation.id in self._annots: # Prevents duplicate annotations
 			return None
@@ -133,12 +134,12 @@ class AnnotationSet(object):
 		# Log the new annotation
 		if log:
 			self.logger.append({
-				"command": "ADD_ANNOT", 
-				"annotationSet": self.name, 
-				"startOffset": annotation.start, 
-				"endOffset": annotation.end, 
-				"annotationName": annotation.type, 
-				"featureMap": annotation.features, 
+				"command": "ADD_ANNOT",
+				"annotationSet": self.name,
+				"startOffset": annotation.start,
+				"endOffset": annotation.end,
+				"annotationName": annotation.type,
+				"featureMap": annotation.features,
 				"annotationID": annotation.id}
 				)
 
@@ -152,15 +153,15 @@ class AnnotationSet(object):
 
 		return annotation
 
-	def add(self, start, end, annotType, features, _id = None, check_offsets = True): 
+	def add(self, start, end, annotType, features, _id = None, check_offsets = True):
 		"""Adds an new annotation with the given values"""
 		return self.append(Annotation(self.logger, self, _id, annotType, start, end, features), check_offsets)
 
 	def remove(self, annotation):
 		"""Remove the selected annotation"""
 		self.logger.append({
-			"command": "REMOVE_ANNOT", 
-			"annotationSet": self.name, 
+			"command": "REMOVE_ANNOT",
+			"annotationSet": self.name,
 			"annotationID": annotation.id})
 
 		del self._annots[annotation.id]
@@ -170,7 +171,7 @@ class AnnotationSet(object):
 		if self._annot_types:
 			self._annot_types[annotation.type].remove(annotation)
 
-	def __iter__(self): 
+	def __iter__(self):
 		"""Allows iteration in document order"""
 		return iter(self._annotations_start)
 

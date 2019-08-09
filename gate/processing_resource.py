@@ -1,6 +1,21 @@
-from document import Document
-from corpus import Corpus
-import sys, json, codecs, inspect
+from __future__ import print_function
+
+import codecs
+import inspect
+import json
+import sys
+
+from .document import Document
+from .corpus import Corpus
+
+
+# For compatibility in Python 2 and 3
+try:
+	STDIN = sys.stdin.buffer
+except AttributeError:
+	# Probably Python 2
+	STDIN = sys.stdin
+
 
 def fill_params(params, function):
 	"""
@@ -29,39 +44,39 @@ class ProcessingResource(object):
 		self.document = None
 
 	def start(self):
-		line = sys.stdin.readline().strip()
-		while line:
+		while True:
+			line = STDIN.readline().strip()
+			if not line:
+				return
 			line = codecs.decode(line, "utf8")
 
-			if line:
-				self.input_line = line
-				input_json = json.loads(line)
+			self.input_line = line
+			input_json = json.loads(line)
 
-				if "command" in input_json:
-					if input_json["command"] == "BEGIN_EXECUTION":
-						self.corpus = Corpus(input_json)
-						self.scriptParams = input_json["parameterMap"]
+			if "command" in input_json:
+				if input_json["command"] == "BEGIN_EXECUTION":
+					self.corpus = Corpus(input_json)
+					self.scriptParams = input_json["parameterMap"]
 
-						self.init(**fill_params(self.scriptParams, self.init))
-						self.beginExecution()
+					self.init(**fill_params(self.scriptParams, self.init))
+					self.beginExecution()
 
-					elif input_json["command"] == "ABORT_EXECUTION":
-						self.abortExecution()
-						return
-					elif input_json["command"] == "END_EXECUTION":
-						self.endExecution()
-						return
-				else:
-					self.document = Document.load(input_json)
-					self.inputAS = self.document.annotationSets[self.scriptParams.get("inputAS", None)]
-					self.outputAS = self.document.annotationSets[self.scriptParams.get("outputAS", None)]
+				elif input_json["command"] == "ABORT_EXECUTION":
+					self.abortExecution()
+					return
+				elif input_json["command"] == "END_EXECUTION":
+					self.endExecution()
+					return
+			else:
+				self.document = Document.load(input_json)
+				self.inputAS = self.document.annotationSets[self.scriptParams.get("inputAS", None)]
+				self.outputAS = self.document.annotationSets[self.scriptParams.get("outputAS", None)]
 
-					self.execute(self.document, **fill_params(self.scriptParams, self.execute))
+				self.execute(self.document, **fill_params(self.scriptParams, self.execute))
 
-					print json.dumps(self.document.logger)
-					sys.stdout.flush()
+				print(json.dumps(self.document.logger))
+				sys.stdout.flush()
 
-			line = sys.stdin.readline().strip()
 
 	def init(self):
 		pass
