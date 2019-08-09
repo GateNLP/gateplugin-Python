@@ -66,4 +66,4 @@ A part of the Python code (`sourcedstring`) has a small number
 of unit tests.
 Run with:
 
-    python -m unittest discover
+    python -m unittest discover -v
