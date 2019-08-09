@@ -439,7 +439,7 @@ class SourcedString(object):
 
         # Check for unicode/bytestring mismatches:
         if self._mixed_string_types(sep, maxsplit):
-            return self._decode_and_call('rsplit', sep, maxsplit)
+            return self._decode_and_call('_splitter', sep, maxsplit)
 
         # Convert separator in sep to regular expression
         if sep is None:
@@ -448,13 +448,16 @@ class SourcedString(object):
             sep_re = re.compile(re.escape(sep))
 
         seps = list(sep_re.finditer(self))
-        if maxsplit != -1:
+        if maxsplit == 0:
+            seps = []
+        elif maxsplit != -1:
             if forward:
                 seps = seps[:maxsplit]
             else:
                 seps = seps[-maxsplit:]
         if not seps:
             return [self]
+
         result = [self[:seps[0].start()]]
         for i in range(1, len(seps)):
             result.append(self[seps[i-1].end():seps[i].start()])
