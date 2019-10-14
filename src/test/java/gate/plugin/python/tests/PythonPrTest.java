@@ -1,8 +1,10 @@
-package gate.python;
+package gate.plugin.python.tests;
 
 import gate.*;
+import gate.creole.Plugin;
 import gate.creole.ResourceInstantiationException;
 import gate.creole.SerialAnalyserController;
+import gate.plugin.python.PythonPr;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -18,29 +20,33 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by "Dominic Rout" on 04/07/2017.
  */
-public class PythonPRTest {
+// TODO: need to re-work this, in here just testing the functions within 
+// the plugin, turn the test where we just load the plugin into an integration
+// test!
+public class PythonPrTest {
+  /*
     private static final String TEST_TEXT = "this is a test document";
     private SerialAnalyserController controller;
-    private PythonPR pythonPR;
+    private PythonPr pythonPr;
     private Corpus corpus;
     private Document document;
 
     @BeforeClass
     public static void setupClass() throws Exception {
         Gate.init();
-        Gate.getCreoleRegister().registerDirectories(new File(".").toURI().toURL());  // Add this directory as a plugin.
+        Gate.getCreoleRegister().registerPlugin(new Plugin.Maven("uk.ac.gate.plugins","python","2.0-SNAPSHOT"));
     }
     @Before
     public void setUp() throws Exception {
         controller = (SerialAnalyserController) Factory.createResource("gate.creole.SerialAnalyserController");
 
-        pythonPR = (PythonPR) Factory.createResource("gate.python.PythonPR");
+        pythonPr = (PythonPr) Factory.createResource("gate.plugin.python.PythonPr");
         String python = System.getProperty("gate.python.binary");
         if(python != null) {
-            pythonPR.setParameterValue("pythonBinary", python);
+            pythonPr.setParameterValue("pythonBinary", python);
         }
 
-        controller.add(pythonPR);
+        controller.add(pythonPr);
         loadDocument(TEST_TEXT);
     }
 
@@ -74,7 +80,7 @@ public class PythonPRTest {
 
     @Test
     public void addDocumentSpan() throws Exception {
-        pythonPR.setScript(new File("examples/add_document_span.py").toURI().toURL());
+        pythonPr.setPythonProgramUrl(new File("examples/add_document_span.py").toURI().toURL());
 
         controller.execute();
 
@@ -91,8 +97,8 @@ public class PythonPRTest {
 
     @Test
     public void testFunctionPR() throws Exception {
-        pythonPR.setScript(new File("examples/add_document_span_function.py").toURI().toURL());
-        pythonPR.setOutputAS("python");
+        pythonPr.setPythonProgramUrl(new File("examples/add_document_span_function.py").toURI().toURL());
+        pythonPr.setOutputAS("python");
 
         controller.execute();
 
@@ -112,7 +118,7 @@ public class PythonPRTest {
     @Ignore
     @Test
     public void testNullKeyInMap() throws Exception {
-        pythonPR.setScript(new File("examples/tokenise_badly.py").toURI().toURL());
+        pythonPr.setPythonProgramUrl(new File("examples/tokenise_badly.py").toURI().toURL());
 
         loadDocumentXML(new File("test-resources/bad_document.xml").toURI().toURL());
 
@@ -125,7 +131,7 @@ public class PythonPRTest {
 
     @Test
     public void testAnnotationInDefaultSet() throws Exception {
-        pythonPR.setScript(new File("examples/tokenise_badly.py").toURI().toURL());
+        pythonPr.setPythonProgramUrl(new File("examples/tokenise_badly.py").toURI().toURL());
 
         // send an annotation over to python
         document.getAnnotations().add(0l, 4l, "test", Factory.newFeatureMap());
@@ -140,12 +146,12 @@ public class PythonPRTest {
 
     @After
     public void tearDown() throws Exception {
-        Factory.deleteResource(pythonPR);
+        Factory.deleteResource(pythonPr);
         Factory.deleteResource(controller);
         Factory.deleteResource(corpus);
         Factory.deleteResource(document);
         corpus = null;
         document = null;
     }
-
+    */
 }

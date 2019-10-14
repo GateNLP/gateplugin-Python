@@ -24,7 +24,7 @@
 package gate.plugin.python.gui;
 
 import gate.plugin.python.PythonCodeDriven;
-import gate.plugin.python.PythonScripting;
+import gate.plugin.python.PythonPr;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.io.File;
@@ -51,16 +51,18 @@ import org.fife.ui.rsyntaxtextarea.TextEditorPane;
  */
 public class PythonEditorPanel extends javax.swing.JPanel {
 
+  private static final long serialVersionUID = 3527048169263767662L;
+
   /** Creates new form JavaEditorPanel */
-  public JavaEditorPanel() {
+  public PythonEditorPanel() {
     initComponents();
     initEditor();
   }
   
-  JavaCodeDriven owner = null;
-  protected JavaScriptingPR pr = null;
+  PythonCodeDriven owner = null;
+  protected PythonPr pr = null;
   
-  public void setPR(JavaScriptingPR pr) {
+  public void setPR(PythonPr pr) {
     this.pr = pr;
   }
 
@@ -71,7 +73,7 @@ public class PythonEditorPanel extends javax.swing.JPanel {
     jTextField1.setForeground(Color.black);
   }
   
-  public JavaEditorPanel(JavaCodeDriven theOwner) {
+  public PythonEditorPanel(PythonCodeDriven theOwner) {
     owner = theOwner;
     initComponents();
     initEditor();
@@ -82,7 +84,7 @@ public class PythonEditorPanel extends javax.swing.JPanel {
   public void setFile(File scriptFile) {
     if(scriptFile != null) {
       try {
-        ((TextEditorPane)textArea).load(FileLocation.create(scriptFile),"UTF-8");
+        textArea.load(FileLocation.create(scriptFile),"UTF-8");
         jTextField1.setText(scriptFile.getCanonicalPath());
       } catch (IOException ex) {
         jTextField1.setText("Error updating file, see log");
@@ -218,7 +220,7 @@ public class PythonEditorPanel extends javax.swing.JPanel {
   
   private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
     saveFile();
-    pr.tryCompileScript();
+    pr.tryCompileProgram();
   }//GEN-LAST:event_jButton2ActionPerformed
 
   // Variables declaration - do not modify//GEN-BEGIN:variables

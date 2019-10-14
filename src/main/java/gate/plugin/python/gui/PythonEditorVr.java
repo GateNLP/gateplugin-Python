@@ -1,8 +1,7 @@
 /* 
  * Copyright (C) 2014-2016 The University of Sheffield.
  *
- * This file is part of gateplugin-Java
- * (see https://github.com/johann-petrak/gateplugin-Java)
+ * This file is part of gateplugin-python
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -20,8 +19,7 @@
 package gate.plugin.python.gui;
 
 import gate.plugin.python.PythonCodeDriven;
-import gate.plugin.python.PythonScripting;
-import gate.Resource;
+import gate.plugin.python.PythonPr;
 import gate.creole.AbstractVisualResource;
 import gate.creole.metadata.CreoleResource;
 import gate.creole.metadata.GuiType;
@@ -39,12 +37,14 @@ import java.io.File;
   guiType = GuiType.LARGE, 
   mainViewer = true, 
   resourceDisplayed = "gate.plugin.python.PythonCodeDriven")
-public class PythonEditorVR extends AbstractVisualResource 
+public class PythonEditorVr extends AbstractVisualResource 
 {
+
+  private static final long serialVersionUID = 2015798440688388811L;
   
   protected PythonEditorPanel panel;
   protected PythonCodeDriven theTarget;
-  protected PythonScripting pr = null;
+  protected PythonPr pr = null;
   
   @Override
   public void setTarget(Object target) {
@@ -55,10 +55,10 @@ public class PythonEditorVR extends AbstractVisualResource
       this.add(panel);
       this.setLayout(new GridLayout(1,1));
       // register ourselves as the EditorVR
-      pr = (PythonScripting)target;
+      pr = (PythonPr)target;
       pr.registerEditorVR(this);
       panel.setPR(pr);
-      panel.setFile(pr.getJavaProgramFile());
+      panel.setFile(pr.getPythonProgramFile());
       if(pr.isCompileError) {
         panel.setCompilationError();
       } else {
