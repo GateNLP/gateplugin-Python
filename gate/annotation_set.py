@@ -88,7 +88,7 @@ class AnnotationSet(object):
 			it's kind of expensive and also can't be used in init."""
 		self._annot_types = defaultdict(lambda: self.restrict([]))
 
-		for annotation in self._annots.itervalues():
+		for annotation in self._annots.values():
 			self._annot_types[annotation.type].append(annotation, log = False)
 
 	def __len__(self):
