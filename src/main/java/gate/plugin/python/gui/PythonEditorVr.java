@@ -59,7 +59,13 @@ public class PythonEditorVr extends AbstractVisualResource
       pr.registerEditorVR(this);
       panel.setPR(pr);
       panel.setFile(pr.getPythonProgramFile());
-      if(pr.isCompileError) {
+      // Currently I think this is pretty useless as we cannot check the 
+      // syntax right at initialisation time, since the python binary 
+      // is a runtime parameter and we need that for checking!
+      // Making everything an init param is also annoying ...
+      // isCompileOK is initialised with true, so initially this is always 
+      // showing OK.
+      if(!pr.isCompileOk) {
         panel.setCompilationError();
       } else {
         panel.setCompilationOk();

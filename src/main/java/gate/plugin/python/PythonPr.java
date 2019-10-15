@@ -23,10 +23,7 @@ import java.net.URL;
 
 import gate.Resource;
 import gate.Controller;
-import gate.Document;
 import gate.FeatureMap;
-import gate.LanguageResource;
-import gate.ProcessingResource;
 
 import gate.creole.AbstractLanguageAnalyser;
 import gate.creole.ControllerAwarePR;
@@ -49,8 +46,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -84,7 +79,7 @@ public class PythonPr
 
   // ********* Parameters
   @CreoleParameter(comment = "The URL of the Python program to run",suffixes = ".py")
-  public void setPythonProgramUrl(ResourceReference value) {
+  public void setPythonProgram(ResourceReference value) {
     pythonProgram = value;
   }
 
@@ -204,6 +199,24 @@ public class PythonPr
   }
 
   /**
+   * Make sure the python program command is set.
+   * Or we complain about missing parameters.
+   */
+  public void ensurePythonProgramCommand() {
+    // Make sure we know which Python binary to run
+    if((pythonBinary == null || pythonBinary.isEmpty()) && pythonBinaryUrl == null) {
+      throw new GateRuntimeException("Cannot run, pythonBinary or pythonBinaryUrl must be specified");
+    }
+    if(pythonBinaryUrl != null) {
+      pythonBinaryCommand = Files.fileFromURL(pythonBinaryUrl).getAbsolutePath();
+    } else {
+      pythonBinaryCommand = pythonBinary;
+    }    
+    System.err.println("PythonBinary command set to "+pythonBinaryCommand);
+  }
+  
+  
+  /**
    * Rough check if the program can be compiled.
    * 
    * This uses py_compile to check if the program can be compiled. 
@@ -213,6 +226,7 @@ public class PythonPr
    * @return true if compilation went ok, false otherwise
    */
   public boolean tryCompileProgram() {
+    ensurePythonProgramCommand();
     // we check for syntax errors by running <pythonbinary> -m py_compile <file>
     // see https://docs.python.org/3/library/py_compile.html
     // For now we do this by using apache commons exec with a watchdog
@@ -241,13 +255,22 @@ public class PythonPr
       throw new GateRuntimeException("Something went wrong when checking the python file", ex);
     }
     int exitCode = resultHandler.getExitValue();
-    return exitCode == 0;
+    isCompileOk = (exitCode == 0);
+    if (registeredEditorVR != null) {
+      if (isCompileOk) {
+        registeredEditorVR.setCompilationOk();
+      } else {
+        registeredEditorVR.setCompilationError();
+      }
+    }
+    return isCompileOk;
   }
   
-  // We need this so that the VR can determine if the latest compile was
-  // an error or ok. This is necessary if the VR gets activated after the
-  // compilation.
-  public boolean isCompileError;
+  /**
+   * Last syntax check status. 
+   * Initially, this is true.
+   */
+  public boolean isCompileOk = true;
   
   private PythonEditorVr registeredEditorVR = null;
 
@@ -291,7 +314,7 @@ public class PythonPr
     // NOTE: for now, the editor will always edit the actual file which may
     // be a copy.
     System.err.print("DEBUG: python program scheme: "+pythonProgram.toURI().getScheme());
-    if(pythonProgram.toURI().getScheme().equals("file:")) {
+    if(pythonProgram.toURI().getScheme().equals("file")) {
       try {
         pythonProgramFile = gate.util.Files.fileFromURL(pythonProgram.toURL());
       } catch (IOException ex) {
@@ -328,18 +351,12 @@ public class PythonPr
    * it when the corpus is finished. 
    */
   protected void whenStarting() {
-    // Make sure we know which Python binary to run
-    if((pythonBinary == null || pythonBinary.isEmpty()) && pythonBinaryUrl == null) {
-      throw new GateRuntimeException("Cannot run, pythonBinary or pythonBinaryUrl must be specified");
-    }
-    if(pythonBinaryUrl != null) {
-      pythonBinaryCommand = Files.fileFromURL(pythonBinaryUrl).getAbsolutePath();
-    }
+    ensurePythonProgramCommand();
     // Make sure we have a Python program that at least looks like we could run it    
     // Get the effective path to the python binary: either use the pythonbinary name
     // or the corresponding path for the pythonbinaryurl, which must be a file url    
-    isCompileError = tryCompileProgram();
-    if(isCompileError) {
+    isCompileOk = tryCompileProgram();
+    if(!isCompileOk) {
       throw new GateRuntimeException("Cannot run the python program, my have a syntax error");
     }
     // ok, actually run the python program so we can communicate with it. 
