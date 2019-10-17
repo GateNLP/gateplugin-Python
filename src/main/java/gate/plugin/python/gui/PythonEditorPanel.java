@@ -97,7 +97,7 @@ public class PythonEditorPanel extends javax.swing.JPanel {
   private void initEditor() {
     // textArea = new RSyntaxTextArea();
     textArea = new TextEditorPane();
-    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+    textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
     textArea.setCodeFoldingEnabled(true);
     textArea.setAntiAliasingEnabled(true);
     // The following should be done from somewhere else ... :

@@ -1,8 +1,9 @@
 """Simple example PR to print the document text"""
 
-from gate import iterate
+from gatenlp import interact, GateNlpPr, Document
 
-for document in iterate():
-	document.annotationSets["python"].add(0, len(document.text), "DocumentSpan",
-	    {"text": document.text})
+@GateNlpPr
+def run(doc, **kwargs):
+    print("We are running on a doc!", file=sys.stderr)
 
+interact()

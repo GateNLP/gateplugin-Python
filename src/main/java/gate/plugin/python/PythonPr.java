@@ -18,11 +18,13 @@
  */
 package gate.plugin.python;
 
+import com.fasterxml.jackson.jr.ob.JSON;
 import gate.plugin.python.gui.PythonEditorVr;
 import java.net.URL;
 
 import gate.Resource;
 import gate.Controller;
+import gate.Document;
 import gate.FeatureMap;
 
 import gate.creole.AbstractLanguageAnalyser;
@@ -35,14 +37,27 @@ import gate.creole.metadata.Optional;
 import gate.creole.metadata.RunTime;
 import gate.creole.metadata.Sharable;
 import gate.creole.ExecutionException;
-import gate.lib.interaction.process.Process4StringStream;
+import gate.lib.basicdocument.BdocDocument;
+import gate.lib.basicdocument.BdocDocumentBuilder;
+import gate.lib.basicdocument.ChangeLog;
+import gate.lib.basicdocument.GateDocumentUpdater;
+import gate.lib.interaction.process.pipes.Process4StringStream;
 import gate.util.Files;
 import gate.util.GateRuntimeException;
 import gate.util.MethodNotImplementedException;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -313,10 +328,18 @@ public class PythonPr
     // instead. 
     // NOTE: for now, the editor will always edit the actual file which may
     // be a copy.
-    System.err.print("DEBUG: python program scheme: "+pythonProgram.toURI().getScheme());
+    
+    // TODO/NOTE: The ResourceReference dialog does not allow to enter a relative file
+    // URI, and defaults to creole: scheme. So it is really hard to easily 
+    // specify a new file there. For now we have to live with this!
+    System.err.println("DEBUG: python program URI: "+pythonProgram.toURI());
+    System.err.println("DEBUG: python program scheme: "+pythonProgram.toURI().getScheme());
     if(pythonProgram.toURI().getScheme().equals("file")) {
       try {
         pythonProgramFile = gate.util.Files.fileFromURL(pythonProgram.toURL());
+        if(!pythonProgramFile.exists()) {
+          copyResource("/resources/templates/default.py", pythonProgramFile);
+        }
       } catch (IOException ex) {
         throw new ResourceInstantiationException("Could not determine file for pythonProgram "+pythonProgram, ex);
       }
@@ -363,21 +386,21 @@ public class PythonPr
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String,String> env = new HashMap<>();
     process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
-    // send over the starting command with additional data (script params, duplication id)
-    // !!!!TODO:
-    process.writeObject("");
-    String responseString = (String)process.readObject();
-    // check if the response is ok
+    String responseJson = (String)process.process(makeStartRequest());
+    try {
+      Map<String, Object> response = JSON.std.mapFrom(responseJson);
+      if(!response.containsKey("status") || "ok".equals(response.get("status"))) {
+        throw new GateRuntimeException("Something went wrong, start response is "+responseJson);
+      }
+    } catch (IOException ex) {
+      throw new GateRuntimeException("Could not convert start response", ex);
+    }
   }
 
   protected void whenFinishing() {
-    // Send over the finish command, get back any over-corpus results
-    // !!! TODO    
-    process.writeObject("");
-    String responseString = (String)process.readObject();
-    
-    // shutdown the process
+    String responseJson = (String)process.process(makeFinishRequest());
     int exitValue = process.stop();
+    // TODO
     throw new GateRuntimeException("Python process ended with exit value "+exitValue);
   }
   
@@ -410,6 +433,24 @@ public class PythonPr
     // get back the changelog in a result object (or some error)
     // if we get a changelog apply the changelog to the document
     // if we get an error, throw an error condition and abort the process
+    String responseJson = (String)process.process(makeExecuteRequest(document));
+    try {
+      Map<String, Object> response = JSON.std.mapFrom(responseJson);
+      if(!response.containsKey("status")) {
+        throw new GateRuntimeException("Execute response does not contain a status: "+responseJson);
+      }
+      if(!response.get("status").equals("ok")) {
+        throw new GateRuntimeException("Error processing document: "+getResponseError(response)+
+                ", additional info: "+getResponseInfo(response));
+      }
+      ChangeLog chlog = (ChangeLog)response.get("return");
+      if(chlog == null) {
+        throw new GateRuntimeException("Got null changelog back from process");
+      }
+      new GateDocumentUpdater(document).fromChangeLog(chlog);
+    } catch (IOException ex) {
+      throw new GateRuntimeException("Could not convert execute response JSON: "+responseJson, ex);
+    }
   }
 
   
@@ -429,6 +470,93 @@ public class PythonPr
     throw new GateRuntimeException("Exception when running pipeline",throwable);
   }
 
-    
+  
+  protected String getResponseError(Map<String,Object> response) {
+    String error = (String) response.get("error");
+    if (error == null) {
+      error = "(No error description from process)";
+    }
+    return error;
+  }
+
+  protected String getResponseInfo(Map<String,Object> response) {
+    String info = (String) response.get("info");
+    if (info == null) {
+      info = "(No additional error infor from process)";
+    }
+    return info;
+  }
+  
+  /**
+   * Create and return the JSON String representing an execute request.
+   * @param doc the document to send over
+   * @return JSON string
+   */
+  protected String makeExecuteRequest(Document doc) {
+    Map<String, Object> request = new HashMap<>();
+    request.put("command", "execute");
+    // create the BdocDocument from our document    
+    BdocDocument bdoc = new BdocDocumentBuilder().fromGate(document).buildBdoc();
+    request.put("document", bdoc);
+    try {
+      return JSON.std.asString(request);
+    } catch (IOException ex) {
+      throw new GateRuntimeException("Error when trying to convert execute request to JSON", ex);
+    }
+  }
+  
+  
+  protected String makeStartRequest() {
+    Map<String, Object> request = new HashMap<>();
+    request.put("command", "start");
+    try {
+      return JSON.std.asString(request);
+    } catch (IOException ex) {
+      throw new GateRuntimeException("Error when trying to convert start request to JSON", ex);
+    }    
+  }
+  
+  protected String makeFinishRequest() {
+    Map<String, Object> request = new HashMap<>();
+    request.put("command", "finish");
+    try {
+      return JSON.std.asString(request);
+    } catch (IOException ex) {
+      throw new GateRuntimeException("Error when trying to convert start request to JSON", ex);
+    }    
+  }
+  
+/**
+   * Copy resource from plugin jar to target path.
+   * @param source the path of the resource to copy
+   * @param targetPath where to copy to, must not already exist
+   */
+  public static void copyResource(String source, File targetPath) {
+
+    // TODO: check targetDir is a dir?
+    //if (!hasResources())
+    //  throw new UnsupportedOperationException(
+    //      "this plugin doesn't have any resources you can copy as you would know had you called hasResources first :P");
+    URL artifactURL = PythonPr.class.getResource("/creole.xml");
+    try {
+      artifactURL = new URL(artifactURL, ".");
+    } catch (MalformedURLException ex) {
+      throw new GateRuntimeException("Could not get jar URL");
+    }
+    try (
+            FileSystem zipFs
+            = FileSystems.newFileSystem(artifactURL.toURI(), new HashMap<>());) {
+
+      Path target = Paths.get(targetPath.toURI());
+      Path pathInZip = zipFs.getPath(source);
+      if (java.nio.file.Files.isDirectory(pathInZip)) {
+        throw new GateRuntimeException("ODD: is a directory " + pathInZip);
+      }
+      java.nio.file.Files.copy(pathInZip, target);
+    } catch (IOException | URISyntaxException ex) {
+      throw new GateRuntimeException("Error trying to copy the resources", ex);
+    }
+  }
+  
   
 }
