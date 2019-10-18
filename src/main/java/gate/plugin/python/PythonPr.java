@@ -39,6 +39,7 @@ import gate.creole.metadata.Sharable;
 import gate.creole.ExecutionException;
 import gate.lib.basicdocument.BdocDocument;
 import gate.lib.basicdocument.BdocDocumentBuilder;
+import gate.lib.basicdocument.BdocUtils;
 import gate.lib.basicdocument.ChangeLog;
 import gate.lib.basicdocument.GateDocumentUpdater;
 import gate.lib.interaction.process.pipes.Process4StringStream;
@@ -52,12 +53,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -93,15 +90,32 @@ public class PythonPr
   private static final long serialVersionUID = -7294092586613502768L;
 
   // ********* Parameters
-  @CreoleParameter(comment = "The URL of the Python program to run",suffixes = ".py")
+  @Optional
+  @CreoleParameter(
+          comment = "The URL of the Python program to run",
+          disjunction = "program",
+          priority = 0,
+          suffixes = ".py")
   public void setPythonProgram(ResourceReference value) {
     pythonProgram = value;
   }
-
   public ResourceReference getPythonProgram() {
     return pythonProgram;
   }
   protected ResourceReference pythonProgram;
+
+  @CreoleParameter(
+          comment = "An absolute or relative file path to the python program",
+          disjunction = "program",
+          priority = 1,
+          suffixes = ".py")
+  public void setPythonProgramPath(String value) {
+    pythonProgramPath = value;
+  }
+  public String getPythonProgramPath() {
+    return pythonProgramPath;
+  }
+  protected String pythonProgramPath;
   
   File pythonProgramFile = null;
   public File getPythonProgramFile() { return pythonProgramFile; }
@@ -143,7 +157,11 @@ public class PythonPr
 
   @Optional
   @RunTime
-  @CreoleParameter(comment = "Python interpreter name (on system PATH)", defaultValue = "python")
+  @CreoleParameter(
+          comment = "Python interpreter name (on system PATH)", 
+          disjunction = "pythonbin",
+          priority = 10,
+          defaultValue = "python")
   public void setPythonBinary(String value) {
     pythonBinary = value;
   }
@@ -154,7 +172,11 @@ public class PythonPr
   
   @Optional
   @RunTime
-  @CreoleParameter(comment = "Python interpreter file URL. If provided overrides pythonBinary.")
+  @CreoleParameter(
+          comment = "Python interpreter file URL. If provided overrides pythonBinary.",
+          priority = 1,
+          disjunction = "pythonbin"
+          )
   public void setPythonBinaryUrl(URL value) {
     pythonBinaryUrl = value;
   }
@@ -175,6 +197,21 @@ public class PythonPr
   }
   protected URL workingDirUrl;
   protected File workingDir;
+  
+  
+  @Optional
+  @CreoleParameter(comment = "Anable debugging mode", defaultValue = "false")
+  public void setDebugMode(Boolean value) {
+    debugMode = value;
+  }
+  public Boolean getDebugMode() {
+    if(debugMode == null) {
+      return false;
+    }
+    return debugMode;
+  }
+  protected Boolean debugMode;
+          
   
   
   /**
@@ -227,7 +264,6 @@ public class PythonPr
     } else {
       pythonBinaryCommand = pythonBinary;
     }    
-    System.err.println("PythonBinary command set to "+pythonBinaryCommand);
   }
   
   
@@ -318,8 +354,8 @@ public class PythonPr
     } else {
       workingDir = Files.fileFromURL(workingDirUrl);
     }
-    if (pythonProgram == null) {
-      throw new ResourceInstantiationException("The pythonProgram parameter must not be empty");
+    if (pythonProgram == null && (pythonProgramPath == null || pythonProgramPath.isEmpty())) {
+      throw new ResourceInstantiationException("The pythonProgram and pythonProgramPath parameters must not be both empty");
     }
     // We have two cases: either the resourcereference is pointing at a file,
     // then we just use that, or it is a creole reference or gettable URL,
@@ -332,12 +368,18 @@ public class PythonPr
     // TODO/NOTE: The ResourceReference dialog does not allow to enter a relative file
     // URI, and defaults to creole: scheme. So it is really hard to easily 
     // specify a new file there. For now we have to live with this!
+    
+    // OK, this got more complicated by the need to split the parameter into two
+    // If we have pythonProgramPath, use that as a file, if it is a relative
+    // path use relative to the working dir. Create the file URI for that 
+    // path and use it. Otherwise use the pythonProgramUri. Then
+    // do for the URI what we described above.
     System.err.println("DEBUG: python program URI: "+pythonProgram.toURI());
     System.err.println("DEBUG: python program scheme: "+pythonProgram.toURI().getScheme());
     if(pythonProgram.toURI().getScheme().equals("file")) {
       try {
         pythonProgramFile = gate.util.Files.fileFromURL(pythonProgram.toURL());
-        if(!pythonProgramFile.exists()) {
+        if(!pythonProgramFile.exists()) {          
           copyResource("/resources/templates/default.py", pythonProgramFile);
         }
       } catch (IOException ex) {
@@ -385,7 +427,11 @@ public class PythonPr
     // ok, actually run the python program so we can communicate with it. 
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String,String> env = new HashMap<>();
-    process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
+    if(getDebugMode()) {
+      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
+    } else {
+      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, "-d", pythonProgramFile.getAbsolutePath());
+    }
     String responseJson = (String)process.process(makeStartRequest());
     try {
       Map<String, Object> response = JSON.std.mapFrom(responseJson);
@@ -399,9 +445,13 @@ public class PythonPr
 
   protected void whenFinishing() {
     String responseJson = (String)process.process(makeFinishRequest());
+    // TODO: here or around here we need to do the python process result 
+    // processing at some point!
     int exitValue = process.stop();
-    // TODO
-    throw new GateRuntimeException("Python process ended with exit value "+exitValue);
+    if(exitValue != 0) {
+      System.err.println("Warning: python process ended with exit value "+exitValue);
+    }
+    
   }
   
   
@@ -435,7 +485,8 @@ public class PythonPr
     // if we get an error, throw an error condition and abort the process
     String responseJson = (String)process.process(makeExecuteRequest(document));
     try {
-      Map<String, Object> response = JSON.std.mapFrom(responseJson);
+      Response response = JSON.std.beanFrom(Response.class, responseJson);
+      /*
       if(!response.containsKey("status")) {
         throw new GateRuntimeException("Execute response does not contain a status: "+responseJson);
       }
@@ -443,7 +494,8 @@ public class PythonPr
         throw new GateRuntimeException("Error processing document: "+getResponseError(response)+
                 ", additional info: "+getResponseInfo(response));
       }
-      ChangeLog chlog = (ChangeLog)response.get("return");
+      */
+      ChangeLog chlog = response.data;
       if(chlog == null) {
         throw new GateRuntimeException("Got null changelog back from process");
       }
@@ -471,6 +523,13 @@ public class PythonPr
   }
 
   
+  static protected class Response {
+    public String status;
+    public String error;
+    public String info;
+    public ChangeLog data;
+  }
+  
   protected String getResponseError(Map<String,Object> response) {
     String error = (String) response.get("error");
     if (error == null) {
@@ -497,7 +556,7 @@ public class PythonPr
     request.put("command", "execute");
     // create the BdocDocument from our document    
     BdocDocument bdoc = new BdocDocumentBuilder().fromGate(document).buildBdoc();
-    request.put("document", bdoc);
+    request.put("data", bdoc);
     try {
       return JSON.std.asString(request);
     } catch (IOException ex) {
@@ -509,6 +568,10 @@ public class PythonPr
   protected String makeStartRequest() {
     Map<String, Object> request = new HashMap<>();
     request.put("command", "start");
+    Map<String,Object> params = BdocUtils.featureMap2Map(programParams, null);
+    params.put("gate.plugin.python.duplicateId", duplicateId);
+    params.put("gate.plugin.python.nrDuplicates", nrDuplicates);            
+    request.put("data", params);
     try {
       return JSON.std.asString(request);
     } catch (IOException ex) {
