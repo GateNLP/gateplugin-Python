@@ -200,7 +200,8 @@ public class PythonPr
   
   
   @Optional
-  @CreoleParameter(comment = "Anable debugging mode", defaultValue = "false")
+  @RunTime
+  @CreoleParameter(comment = "Enable debugging mode", defaultValue = "false")
   public void setDebugMode(Boolean value) {
     debugMode = value;
   }
