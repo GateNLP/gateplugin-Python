@@ -72,8 +72,8 @@ import org.apache.commons.io.FileUtils;
 //   python process is run!
 //   * if gatenlp is not installed, will copy gatenlp package dir there
 //   * if the program URL is not a file, will copy/edit program there
-// * add parameters for python binary: name and URL
 // * maybe allow to specify python environment to use (how to set??)
+//   * document: specify the python command from the environment as teh
 // * duplication: pass duplication number as system parameter
 //   * if pipe interaction, all duplicates do exactly the same
 //   * if http interaction, for now all duplicates do the same as well???
