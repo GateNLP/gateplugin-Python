@@ -103,5 +103,48 @@
       <version>1.11</version>
     </dependency>
   </dependencies>
+  <build>
+      <plugins>
+      <plugin>
+    <artifactId>maven-clean-plugin</artifactId>
+    <version>3.1.0</version>
+    <executions>
+    <execution>
+    <phase>validate</phase>
+    </execution>
+    </executions>
+    <configuration>
+      <filesets>
+        <fileset>
+          <directory>${basedir}/src/main/resources/resources/gatenlp</directory>
+        </fileset>
+      </filesets>
+    </configuration>
+  </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/src/main/resources/resources/gatenlp</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>${basedir}/submodules/python-gatenlp/gatenlp</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+	
   <modelVersion>4.0.0</modelVersion>
 </project>

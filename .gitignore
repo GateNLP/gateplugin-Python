@@ -24,3 +24,5 @@ dist
 gate_python.egg-info
 .idea
 /target/
+# this one gets copied from the submodule
+/src/main/resources/resources/gatenlp/
