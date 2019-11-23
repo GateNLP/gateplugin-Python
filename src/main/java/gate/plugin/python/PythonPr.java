@@ -289,6 +289,7 @@ public class PythonPr
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
     ExecuteWatchdog watchdog = new ExecuteWatchdog(10*1000); // 10 secs
     Executor executor = new DefaultExecutor();
+    
     executor.setWatchdog(watchdog);
     executor.setWorkingDirectory(workingDir);
     // Note: not sure if the following is how to do it and if does what 
@@ -296,8 +297,10 @@ public class PythonPr
     // the process, mayne this makes sure it gets destroyed so that the Java
     // process does not hang on termination?
     executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
+    Map<String,String> env = new HashMap<>();
+    env.put("PYTHONPATH", usePythonPath);
     try {
-      executor.execute(cmdLine, resultHandler);
+      executor.execute(cmdLine, env, resultHandler);
     } catch (IOException ex) {
       throw new GateRuntimeException("Could not check the python file", ex);
     }
@@ -337,9 +340,30 @@ public class PythonPr
     return ("" + idNumber);
   }
 
+  public static String getPackageParentPathInZip() {
+    URL artifactURL = PythonPr.class.getResource("/creole.xml");
+    try {
+      artifactURL = new URL(artifactURL, ".");
+    } catch (MalformedURLException ex) {
+      throw new GateRuntimeException("Could not get jar URL");
+    }
+    String urlString = artifactURL.toString();
+    if(urlString.startsWith("jar:file:///")) {
+      urlString = urlString.substring(11);
+    } else if(urlString.startsWith("jar:file:/")) {
+      urlString = urlString.substring(9);
+    } else {
+      throw new GateRuntimeException("Odd JAR URL: "+urlString);
+    }
+    urlString = urlString.substring(0, urlString.length()-2) + "/resources/";
+    return urlString;
+  }
 
+  public String usePythonPath;
+  
   @Override
   public Resource init() throws ResourceInstantiationException {
+    usePythonPath = PythonPr.getPackageParentPathInZip();
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
     if(nrDuplicates==null) {
@@ -428,6 +452,7 @@ public class PythonPr
     // ok, actually run the python program so we can communicate with it. 
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String,String> env = new HashMap<>();
+    env.put("PYTHONPATH", usePythonPath);
     if(getDebugMode()) {
       process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
     } else {
