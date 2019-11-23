@@ -74,6 +74,14 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             </exclusion>
+           <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            </exclusion>
+           <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            </exclusion>
 
      </exclusions>
 
@@ -94,6 +102,14 @@
            <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
+            </exclusion>
+           <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            </exclusion>
+           <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
             </exclusion>
 
      </exclusions> 
