@@ -365,16 +365,21 @@ public class PythonPr
     String urlString = artifactURL.toString();
     if(urlString.startsWith("jar:file:///")) {
       urlString = urlString.substring(11);
+      urlString = urlString.substring(0, urlString.length()-2);
     } else if(urlString.startsWith("jar:file:/")) {
       urlString = urlString.substring(9);
+      urlString = urlString.substring(0, urlString.length()-2);
     } else if(urlString.startsWith("file:///")) {
       urlString = urlString.substring(7);
+      urlString = urlString.substring(0, urlString.length()-1);
     } else if(urlString.startsWith("file:/")) {
       urlString = urlString.substring(5);
+      urlString = urlString.substring(0, urlString.length()-1);
     } else {
       throw new GateRuntimeException("Odd JAR URL: "+urlString);
     }
-    urlString = urlString.substring(0, urlString.length()-2) + "/resources/";
+    urlString = urlString + "/resources/";
+    System.err.println("DEBUG: resources location: "+urlString);
     return urlString;
   }
 
@@ -383,6 +388,7 @@ public class PythonPr
   @Override
   public Resource init() throws ResourceInstantiationException {
     usePythonPath = PythonPr.getPackageParentPathInZip();
+    System.err.println("DEBUG: pythonpath is "+usePythonPath);
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
     if(nrDuplicates==null) {
