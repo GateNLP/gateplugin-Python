@@ -10,6 +10,7 @@
 	<property name="lib" location="lib" />
 	<property name="dist.dir" location="dist" />
 	<property name="dist.lib.dir" location="dist/lib" />
+	<property name="version" location="1.0" />
 
 	<property file="build.properties" />
 	<!-- Make environment variables available -->
@@ -132,7 +133,7 @@
 		<mkdir dir="${dist.lib.dir}" />
 
 
-		<jar jarfile="gateplugin-python.jar" manifest="${build}/MANIFEST.MF" basedir="${build}" index="true">
+		<jar jarfile="gateplugin-python-${version}.jar" manifest="${build}/MANIFEST.MF" basedir="${build}" index="true">
 		</jar>
 	</target>
 
