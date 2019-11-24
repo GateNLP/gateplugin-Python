@@ -1,29 +1,29 @@
 package gate.plugin.python.tests;
 
-import gate.*;
+import gate.Document;
+import gate.Factory;
+import gate.FeatureMap;
+import gate.Gate;
+import gate.ProcessingResource;
 import gate.creole.Plugin;
-import gate.creole.ResourceInstantiationException;
-import gate.creole.SerialAnalyserController;
-import gate.plugin.python.PythonPr;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.Ignore;
-
+import gate.test.GATEPluginTestCase;
 import java.io.File;
-import java.net.URL;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
+public class PythonPrTest extends GATEPluginTestCase {
 
-/**
- * Created by "Dominic Rout" on 04/07/2017.
- */
-// TODO: need to re-work this, in here just testing the functions within 
-// the plugin, turn the test where we just load the plugin into an integration
-// test!
-public class PythonPrTest {
+  
+  
+  public void testPythonPr01() throws Exception {
+    //Gate.getCreoleRegister().registerPlugin(
+    //        new Plugin.Maven("uk.ac.gate.plugins","python","2.0-SNAPSHOT"));
+    
+    Document doc1 = Factory.newDocument("This is a small document");
+    ProcessingResource pr;
+    FeatureMap params = Factory.newFeatureMap();
+    params.put("pythonProgram", new File("./examples/add_document_span.py").toURI().toURL());
+    pr = (ProcessingResource)Factory.createResource("gate.plugin.python.PythonPr",params);
+    System.err.println("Got pr: "+pr);
+  }
   /*
     private static final String TEST_TEXT = "this is a test document";
     private SerialAnalyserController controller;

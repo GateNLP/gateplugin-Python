@@ -367,6 +367,10 @@ public class PythonPr
       urlString = urlString.substring(11);
     } else if(urlString.startsWith("jar:file:/")) {
       urlString = urlString.substring(9);
+    } else if(urlString.startsWith("file:///")) {
+      urlString = urlString.substring(7);
+    } else if(urlString.startsWith("file:/")) {
+      urlString = urlString.substring(5);
     } else {
       throw new GateRuntimeException("Odd JAR URL: "+urlString);
     }
