@@ -61,7 +61,7 @@
                 <entry>
                   <string>pythonProgram</string>
                   <gate.util.persistence.PersistenceManager-RRPersistence>
-                    <uriString>$relpath$add_document_span.py</uriString>
+                    <uriString>$relpath$modify_doc1.py</uriString>
                   </gate.util.persistence.PersistenceManager-RRPersistence>
                 </entry>
               </localMap>
