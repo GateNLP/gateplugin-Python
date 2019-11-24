@@ -1,69 +1,18 @@
-# Python compatibility for GATE
+# GATE Python Plugin
 
-The aim of this project is to allow the writing of GATE processing resources in Python. This is achieved using interprocess communication rather than running Python within the JVM, so it is possible to use popular Python research software such as Gensim and NLTK within GATE.
+This plugin provides a processing resource, `PythonPr` which allows the editing and running of python code for processing 
+GATE documents. The Python API for processing documents is the Python `gatenlp` package, see  https://gatenlp.github.io/python-gatenlp/
 
-The compatibliity layer consists of both a Python PR for GATE which can be included in applications, and a Python library containing objects with methods that read and modify documents in a way that closely resembles the GATE embedded API.
+The plugin provides its own copy of a specific version of the `gatenlp` package which is used by default, but it is possible to 
+instead use whatever version of the `gatenlp` package is installed on the system.
 
-## The GATE PythonPR
+## Preparing Python
 
-This processing resource will be provided as part of a plugin. The PythonPR is configured with the name of a script to run and a Python binary. The script is launched once and then kept running until GATE is exited or a problem occurs, allowing for large resources to be loaded in the Python script then reused for multiple documents.
+The plugin needs Python 3.6 or later to be installed on the system and the following packages to be installed:
+* numpy, version 1.15.4 or higher
+* loguru, version 0.2.5 or higher
+* sortedcontainers, 2.1.0 or higher
 
-The PythonPR transmits GATE documents in JSON format to the client, and waits for a response, also in JSON, consisting of a series of commands to change the document.
+## The `PythonPr` Processing Resource
 
-## The python GATE library
 
-This library consists of code to convert the JSON formatted document into a representation similar to that used within GATE itself. It allows for the modification of annotation sets and features, which will then be reflected in GATE. The following is a simple example:
-
-```python
-@gate.executable
-def tokenize(document, outputAS):
-	for token in document.text.split(" "):
-		outputAS.add(token.source.begin, 
-			token.source.end, 
-			"Token", 
-			{"string":token})
-
-	return document
-		
-if __name__ == "__main__":
-	tokenize.start()
-```
-
-## Usage
-
-This plugin is very preliminary, so heavy usage is not yet recommended. However, to install the library, first clone this repository:
-
-> git clone https://github.com/GateNLP/gateplugin-python.git
-
-And compile the code, making sure that $GATEHOME is set to the location of your GATE installation.
-
-> ant
-
-Add the plugin within GATE (Creole Plugin Manager then click '+' then select the directory of the plugin)
-
-Create a new PythonPR and add it to an application, configure the location of your Python executable (either as a URL to a specific binary or as the name of a command on the PATH) and the location of a new script.
-
-The script should use the following template:
-
-```python
-from gate import ProcessingResource
-
-class TemplatePR(ProcessingResource):
-	def init(self): 
-		pass
-
-	def execute(self):
-		pass
-
-if __name__ == "__main__":
-	pr = TemplatePR()
-	pr.start()
-```
-
-## Testing
-
-A part of the Python code (`sourcedstring`) has a small number
-of unit tests.
-Run with:
-
-    python -m unittest discover -v
