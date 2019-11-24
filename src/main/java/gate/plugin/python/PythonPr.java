@@ -491,7 +491,7 @@ public class PythonPr
     }
     try {
       Map<String, Object> response = JSON.std.mapFrom(responseJson);
-      if(!response.containsKey("status") || "ok".equals(response.get("status"))) {
+      if(!response.containsKey("status") || !"ok".equals(response.get("status"))) {
         throw new GateRuntimeException("Something went wrong, start response is "+responseJson);
       }
     } catch (IOException ex) {
