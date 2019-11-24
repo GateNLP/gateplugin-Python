@@ -476,6 +476,9 @@ public class PythonPr
       process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, "-d", pythonProgramFile.getAbsolutePath());
     }
     String responseJson = (String)process.process(makeStartRequest());
+    if(responseJson == null) {
+      throw new GateRuntimeException("Invalid null response from Python process, something went wrong");
+    }
     try {
       Map<String, Object> response = JSON.std.mapFrom(responseJson);
       if(!response.containsKey("status") || "ok".equals(response.get("status"))) {
