@@ -10,8 +10,7 @@
 </GateDocumentFeatures>
 <!-- The document content area with serialized nodes -->
 
-<TextWithNodes>This is the first document.
-Just here for debugging.</TextWithNodes>
+<TextWithNodes>This is a document with some text for testing.</TextWithNodes>
 <!-- The default annotation set -->
 
 <AnnotationSet>
