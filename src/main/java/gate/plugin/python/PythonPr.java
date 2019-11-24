@@ -213,7 +213,20 @@ public class PythonPr
   }
   protected Boolean debugMode;
           
-  
+  @Optional
+  @RunTime
+  @CreoleParameter(comment = "Use Python gatenlp package included in the plugin, not the system one.",
+          defaultValue = "true")
+  public void setOwnGatenlpPackage(Boolean value) {
+    ownGatenlpPackage = value;
+  }
+  public Boolean getOwnGatenlpPackage() {
+    if (ownGatenlpPackage == null) {
+      return true;
+    }
+    return ownGatenlpPackage;
+  }
+  protected Boolean ownGatenlpPackage;
   
   /**
    * This field contains the currently active process for the python program.
@@ -298,7 +311,9 @@ public class PythonPr
     // process does not hang on termination?
     executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
     Map<String,String> env = new HashMap<>();
-    env.put("PYTHONPATH", usePythonPath);
+    if(getOwnGatenlpPackage()) {
+      env.put("PYTHONPATH", usePythonPath);
+    }
     try {
       executor.execute(cmdLine, env, resultHandler);
     } catch (IOException ex) {
@@ -452,7 +467,9 @@ public class PythonPr
     // ok, actually run the python program so we can communicate with it. 
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String,String> env = new HashMap<>();
-    env.put("PYTHONPATH", usePythonPath);
+    if(getOwnGatenlpPackage()) {
+      env.put("PYTHONPATH", usePythonPath);
+    }
     if(getDebugMode()) {
       process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
     } else {
