@@ -6,6 +6,10 @@ from gatenlp import interact, GateNlpPr, Document
 @GateNlpPr
 class MyProcessor:
 
+  def start(**kwargs):
+    print("Running start(), kwargs={}".format(kwargs), file=sys.stderr)
+  def finish(**kwargs):
+    print("Running finish(), kwargs={}".format(kwargs), file=sys.stderr)
   def __call__(doc, **kwargs):
     print("We are running on a doc! kwargs={}".format(kwargs), file=sys.stderr)
     set1 = doc.get_annotations("Set1")
@@ -17,4 +21,5 @@ class MyProcessor:
     doc.set_feature("feat2", "asdf")
     doc.set_feature("feat1", 13)
 
-interact()
+if __name__ == '__main__':
+  interact()
