@@ -379,7 +379,7 @@ public class PythonPr
       throw new GateRuntimeException("Odd JAR URL: "+urlString);
     }
     urlString = urlString + "/resources/";
-    System.err.println("DEBUG: resources location: "+urlString);
+    //System.err.println("DEBUG: resources location: "+urlString);
     return urlString;
   }
 
@@ -388,7 +388,7 @@ public class PythonPr
   @Override
   public Resource init() throws ResourceInstantiationException {
     usePythonPath = PythonPr.getPackageParentPathInZip();
-    System.err.println("DEBUG: pythonpath is "+usePythonPath);
+    //System.err.println("DEBUG: pythonpath is "+usePythonPath);
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
     if(nrDuplicates==null) {
@@ -397,7 +397,7 @@ public class PythonPr
     } else {
       duplicateId = nrDuplicates.getAndAdd(1);
     }
-    System.err.println("Duplicate id is "+duplicateId);
+    //System.err.println("Duplicate id is "+duplicateId);
     
     if(workingDirUrl == null) {
       workingDir = new File(".");
@@ -424,8 +424,9 @@ public class PythonPr
     // path use relative to the working dir. Create the file URI for that 
     // path and use it. Otherwise use the pythonProgramUri. Then
     // do for the URI what we described above.
-    System.err.println("DEBUG: python program URI: "+pythonProgram.toURI());
-    System.err.println("DEBUG: python program scheme: "+pythonProgram.toURI().getScheme());
+    
+    //System.err.println("DEBUG: python program URI: "+pythonProgram.toURI());
+    //System.err.println("DEBUG: python program scheme: "+pythonProgram.toURI().getScheme());
     if(pythonProgram.toURI().getScheme().equals("file")) {
       try {
         pythonProgramFile = gate.util.Files.fileFromURL(pythonProgram.toURL());
@@ -481,13 +482,13 @@ public class PythonPr
       env.put("PYTHONPATH", usePythonPath);
     }
     if(getDebugMode()) {
-      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
-    } else {
       process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, "-d", pythonProgramFile.getAbsolutePath());
+    } else {
+      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
     }
     String responseJson = (String)process.process(makeStartRequest());
     if(responseJson == null) {
-      throw new GateRuntimeException("Invalid null response from Python process, something went wrong");
+      throw new GateRuntimeException("Invalid null response from Python process, did you run interact()?");
     }
     try {
       Map<String, Object> response = JSON.std.mapFrom(responseJson);
