@@ -11,6 +11,8 @@ class MyProcessor:
   def finish(**kwargs):
     print("Running finish(), kwargs={}".format(kwargs), file=sys.stderr)
   def __call__(doc, **kwargs):
+    print("SOMETHING FOR STDOUT")
+    print("SOMETHING FOR STDERR", file=sys.stderr)
     print("We are running on a doc! kwargs={}".format(kwargs), file=sys.stderr)
     set1 = doc.get_annotations("Set1")
     set1.clear()
