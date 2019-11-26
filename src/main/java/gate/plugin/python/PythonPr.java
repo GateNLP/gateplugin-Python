@@ -213,7 +213,20 @@ public class PythonPr
   }
   protected Boolean debugMode;
           
-  
+  @Optional
+  @RunTime
+  @CreoleParameter(comment = "Use Python gatenlp package included in the plugin, not the system one.",
+          defaultValue = "true")
+  public void setOwnGatenlpPackage(Boolean value) {
+    ownGatenlpPackage = value;
+  }
+  public Boolean getOwnGatenlpPackage() {
+    if (ownGatenlpPackage == null) {
+      return true;
+    }
+    return ownGatenlpPackage;
+  }
+  protected Boolean ownGatenlpPackage;
   
   /**
    * This field contains the currently active process for the python program.
@@ -289,6 +302,7 @@ public class PythonPr
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
     ExecuteWatchdog watchdog = new ExecuteWatchdog(10*1000); // 10 secs
     Executor executor = new DefaultExecutor();
+    
     executor.setWatchdog(watchdog);
     executor.setWorkingDirectory(workingDir);
     // Note: not sure if the following is how to do it and if does what 
@@ -296,8 +310,12 @@ public class PythonPr
     // the process, mayne this makes sure it gets destroyed so that the Java
     // process does not hang on termination?
     executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
+    Map<String,String> env = new HashMap<>();
+    if(getOwnGatenlpPackage()) {
+      env.put("PYTHONPATH", usePythonPath);
+    }
     try {
-      executor.execute(cmdLine, resultHandler);
+      executor.execute(cmdLine, env, resultHandler);
     } catch (IOException ex) {
       throw new GateRuntimeException("Could not check the python file", ex);
     }
@@ -337,9 +355,40 @@ public class PythonPr
     return ("" + idNumber);
   }
 
+  public static String getPackageParentPathInZip() {
+    URL artifactURL = PythonPr.class.getResource("/creole.xml");
+    try {
+      artifactURL = new URL(artifactURL, ".");
+    } catch (MalformedURLException ex) {
+      throw new GateRuntimeException("Could not get jar URL");
+    }
+    String urlString = artifactURL.toString();
+    if(urlString.startsWith("jar:file:///")) {
+      urlString = urlString.substring(11);
+      urlString = urlString.substring(0, urlString.length()-2);
+    } else if(urlString.startsWith("jar:file:/")) {
+      urlString = urlString.substring(9);
+      urlString = urlString.substring(0, urlString.length()-2);
+    } else if(urlString.startsWith("file:///")) {
+      urlString = urlString.substring(7);
+      urlString = urlString.substring(0, urlString.length()-1);
+    } else if(urlString.startsWith("file:/")) {
+      urlString = urlString.substring(5);
+      urlString = urlString.substring(0, urlString.length()-1);
+    } else {
+      throw new GateRuntimeException("Odd JAR URL: "+urlString);
+    }
+    urlString = urlString + "/resources/";
+    System.err.println("DEBUG: resources location: "+urlString);
+    return urlString;
+  }
 
+  public String usePythonPath;
+  
   @Override
   public Resource init() throws ResourceInstantiationException {
+    usePythonPath = PythonPr.getPackageParentPathInZip();
+    System.err.println("DEBUG: pythonpath is "+usePythonPath);
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
     if(nrDuplicates==null) {
@@ -428,15 +477,21 @@ public class PythonPr
     // ok, actually run the python program so we can communicate with it. 
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String,String> env = new HashMap<>();
+    if(getOwnGatenlpPackage()) {
+      env.put("PYTHONPATH", usePythonPath);
+    }
     if(getDebugMode()) {
       process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
     } else {
       process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, "-d", pythonProgramFile.getAbsolutePath());
     }
     String responseJson = (String)process.process(makeStartRequest());
+    if(responseJson == null) {
+      throw new GateRuntimeException("Invalid null response from Python process, something went wrong");
+    }
     try {
       Map<String, Object> response = JSON.std.mapFrom(responseJson);
-      if(!response.containsKey("status") || "ok".equals(response.get("status"))) {
+      if(!response.containsKey("status") || !"ok".equals(response.get("status"))) {
         throw new GateRuntimeException("Something went wrong, start response is "+responseJson);
       }
     } catch (IOException ex) {

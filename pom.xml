@@ -44,6 +44,12 @@
     <version>8.6-SNAPSHOT</version>
     <relativePath/>
   </parent>
+    <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <gate-core.version>8.6</gate-core.version>
+  </properties>
+
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
@@ -69,6 +75,14 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             </exclusion>
+           <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            </exclusion>
+           <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            </exclusion>
 
      </exclusions>
 
@@ -90,6 +104,14 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             </exclusion>
+           <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            </exclusion>
+           <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            </exclusion>
 
      </exclusions> 
     </dependency>
@@ -107,36 +129,23 @@
   <build>
       <plugins>
       <plugin>
-    <artifactId>maven-clean-plugin</artifactId>
-    <version>3.1.0</version>
-    <executions>
-    <execution>
-    <phase>validate</phase>
-    </execution>
-    </executions>
-    <configuration>
-      <filesets>
-        <fileset>
-          <directory>${basedir}/src/main/resources/resources/gatenlp</directory>
-        </fileset>
-      </filesets>
-    </configuration>
-  </plugin>
-      <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>3.1.0</version>
         <executions>
           <execution>
             <id>copy-resources</id>
-            <phase>compile</phase>
+            <phase>process-resources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/src/main/resources/resources/gatenlp</outputDirectory>
+              <outputDirectory>target/classes/resources/gatenlp</outputDirectory>
               <resources>          
                 <resource>
-                  <directory>${basedir}/submodules/python-gatenlp/gatenlp</directory>
+                  <directory>submodules/python-gatenlp/gatenlp</directory>
+                  <excludes>
+                   <exclude>**/__pycache__/</exclude>
+                  </excludes>
                   <filtering>false</filtering>
                 </resource>
               </resources>              
@@ -145,6 +154,8 @@
         </executions>
       </plugin>
     </plugins>
+<resources>
+</resources>
   </build>
 	
   <modelVersion>4.0.0</modelVersion>

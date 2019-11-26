@@ -1,0 +1,3 @@
+[submodule "submodules/python-gatenlp"]
+	path = submodules/python-gatenlp
+	url = https://github.com/GateNLP/python-gatenlp.git
