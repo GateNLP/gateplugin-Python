@@ -161,7 +161,7 @@ public class PythonPr
           comment = "Python interpreter name (on system PATH)", 
           disjunction = "pythonbin",
           priority = 10,
-          defaultValue = "python")
+          defaultValue = "python3")
   public void setPythonBinary(String value) {
     pythonBinary = value;
   }
