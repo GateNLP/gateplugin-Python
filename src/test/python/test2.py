@@ -1,6 +1,7 @@
 """Simple example PR to print the document text"""
 
 import sys
+print("SYSTEM PATH:", sys.path, file=sys.stderr)
 from gatenlp import interact, GateNlpPr, Document
 
 @GateNlpPr
