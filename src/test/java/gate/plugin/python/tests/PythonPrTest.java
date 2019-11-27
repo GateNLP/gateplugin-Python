@@ -9,11 +9,34 @@ import gate.FeatureMap;
 import gate.ProcessingResource;
 import gate.creole.SerialAnalyserController;
 import gate.test.GATEPluginTestCase;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class PythonPrTest extends GATEPluginTestCase {
 
-  
+  private static boolean runOnThisHostname() throws FileNotFoundException, IOException {
+    boolean ret = true;
+    if(new File("/etc/hostname").exists()) {
+      try (
+            InputStream is = new FileInputStream("/etc/hostname");
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+          ) 
+      {
+        String nameLine = br.readLine();
+        if (nameLine.trim().equals("jenkins")) {
+          ret = false;
+        }
+      } catch (Exception ex) {
+      }
+    }
+    return ret;
+  }
   
   public void testPythonPr01() throws Exception {
     Document doc1 = Factory.newDocument("This is a small document");
@@ -28,6 +51,7 @@ public class PythonPrTest extends GATEPluginTestCase {
             "gate.creole.SerialAnalyserController");
     controller.add(pr);
     controller.setCorpus(corpus);
+    if(!runOnThisHostname()) return;
     controller.execute();
     AnnotationSet anns = doc1.getAnnotations("Set1");
     System.err.println("Got anns: "+anns);
@@ -70,6 +94,7 @@ public class PythonPrTest extends GATEPluginTestCase {
             "gate.creole.SerialAnalyserController");
     controller.add(pr);
     controller.setCorpus(corpus);
+    if(!runOnThisHostname()) return;
     controller.execute();
     AnnotationSet anns = doc1.getAnnotations("Set1");
     System.err.println("Got anns: "+anns);
