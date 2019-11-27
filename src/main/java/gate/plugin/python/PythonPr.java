@@ -89,8 +89,9 @@ public class PythonPr
 
   private static final long serialVersionUID = -7294092586613502768L;
 
-  // ********* Parameters
+  
   @Optional
+  @RunTime
   @CreoleParameter(
           comment = "The URL of the Python program to run",
           disjunction = "program",
@@ -104,6 +105,8 @@ public class PythonPr
   }
   protected ResourceReference pythonProgram;
 
+  @Optional
+  @RunTime
   @CreoleParameter(
           comment = "An absolute or relative file path to the python program",
           disjunction = "program",
@@ -233,9 +236,10 @@ public class PythonPr
    * Otherwise, the field should be null.
    * 
    */
-  protected Process4StringStream process = null; 
+  protected transient Process4StringStream process = null; 
             
-  public org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(this.getClass());
+  public transient org.apache.log4j.Logger logger = 
+          org.apache.log4j.Logger.getLogger(this.getClass());
   
   // the nrDuplicates counter will get shared between copies when this
   // PR is being duplicated. We will do a synchronized increment of the 
@@ -312,7 +316,7 @@ public class PythonPr
     executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
     Map<String,String> env = new HashMap<>();
     if(getOwnGatenlpPackage()) {
-      env.put("PYTHONPATH", usePythonPath);
+      env.put("PYTHONPATH", usePythonPackagePath);
     }
     try {
       executor.execute(cmdLine, env, resultHandler);
@@ -350,11 +354,6 @@ public class PythonPr
   // TODO: make this atomic so it works better in a multithreaded setting
   private static int idNumber = 0;
 
-  private static synchronized String getNextId() {
-    idNumber++;
-    return ("" + idNumber);
-  }
-
   public static String getPackageParentPathInZip() {
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
     try {
@@ -383,11 +382,45 @@ public class PythonPr
     return urlString;
   }
 
-  public String usePythonPath;
+  public String usePythonPackagePath;
+  
+  public File currentPythonProgramFile = null;
+  
+  /**
+   * Figure out which python file to use.
+   * 
+   * This is not trivial because which file to use depends on the following 
+   * parameters: pythonProgram (ResourceReference), pythonProgramPath(String), 
+   * and workingDirUrl(URL). Since all these parameters are runtime parameters,
+   * they also can change at almost any time and they are all empty initially. 
+   * <p>
+   * A further complication is that we have a visual resource for editing 
+   * the python code. This means that as soon as the user activates the 
+   * visual resource, we must decide on which file to edit. This means that
+   * if now program has explicitly been set yet, we should use some temporary
+   * file somewhere. Also, if the program has been set to a location in the 
+   * JAR (through the ResourceReference) than we need to create a copy of that
+   * somewhere in order to edit it and use that copy instead. 
+   * <p>
+   * This method decides which file to use, and, if necessary, also creates
+   * that file. The File object representing the file gets returned. 
+   * The method also updates the global currentPythonProgramFile variable and
+   * tries to update the editor, if necessary. 
+   * 
+   * @return the File representing the Python program file
+   */
+  public File figureOutPythonFile() {
+    // lets try and distinguish the main situations:
+    // 1) no parameter has been set (yet) but the user wants to edit/run:
+    // in that case, we create a new file in the effective working directory,
+    // initialised with the code template. 
+    // 2) a pythonProgramPath is set: 
+    return new File(".");
+  }
   
   @Override
   public Resource init() throws ResourceInstantiationException {
-    usePythonPath = PythonPr.getPackageParentPathInZip();
+    usePythonPackagePath = PythonPr.getPackageParentPathInZip();
     //System.err.println("DEBUG: pythonpath is "+usePythonPath);
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
@@ -406,6 +439,14 @@ public class PythonPr
     }
     if (pythonProgram == null && (pythonProgramPath == null || pythonProgramPath.isEmpty())) {
       throw new ResourceInstantiationException("The pythonProgram and pythonProgramPath parameters must not be both empty");
+    }
+    
+    // If the pythonProgramPath is set, it takes precedence of ther the pythonProgram
+    File pythonProgramFile = null;   // the file we will end up using
+    if(pythonProgramPath != null && !pythonProgramPath.isEmpty()) {
+      // if the path is absolute, use just that file, otherwise, make it
+      // relative to the working directory, not the current directory
+      pythonProgramFile = new File(workingDir, tmpfilename);
     }
     // We have two cases: either the resourcereference is pointing at a file,
     // then we just use that, or it is a creole reference or gettable URL,
@@ -479,7 +520,7 @@ public class PythonPr
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String,String> env = new HashMap<>();
     if(getOwnGatenlpPackage()) {
-      env.put("PYTHONPATH", usePythonPath);
+      env.put("PYTHONPATH", usePythonPackagePath);
     }
     if(getDebugMode()) {
       process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, "-d", pythonProgramFile.getAbsolutePath());

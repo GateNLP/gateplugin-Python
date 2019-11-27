@@ -26,7 +26,7 @@ package gate.plugin.python;
  */
 public class Flag {
   protected boolean value = false;
-  public Flag(boolean value) { this.value = value; }
+  public Flag(boolean val) { this.value = val; }
   public void set(boolean value) { this.value = value; }
   public boolean get() {return value; }
 }
