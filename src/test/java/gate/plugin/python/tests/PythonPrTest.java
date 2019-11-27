@@ -42,6 +42,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
+    params.put("pythonBinary", "python3");
     params.put("pythonProgram", new File("./src/test/python/test1.py").toURI().toURL());
     pr = (ProcessingResource)Factory.createResource("gate.plugin.python.PythonPr",params);
     System.err.println("Got pr: "+pr);
@@ -85,6 +86,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
+    params.put("pythonBinary", "python3");
     params.put("pythonProgram", new File("./src/test/python/test2.py").toURI().toURL());
     pr = (ProcessingResource)Factory.createResource("gate.plugin.python.PythonPr",params);
     System.err.println("Got pr: "+pr);
