@@ -28,9 +28,11 @@ public class PythonPrTest extends GATEPluginTestCase {
             BufferedReader br = new BufferedReader(isr);
           ) 
       {
-        String nameLine = br.readLine();
-        if (nameLine.trim().equals("jenkins")) {
+        String nameLine = br.readLine().trim();
+        System.err.println("DEBUG: we are running tests on host "+nameLine);
+        if (nameLine.equals("jenkins")) {
           ret = false;
+          System.err.println("DEBUG: NOT RUNNING TESTS HERE!");
         }
       } catch (Exception ex) {
       }
