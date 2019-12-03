@@ -49,22 +49,17 @@ public class PythonEditorVr extends AbstractVisualResource
   @Override
   public void setTarget(Object target) {
     if(target instanceof PythonCodeDriven) {
-      //System.out.println("Found a PythonCodeDriven, activating panel");
-      theTarget = (PythonCodeDriven)target;
+      System.out.println("Running PythonEditorVr:setTarget");      
+      theTarget = (PythonCodeDriven)target;      
       panel = new PythonEditorPanel();
       this.add(panel);
       this.setLayout(new GridLayout(1,1));
       // register ourselves as the EditorVR
-      pr = (PythonPr)target;
+      pr = (PythonPr)target;      
       pr.registerEditorVR(this);
       panel.setPR(pr);
-      panel.setFile(pr.getPythonProgramFile());
-      // Currently I think this is pretty useless as we cannot check the 
-      // syntax right at initialisation time, since the python binary 
-      // is a runtime parameter and we need that for checking!
-      // Making everything an init param is also annoying ...
-      // isCompileOK is initialised with true, so initially this is always 
-      // showing OK.
+      pr.figureOutPythonFile();
+      panel.setFile(pr.getCurrentPythonProgramFile());
       if(!pr.isCompileOk) {
         panel.setCompilationError();
       } else {
@@ -76,6 +71,7 @@ public class PythonEditorVr extends AbstractVisualResource
   }
   
   public void setFile(File file) {
+    System.err.println("PythonEditorVr:setFile:"+file);
     panel.setFile(file);
   }
   

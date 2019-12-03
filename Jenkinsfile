@@ -12,8 +12,15 @@ pipeline {
     }
     stages {
         stage ('Build') {
-            steps {
-                sh 'mvn -e clean install' 
+            steps { 
+                sh """
+                /home/johann/software/miniconda3/bin/conda
+                python --version
+                rm -rf /home/johann/jenkins-python/tmpenv
+                python -m venv /home/johann/jenkins-python/tmpenv
+                pip install -r submodules/python-gatenlp/requirements.txt
+                mvn -e clean install
+                """
             }
             post {
                 always {

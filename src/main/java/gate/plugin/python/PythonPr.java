@@ -87,7 +87,7 @@ public class PythonPr
         implements ControllerAwarePR, PythonCodeDriven
 {
 
-  private static final long serialVersionUID = -7294092586613502768L;
+  private static final long serialVersionUID = -7294093586613502768L;
 
   
   @Optional
@@ -120,8 +120,12 @@ public class PythonPr
   }
   protected String pythonProgramPath;
   
-  File pythonProgramFile = null;
-  public File getPythonProgramFile() { return pythonProgramFile; }
+  protected File currentPythonProgramFile = null;
+  /**
+   * Get the currently known python program file. 
+   * @return python program file
+   */
+  public File getCurrentPythonProgramFile() { return currentPythonProgramFile; }
 
   @Optional
   @RunTime
@@ -191,6 +195,7 @@ public class PythonPr
   protected String pythonBinaryCommand;
   
   @Optional
+  @RunTime
   @CreoleParameter(comment = "Working directory.")
   public void setWorkingDirUrl(URL value) {
     workingDirUrl = value;
@@ -302,7 +307,8 @@ public class PythonPr
     CommandLine cmdLine = new CommandLine(pythonBinaryCommand);
     cmdLine.addArgument("-m");
     cmdLine.addArgument("py_compile");
-    cmdLine.addArgument(pythonProgramFile.getAbsolutePath());
+    figureOutPythonFile();
+    cmdLine.addArgument(currentPythonProgramFile.getAbsolutePath());
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
     ExecuteWatchdog watchdog = new ExecuteWatchdog(10*1000); // 10 secs
     Executor executor = new DefaultExecutor();
@@ -384,7 +390,6 @@ public class PythonPr
 
   public String usePythonPackagePath;
   
-  public File currentPythonProgramFile = null;
   
   /**
    * Figure out which python file to use.
@@ -410,43 +415,43 @@ public class PythonPr
    * @return the File representing the Python program file
    */
   public File figureOutPythonFile() {
-    // lets try and distinguish the main situations:
-    // 1) no parameter has been set (yet) but the user wants to edit/run:
+    // This gets called to figure out the python file we want to use.
+    //
+    // Here are the main situations:
+    // 1) no parameter is set but the user wants to edit/run:
     // in that case, we create a new file in the effective working directory,
     // initialised with the code template. 
     // 2) a pythonProgramPath is set: 
-    return new File(".");
-  }
-  
-  @Override
-  public Resource init() throws ResourceInstantiationException {
-    usePythonPackagePath = PythonPr.getPackageParentPathInZip();
-    //System.err.println("DEBUG: pythonpath is "+usePythonPath);
-    // count which duplication id we have, the first instance gets null, the 
-    // duplicates will find the instance from the first instance
-    if(nrDuplicates==null) {
-      nrDuplicates = new AtomicInteger(1);      
-      duplicateId = 0;
-    } else {
-      duplicateId = nrDuplicates.getAndAdd(1);
-    }
-    //System.err.println("Duplicate id is "+duplicateId);
-    
+
     if(workingDirUrl == null) {
       workingDir = new File(".");
     } else {
       workingDir = Files.fileFromURL(workingDirUrl);
     }
+    File pythonProgramFile = null;   // the file we will end up using
+    // if both parms are empty and we need a python program file, we create 
+    // a temporary one in the working directory from the program template
     if (pythonProgram == null && (pythonProgramPath == null || pythonProgramPath.isEmpty())) {
-      throw new ResourceInstantiationException("The pythonProgram and pythonProgramPath parameters must not be both empty");
+      System.err.println("Creating new Python file with tmp-name from template");
+      String tmpfilename = "tmpfile.py";
+      pythonProgramFile = new File(workingDir, tmpfilename);
+      if(!pythonProgramFile.exists()) {          
+        copyResource("/resources/templates/default.py", pythonProgramFile);
+      }
+      currentPythonProgramFile = pythonProgramFile;
+      return pythonProgramFile;      
     }
     
     // If the pythonProgramPath is set, it takes precedence of ther the pythonProgram
-    File pythonProgramFile = null;   // the file we will end up using
     if(pythonProgramPath != null && !pythonProgramPath.isEmpty()) {
       // if the path is absolute, use just that file, otherwise, make it
       // relative to the working directory, not the current directory
-      pythonProgramFile = new File(workingDir, tmpfilename);
+      File tmpfile = new File(pythonProgramPath);
+      if(tmpfile.isAbsolute()) {
+        pythonProgramFile = tmpfile;
+      } else {
+        pythonProgramFile = new File(workingDir, pythonProgramPath);
+      }
     }
     // We have two cases: either the resourcereference is pointing at a file,
     // then we just use that, or it is a creole reference or gettable URL,
@@ -475,7 +480,7 @@ public class PythonPr
           copyResource("/resources/templates/default.py", pythonProgramFile);
         }
       } catch (IOException ex) {
-        throw new ResourceInstantiationException("Could not determine file for pythonProgram "+pythonProgram, ex);
+        throw new GateRuntimeException("Could not determine file for pythonProgram "+pythonProgram, ex);
       }
     } else {
       // check if the working directory already contains a file with the same name
@@ -495,10 +500,26 @@ public class PythonPr
       // ever used
       String tmp = FileUtils.readFileToString(pythonProgramFile, "UTF-8");
     } catch (IOException ex) {
-      throw new ResourceInstantiationException("Could not read the python program from " + pythonProgramFile, ex);
+      throw new GateRuntimeException("Could not read the python program from " + pythonProgramFile, ex);
     }
-    // NOTE: at this point we cannot already check the python program because
-    // we do not know the python binary yet (which is a runtime parameter).
+    // TODO: maybe also check if the program syntax is ok here!!
+    currentPythonProgramFile = pythonProgramFile;
+    return pythonProgramFile;
+  } // end figureOutPythonFile
+  
+  @Override
+  public Resource init() throws ResourceInstantiationException {
+    usePythonPackagePath = PythonPr.getPackageParentPathInZip();
+    //System.err.println("DEBUG: pythonpath is "+usePythonPath);
+    // count which duplication id we have, the first instance gets null, the 
+    // duplicates will find the instance from the first instance
+    if(nrDuplicates==null) {
+      nrDuplicates = new AtomicInteger(1);      
+      duplicateId = 0;
+    } else {
+      duplicateId = nrDuplicates.getAndAdd(1);
+    }
+    //System.err.println("Duplicate id is "+duplicateId);
     return this;
   } // end init()
 
@@ -508,6 +529,7 @@ public class PythonPr
    * it when the corpus is finished. 
    */
   protected void whenStarting() {
+    figureOutPythonFile();
     ensurePythonProgramCommand();
     // Make sure we have a Python program that at least looks like we could run it    
     // Get the effective path to the python binary: either use the pythonbinary name
@@ -523,9 +545,9 @@ public class PythonPr
       env.put("PYTHONPATH", usePythonPackagePath);
     }
     if(getDebugMode()) {
-      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, "-d", pythonProgramFile.getAbsolutePath());
+      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, "-d", currentPythonProgramFile.getAbsolutePath());
     } else {
-      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, pythonProgramFile.getAbsolutePath());
+      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, currentPythonProgramFile.getAbsolutePath());
     }
     String responseJson = (String)process.process(makeStartRequest());
     if(responseJson == null) {
@@ -557,7 +579,7 @@ public class PythonPr
   public void reInit() throws ResourceInstantiationException {
     nrDuplicates = null;
     if(registeredEditorVR != null) {
-      registeredEditorVR.setFile(getPythonProgramFile());
+      registeredEditorVR.setFile(getCurrentPythonProgramFile());
     }
     super.reInit();
   }

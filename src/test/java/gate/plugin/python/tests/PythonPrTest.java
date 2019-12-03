@@ -30,7 +30,7 @@ public class PythonPrTest extends GATEPluginTestCase {
       {
         String nameLine = br.readLine().trim();
         System.err.println("DEBUG: we are running tests on host "+nameLine);
-        if (nameLine.equals("gateservice2")) {
+        if (nameLine.equals("gateserviceX")) {  // enable: X=2
           ret = false;
           System.err.println("DEBUG: NOT RUNNING TESTS HERE!");
         }
