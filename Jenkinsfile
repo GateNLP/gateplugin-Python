@@ -14,7 +14,8 @@ pipeline {
         stage ('Build') {
             steps { 
                 sh """
-                /home/johann/software/miniconda3/bin/conda 'shell.bash' 'hook' 2> /dev/null
+                __condasetup="$(/home/johann/software/miniconda3/bin/conda 'shell.bash' 'hook' 2> /dev/null)"
+                eval "$__condasetup"
                 python --version
                 rm -rf /home/johann/jenkins-python/tmpenv
                 python -m venv /home/johann/jenkins-python/tmpenv
