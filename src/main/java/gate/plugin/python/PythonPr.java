@@ -352,15 +352,13 @@ public class PythonPr
    * Last syntax check status. 
    * Initially, this is true.
    */
-  public boolean isCompileOk = true;
+  public boolean isCompileOk;
   
   private PythonEditorVr registeredEditorVR = null;
 
   public void registerEditorVR(PythonEditorVr vr) {
     registeredEditorVR = vr;
   }
-  // TODO: make this atomic so it works better in a multithreaded setting
-  private static int idNumber = 0;
 
   public static String getPackageParentPathInZip() {
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
@@ -440,12 +438,8 @@ public class PythonPr
       if(!pythonProgramFile.exists()) {          
         copyResource("/resources/templates/default.py", pythonProgramFile);
       }
-      currentPythonProgramFile = pythonProgramFile;
-      return pythonProgramFile;      
-    }
-    
-    // If the pythonProgramPath is set, it takes precedence of ther the pythonProgram
-    if(pythonProgramPath != null && !pythonProgramPath.isEmpty()) {
+    } else if(pythonProgramPath != null && !pythonProgramPath.isEmpty()) {
+      // If the pythonProgramPath is set, it takes precedence of ther the pythonProgram
       // if the path is absolute, use just that file, otherwise, make it
       // relative to the working directory, not the current directory
       File tmpfile = new File(pythonProgramPath);
@@ -454,7 +448,12 @@ public class PythonPr
       } else {
         pythonProgramFile = new File(workingDir, pythonProgramPath);
       }
-    }
+      if(!pythonProgramFile.exists()) {          
+        copyResource("/resources/templates/default.py", pythonProgramFile);
+      }
+    } else if(pythonProgram == null) {
+      throw new GateRuntimeException("Should never be thrown");      
+    } else  if(pythonProgram.toURI().getScheme().equals("file")) {
     // We have two cases: either the resourcereference is pointing at a file,
     // then we just use that, or it is a creole reference or gettable URL,
     // then we copy the file to whatever our working directory is.
@@ -475,7 +474,6 @@ public class PythonPr
     
     //System.err.println("DEBUG: python program URI: "+pythonProgram.toURI());
     //System.err.println("DEBUG: python program scheme: "+pythonProgram.toURI().getScheme());
-    if(pythonProgram.toURI().getScheme().equals("file")) {
       try {
         pythonProgramFile = gate.util.Files.fileFromURL(pythonProgram.toURL());
         if(!pythonProgramFile.exists()) {          
@@ -500,11 +498,10 @@ public class PythonPr
     try {
       // just check if we can read the script here ... what we read is not actually 
       // ever used
-      String tmp = FileUtils.readFileToString(pythonProgramFile, "UTF-8");
+      FileUtils.readFileToString(pythonProgramFile, "UTF-8");
     } catch (IOException ex) {
       throw new GateRuntimeException("Could not read the python program from " + pythonProgramFile, ex);
     }
-    // TODO: maybe also check if the program syntax is ok here!!
     currentPythonProgramFile = pythonProgramFile;
     return pythonProgramFile;
   } // end figureOutPythonFile
@@ -566,7 +563,7 @@ public class PythonPr
   }
 
   protected void whenFinishing() {
-    String responseJson = (String)process.process(makeFinishRequest());
+    process.process(makeFinishRequest());
     // TODO: here or around here we need to do the python process result 
     // processing at some point!
     int exitValue = process.stop();

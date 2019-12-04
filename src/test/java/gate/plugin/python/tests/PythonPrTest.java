@@ -124,7 +124,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     // System.err.println("Got anns: "+anns);
     assertEquals(1, anns.size());
     Annotation ann = anns.iterator().next();
-    // System.err.println("Got ann: "+ann);
+    //   System.err.println("Got ann: "+ann);
     assertEquals("Type1", ann.getType());
     assertEquals(1L, (long)ann.getStartNode().getOffset());
     assertEquals(4L, (long)ann.getEndNode().getOffset());

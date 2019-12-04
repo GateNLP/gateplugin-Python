@@ -17,6 +17,16 @@
          Yes I want to write that static field
          -->
          <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+         <!-- 
+         Do not bug me about the transient logger
+         -->
+         <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
+
+         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" />
+
+         <!-- yeah but this gets ALWAYS initialised elsewhere -->
+         <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
+
       </Or>
    </Match>
 
