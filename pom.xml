@@ -2,7 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <groupId>uk.ac.gate.plugins</groupId>
   <artifactId>python</artifactId>
-  <version>2.0-SNAPSHOT</version><!-- PLUGINVERSION -->
+  <version>2.0-SNAPSHOT</version>
+  <!-- PLUGINVERSION -->
   <name>Python</name>
   <description>
     A GATE plugin that provides a processing resource 
@@ -46,12 +47,11 @@
     <version>8.6-SNAPSHOT</version>
     <relativePath/>
   </parent>
-    <properties>
+  <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <gate-core.version>8.6</gate-core.version>
   </properties>
-
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
@@ -63,59 +63,55 @@
       <groupId>uk.ac.gate.libraries</groupId>
       <artifactId>interaction</artifactId>
       <version>4.1-SNAPSHOT</version>
-       <exclusions>
-            <exclusion>
-                      <groupId>uk.ac.gate</groupId>
-      <artifactId>gate-core</artifactId>
-
-            </exclusion>
-            <exclusion>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            </exclusion>
-            <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            </exclusion>
-           <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            </exclusion>
-           <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            </exclusion>
-
-     </exclusions>
-
+      <exclusions>
+        <exclusion>
+          <groupId>uk.ac.gate</groupId>
+          <artifactId>gate-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>uk.ac.gate.libraries</groupId>
       <artifactId>basicdocument</artifactId>
       <version>0.1-SNAPSHOT</version>
-        <exclusions>
-            <exclusion>
-      <groupId>uk.ac.gate</groupId>
-      <artifactId>gate-core</artifactId>
-            </exclusion>
-            <exclusion>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            </exclusion>
-           <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            </exclusion>
-           <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            </exclusion>
-           <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            </exclusion>
-
-     </exclusions> 
+      <exclusions>
+        <exclusion>
+          <groupId>uk.ac.gate</groupId>
+          <artifactId>gate-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -129,7 +125,7 @@
     </dependency>
   </dependencies>
   <build>
-      <plugins>
+    <plugins>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>3.1.0</version>
@@ -142,23 +138,40 @@
             </goals>
             <configuration>
               <outputDirectory>target/classes/resources/gatenlp</outputDirectory>
-              <resources>          
+              <resources>
                 <resource>
                   <directory>submodules/python-gatenlp/gatenlp</directory>
                   <excludes>
-                   <exclude>**/__pycache__/</exclude>
+                    <exclude>**/__pycache__/</exclude>
                   </excludes>
                   <filtering>false</filtering>
                 </resource>
-              </resources>              
-            </configuration>            
+              </resources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
     </plugins>
-<resources>
+    <resources>
 </resources>
   </build>
-	
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.3</version>
+        <configuration>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+          <excludeFilterFile>src/build/resources/findbugs-excluded.xml</excludeFilterFile>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+          <maxHeap>1024</maxHeap>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
   <modelVersion>4.0.0</modelVersion>
 </project>
