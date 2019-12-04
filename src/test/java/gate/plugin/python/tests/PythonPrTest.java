@@ -17,6 +17,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.Executor;
 
 public class PythonPrTest extends GATEPluginTestCase {
 
@@ -40,6 +43,21 @@ public class PythonPrTest extends GATEPluginTestCase {
     }
     return ret;
   }
+  
+  public void testPython() throws IOException {
+    Executor executor = new DefaultExecutor();
+    System.err.println("!!!!!!!!!!! CHECKING PYTHON !!!!!!!!!!!!!!!!!!!!!");
+    
+    System.err.println("RUNNING /bin/bash which python:");
+    CommandLine cmdLine1 = CommandLine.parse("/bin/bash which python");
+    executor.execute(cmdLine1);
+    
+    System.err.println("RUNNING python debug");
+    cmdLine1 = CommandLine.parse("python src/test/python/debug.py");
+    executor.execute(cmdLine1);
+  }
+  
+  
   
   public void testPythonPr01() throws Exception {
     Document doc1 = Factory.newDocument("This is a small document");
