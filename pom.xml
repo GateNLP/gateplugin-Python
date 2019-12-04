@@ -7,6 +7,7 @@
   <description>
     A GATE plugin that provides a processing resource 
     for running Python on GATE.
+
   </description>
   <url>https://github.com/GateNLP/gateplugin-python/wiki</url>
   <organization>
