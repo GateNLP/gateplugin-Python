@@ -18,7 +18,7 @@ hs_err_pid*
 python-test/data/*output*
 *.json
 gate/log.txt
-build
+/build
 dist
 
 gate_python.egg-info
