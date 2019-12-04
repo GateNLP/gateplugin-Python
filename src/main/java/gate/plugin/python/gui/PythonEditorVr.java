@@ -40,7 +40,7 @@ import java.io.File;
 public class PythonEditorVr extends AbstractVisualResource 
 {
 
-  private static final long serialVersionUID = 2015798440688388811L;
+  private static final long serialVersionUID = 2225798440338388811L;
   
   protected PythonEditorPanel panel;
   protected PythonCodeDriven theTarget;
