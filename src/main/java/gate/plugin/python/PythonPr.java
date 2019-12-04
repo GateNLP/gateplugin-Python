@@ -309,7 +309,7 @@ public class PythonPr
     cmdLine.addArgument("py_compile");
     figureOutPythonFile();
     cmdLine.addArgument(currentPythonProgramFile.getAbsolutePath());
-    System.err.println("DEBUG: running: "+cmdLine.toString());
+    // System.err.println("DEBUG: running: "+cmdLine.toString());
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
     ExecuteWatchdog watchdog = new ExecuteWatchdog(10*1000); // 10 secs
     Executor executor = new DefaultExecutor();

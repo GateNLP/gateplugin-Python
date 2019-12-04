@@ -46,23 +46,18 @@ public class PythonPrTest extends GATEPluginTestCase {
   
   public void testPython() throws IOException {
     Executor executor = new DefaultExecutor();
-    System.err.println("!!!!!!!!!!! CHECKING PYTHON !!!!!!!!!!!!!!!!!!!!!");
-    
-    System.err.println("RUNNING /bin/bash which python:");
+    System.err.println("Python path:");
     CommandLine cmdLine1 = CommandLine.parse("/bin/bash which python");
     int retval = executor.execute(cmdLine1);
-    System.err.println("Retval: "+retval);
+    assertEquals(0, retval);
     
-    System.err.println("RUNNING python debug");
-    cmdLine1 = CommandLine.parse("python src/test/python/debug.py");
-    retval = executor.execute(cmdLine1);
-    System.err.println("Retval: "+retval);
-    
-    System.err.println("RUNNING compile debug program");
     cmdLine1 = CommandLine.parse("python -m py_compile src/test/python/debug.py");
     retval = executor.execute(cmdLine1);
-    System.err.println("Retval: "+retval);
-    
+    assertEquals(0, retval);
+
+    cmdLine1 = CommandLine.parse("python src/test/python/debug.py");
+    retval = executor.execute(cmdLine1);
+    assertEquals(0, retval);    
   }
   
   
@@ -71,17 +66,9 @@ public class PythonPrTest extends GATEPluginTestCase {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
-    System.err.println("Environment vars: ");
-    for(String k : System.getenv().keySet().stream().sorted().collect(Collectors.toList())) {
-       System.err.println(k+"="+System.getenv().get(k));
-    }
-    System.err.println("PYTHONHOME="+System.getenv().get("PYTHONHOME"));
-    // Runtime.getRuntime().exec("/bin/bash which python > /home/johann/which2");
-    // params.put("pythonBinary", "/home/johann/software/anaconda3/bin/python3");
     params.put("pythonBinary", "python");
     params.put("pythonProgram", new File("./src/test/python/test1.py").toURI().toURL());
     pr = (ProcessingResource)Factory.createResource("gate.plugin.python.PythonPr",params);
-    System.err.println("Got pr: "+pr);
     Corpus corpus = Factory.newCorpus("test");
     corpus.add(doc1);
     SerialAnalyserController controller = (SerialAnalyserController) Factory.createResource(
@@ -91,10 +78,10 @@ public class PythonPrTest extends GATEPluginTestCase {
     if(!runOnThisHostname()) return;
     controller.execute();
     AnnotationSet anns = doc1.getAnnotations("Set1");
-    System.err.println("Got anns: "+anns);
+    // System.err.println("Got anns: "+anns);
     assertEquals(1, anns.size());
     Annotation ann = anns.iterator().next();
-    System.err.println("Got ann: "+ann);
+    // System.err.println("Got ann: "+ann);
     assertEquals("Type1", ann.getType());
     assertEquals(1L, (long)ann.getStartNode().getOffset());
     assertEquals(4L, (long)ann.getEndNode().getOffset());
@@ -122,10 +109,9 @@ public class PythonPrTest extends GATEPluginTestCase {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
-    params.put("pythonBinary", "/home/johann/software/anaconda3/bin/python3");
+    params.put("pythonBinary", "python");
     params.put("pythonProgram", new File("./src/test/python/test2.py").toURI().toURL());
     pr = (ProcessingResource)Factory.createResource("gate.plugin.python.PythonPr",params);
-    System.err.println("Got pr: "+pr);
     Corpus corpus = Factory.newCorpus("test");
     corpus.add(doc1);
     SerialAnalyserController controller = (SerialAnalyserController) Factory.createResource(
@@ -135,10 +121,10 @@ public class PythonPrTest extends GATEPluginTestCase {
     if(!runOnThisHostname()) return;
     controller.execute();
     AnnotationSet anns = doc1.getAnnotations("Set1");
-    System.err.println("Got anns: "+anns);
+    // System.err.println("Got anns: "+anns);
     assertEquals(1, anns.size());
     Annotation ann = anns.iterator().next();
-    System.err.println("Got ann: "+ann);
+    // System.err.println("Got ann: "+ann);
     assertEquals("Type1", ann.getType());
     assertEquals(1L, (long)ann.getStartNode().getOffset());
     assertEquals(4L, (long)ann.getEndNode().getOffset());
