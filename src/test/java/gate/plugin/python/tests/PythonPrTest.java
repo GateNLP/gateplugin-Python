@@ -59,7 +59,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     System.err.println("Retval: "+retval);
     
     System.err.println("RUNNING compile debug program");
-    CommandLine cmdLine = new CommandLine("python -m py_compile src/test/python/debug.py");
+    cmdLine1 = CommandLine.parse("python -m py_compile src/test/python/debug.py");
     retval = executor.execute(cmdLine1);
     System.err.println("Retval: "+retval);
     
