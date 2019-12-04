@@ -44,7 +44,13 @@ public class PythonPrTest extends GATEPluginTestCase {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
-    params.put("pythonBinary", "python3");
+    System.err.println("Environment vars: ");
+    for(String k : System.getenv().keySet()) {
+       System.err.println(k+"="+System.getenv().get(k));
+    }
+    Runtime.getRuntime().exec("/bin/bash which python > /home/johann/which2");
+    // params.put("pythonBinary", "/home/johann/software/anaconda3/bin/python3");
+    params.put("pythonBinary", "python");
     params.put("pythonProgram", new File("./src/test/python/test1.py").toURI().toURL());
     pr = (ProcessingResource)Factory.createResource("gate.plugin.python.PythonPr",params);
     System.err.println("Got pr: "+pr);
@@ -88,7 +94,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
-    params.put("pythonBinary", "python3");
+    params.put("pythonBinary", "/home/johann/software/anaconda3/bin/python3");
     params.put("pythonProgram", new File("./src/test/python/test2.py").toURI().toURL());
     pr = (ProcessingResource)Factory.createResource("gate.plugin.python.PythonPr",params);
     System.err.println("Got pr: "+pr);
