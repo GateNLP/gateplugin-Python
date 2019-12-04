@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.stream.Collectors;
 
 public class PythonPrTest extends GATEPluginTestCase {
 
@@ -45,10 +46,11 @@ public class PythonPrTest extends GATEPluginTestCase {
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
     System.err.println("Environment vars: ");
-    for(String k : System.getenv().keySet()) {
+    for(String k : System.getenv().keySet().stream().sorted().collect(Collectors.toList())) {
        System.err.println(k+"="+System.getenv().get(k));
     }
-    Runtime.getRuntime().exec("/bin/bash which python > /home/johann/which2");
+    System.err.println("PYTHONHOME="+System.getenv().get("PYTHONHOME"));
+    // Runtime.getRuntime().exec("/bin/bash which python > /home/johann/which2");
     // params.put("pythonBinary", "/home/johann/software/anaconda3/bin/python3");
     params.put("pythonBinary", "python");
     params.put("pythonProgram", new File("./src/test/python/test1.py").toURI().toURL());
