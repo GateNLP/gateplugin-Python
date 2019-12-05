@@ -16,6 +16,11 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software. If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+// TODO: handle inputAS: remove or pass on somehow
+// TODO: make changing runtime pythonpath/workingdir parameters work
+
 package gate.plugin.python;
 
 import com.fasterxml.jackson.jr.ob.JSON;
@@ -78,6 +83,13 @@ import org.apache.commons.io.FileUtils;
 //   * if pipe interaction, all duplicates do exactly the same
 //   * if http interaction, for now all duplicates do the same as well???
 
+/**
+ * Processing resource for running a python program on a document.
+ * This allows to edit and run python code using the gatenlp python package
+ * on documents.
+ * 
+ * @author Johann Petrak
+ */
 @CreoleResource(
         name = "Python PR",
         helpURL = "https://github.com/gatenlp/gateplugin-python/wiki/PythonPr",
@@ -89,7 +101,18 @@ public class PythonPr
 
   private static final long serialVersionUID = -7294093586613502768L;
 
-  
+  /**
+   * Set the location of the python program.
+   * This parameter allows to set the location of the python program as 
+   * either a normal URL (a file: URL for files on a local disk) or as an URL
+   * that points into the plugin's jar. If the URL points to something that is
+   * not a local file, the content gets copied into the working directory and
+   * that copy of the file is used instead.
+   * <p>
+   * This parameter gets ignored if the pythonProgramPath parameter is set.
+   * 
+   * @param value the URL pointing to the python file. 
+   */
   @Optional
   @RunTime
   @CreoleParameter(
@@ -100,11 +123,25 @@ public class PythonPr
   public void setPythonProgram(ResourceReference value) {
     pythonProgram = value;
   }
+  /**
+   * Get the python program path parameter.
+   * @return the value of the parameter
+   */
   public ResourceReference getPythonProgram() {
     return pythonProgram;
   }
   protected ResourceReference pythonProgram;
 
+  /**
+   * Set the python program path.
+   * 
+   * This can be used as an alternative to the setPythonProgram method to 
+   * set the path to the python program as an absolute or relative file path.
+   * If the path is relative, it is interpreted as relative to whatever 
+   * directory is used as a working directory.
+   * 
+   * @param value the python program file path
+   */
   @Optional
   @RunTime
   @CreoleParameter(
@@ -115,6 +152,10 @@ public class PythonPr
   public void setPythonProgramPath(String value) {
     pythonProgramPath = value;
   }
+  /**
+   * Get the python program file path.
+   * @return the value of the parameter
+   */
   public String getPythonProgramPath() {
     return pythonProgramPath;
   }
@@ -127,6 +168,10 @@ public class PythonPr
    */
   public File getCurrentPythonProgramFile() { return currentPythonProgramFile; }
 
+  /**
+   * Set the input annotation set.
+   * @param asname 
+   */
   @Optional
   @RunTime
   @CreoleParameter(comment = "The input annotation set", defaultValue = "")
