@@ -17,13 +17,11 @@ pipeline {
                 __condasetup="\$(/home/johann/software/miniconda3/bin/conda 'shell.bash' 'hook' 2> /dev/null)"
                 eval "\$__condasetup"
                 python --version
-                echo WORKSPACE IS \$WORKSPACE
                 envfile=\$WORKSPACE/tmpenv
                 rm -rf \$envfile
                 python -m venv \$envfile
                 export PATH=\$envfile/bin:\$PATH
-                echo PATH \$PATH
-                \$envfile/pip install -r \$WORKSPACE/submodules/python-gatenlp/requirements.txt
+                pip install -r \$WORKSPACE/submodules/python-gatenlp/requirements.txt
                 mvn -e clean install
                 """
             }
