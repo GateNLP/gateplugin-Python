@@ -6,7 +6,7 @@ from gatenlp import interact, GateNlpPr, Document
 
 @GateNlpPr
 class MyProcessor:
-  def __call__(doc, **kwargs):
+  def __call__(self, doc, **kwargs):
     set1 = doc.get_annotations("Set1")
     set1.clear()
     set1.add(1,4,"Type1",{"f1":12, "f2": "val2"})
