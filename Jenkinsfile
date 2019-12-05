@@ -18,13 +18,13 @@ pipeline {
                 eval "\$__condasetup"
                 python --version
                 echo WORKSPACE IS \$WORKSPACE
-                tmpfile=/tmp/jenkins-build-\$\$-pyenv
-                python -m venv \$tmpfile
-                export PATH=\$tmpfile/bin:\$PATH
-                # \$tmpfile/pip install -r submodules/python-gatenlp/requirements.txt
-                \$tmpfile/pip install sortedcontainers
+                envfile=\$WORKSPACE/tmpenv
+                rm -rf \$envfile
+                python -m venv \$envfile
+                export PATH=\$envfile/bin:\$PATH
+                echo PATH \$PATH
+                \$envfile/pip install -r \$WORKSPACE/submodules/python-gatenlp/requirements.txt
                 mvn -e clean install
-                rm -rf \$tmpfile
                 """
             }
             post {
