@@ -17,8 +17,6 @@
  * License along with this software. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TODO: make changing runtime pythonpath/workingdir parameters work
-
 package gate.plugin.python;
 
 import com.fasterxml.jackson.jr.ob.JSON;
@@ -64,22 +62,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
 import org.apache.commons.io.FileUtils;
 
 
-// TODO:
-// * use a working directory: this will be the current directory where the 
-//   python process is run!
-//   * if gatenlp is not installed, will copy gatenlp package dir there
-//   * if the program URL is not a file, will copy/edit program there
-// * maybe allow to specify python environment to use (how to set??)
-//   * document: specify the python command from the environment as teh
-// * duplication: pass duplication number as system parameter
-//   * if pipe interaction, all duplicates do exactly the same
-//   * if http interaction, for now all duplicates do the same as well???
 
 /**
  * Processing resource for running a python program on a document.
@@ -90,7 +79,7 @@ import org.apache.commons.io.FileUtils;
  */
 @CreoleResource(
         name = "Python PR",
-        helpURL = "https://github.com/gatenlp/gateplugin-python/wiki/PythonPr",
+        helpURL = "http://gatenlp.github.io/gateplugin-python/",
         comment = "Use a Python program as a processing resource")
 public class PythonPr
         extends AbstractLanguageAnalyser
@@ -108,11 +97,13 @@ public class PythonPr
    * that copy of the file is used instead.
    * <p>
    * This parameter gets ignored if the pythonProgramPath parameter is set.
+   * <p>
+   * If both this and the pythonProgramPath parameter are empty, a new 
+   * file is created in the working directory.
    * 
    * @param value the URL pointing to the python file. 
    */
   @Optional
-  @RunTime
   @CreoleParameter(
           comment = "The URL of the Python program to run",
           disjunction = "program",
@@ -141,7 +132,6 @@ public class PythonPr
    * @param value the python program file path
    */
   @Optional
-  @RunTime
   @CreoleParameter(
           comment = "An absolute or relative file path to the python program",
           disjunction = "program",
@@ -202,7 +192,7 @@ public class PythonPr
   @CreoleParameter(
           comment = "Python interpreter name (on system PATH)", 
           disjunction = "pythonbin",
-          priority = 10,
+          priority = 1,
           defaultValue = "python")
   public void setPythonBinary(String value) {
     pythonBinary = value;
@@ -226,7 +216,7 @@ public class PythonPr
   @RunTime
   @CreoleParameter(
           comment = "Python interpreter file URL. If provided overrides pythonBinary.",
-          priority = 1,
+          priority = 10,
           disjunction = "pythonbin"
           )
   public void setPythonBinaryUrl(URL value) {
@@ -252,7 +242,6 @@ public class PythonPr
    * @param value URL of working directory
    */
   @Optional
-  @RunTime
   @CreoleParameter(comment = "Working directory.")
   public void setWorkingDirUrl(URL value) {
     workingDirUrl = value;
@@ -265,7 +254,7 @@ public class PythonPr
     return workingDirUrl;
   }
   protected URL workingDirUrl;
-  protected File workingDir;
+  protected File workingDir;   // the file to use, based on the workingDirUrl
   
   
   /**
@@ -301,20 +290,20 @@ public class PythonPr
   @RunTime
   @CreoleParameter(comment = "Use Python gatenlp package included in the plugin, not the system one.",
           defaultValue = "true")
-  public void setOwnGatenlpPackage(Boolean value) {
-    ownGatenlpPackage = value;
+  public void setUseOwnGatenlpPackage(Boolean value) {
+    useOwnGatenlpPackage = value;
   }
   /**
    * Get the ownGatenlpPackage parameter value.
    * @return value of the parameter
    */
-  public Boolean getOwnGatenlpPackage() {
-    if (ownGatenlpPackage == null) {
+  public Boolean getUseOwnGatenlpPackage() {
+    if (useOwnGatenlpPackage == null) {
       return true;
     }
-    return ownGatenlpPackage;
+    return useOwnGatenlpPackage;
   }
-  protected Boolean ownGatenlpPackage;
+  protected Boolean useOwnGatenlpPackage;
   
   /**
    * This field contains the currently active process for the python program.
@@ -414,10 +403,15 @@ public class PythonPr
     executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
     Map<String,String> env = new HashMap<>();
     env.putAll(System.getenv());
-    if(getOwnGatenlpPackage()) {
+    if(getUseOwnGatenlpPackage()) {
       env.put("PYTHONPATH", usePythonPackagePath);
     }
     try {
+      if(getDebugMode()) {        
+        System.err.println("Trying to compile program:");
+        System.err.println("Python path is "+usePythonPackagePath);
+        System.err.println("Running: "+cmdLine.toString());
+      }
       executor.execute(cmdLine, env, resultHandler);
     } catch (IOException ex) {
       throw new GateRuntimeException("Could not check the python file", ex);
@@ -428,6 +422,13 @@ public class PythonPr
       throw new GateRuntimeException("Something went wrong when checking the python file", ex);
     }
     int exitCode = resultHandler.getExitValue();
+    ExecuteException exc = resultHandler.getException();    
+    if(exc != null) {
+      System.err.println("Got exception running the compile command: "+exc);
+    }
+    if(getDebugMode()) {
+      System.err.println("Got return value from compiling: "+exitCode);
+    }
     isCompileOk = (exitCode == 0);
     if (registeredEditorVR != null) {
       if (isCompileOk) {
@@ -490,7 +491,7 @@ public class PythonPr
   }
 
   /**
-   * The python package path to use whe running Python.
+   * The python package path to use when running Python.
    * So that the gatenlp package is properly found.
    */
   public String usePythonPackagePath;
@@ -528,11 +529,6 @@ public class PythonPr
     // initialised with the code template. 
     // 2) a pythonProgramPath is set: 
 
-    if(workingDirUrl == null) {
-      workingDir = new File(".");
-    } else {
-      workingDir = Files.fileFromURL(workingDirUrl);
-    }
     File pythonProgramFile = null;   // the file we will end up using
     // if both parms are empty and we need a python program file, we create 
     // a temporary one in the working directory from the program template
@@ -607,7 +603,13 @@ public class PythonPr
     } catch (IOException ex) {
       throw new GateRuntimeException("Could not read the python program from " + pythonProgramFile, ex);
     }
-    currentPythonProgramFile = pythonProgramFile;
+    if(!pythonProgramFile.equals(currentPythonProgramFile)) {
+      currentPythonProgramFile = pythonProgramFile;
+      if(registeredEditorVR != null) {
+        registeredEditorVR.setFile(currentPythonProgramFile);
+      }
+    }
+    
     return pythonProgramFile;
   } // end figureOutPythonFile
   
@@ -618,6 +620,23 @@ public class PythonPr
    */
   @Override
   public Resource init() throws ResourceInstantiationException {
+    // First of all, check the init parms:
+    if(workingDirUrl == null) {
+      workingDir = new File(".");
+    } else {
+      workingDir = Files.fileFromURL(workingDirUrl);
+    }
+    // check some problems with the working dir here because using something
+    // odd can cause problems that are hard to debug when running commands later
+      if(!workingDir.isDirectory()) {
+        throw new ResourceInstantiationException("Working directory URL must specify a directory");
+      }
+      if(!workingDir.canRead()) {
+        throw new ResourceInstantiationException("Working directory must be readable");
+      }
+      if(!workingDir.canWrite()) {
+        throw new ResourceInstantiationException("Working directory must be writable");
+      }
     usePythonPackagePath = PythonPr.getPackageParentPathInZip();
     //System.err.println("DEBUG: pythonpath is "+usePythonPath);
     // count which duplication id we have, the first instance gets null, the 
@@ -629,6 +648,8 @@ public class PythonPr
       duplicateId = nrDuplicates.getAndAdd(1);
     }
     //System.err.println("Duplicate id is "+duplicateId);
+    figureOutPythonFile();
+    tryCompileProgram();
     return this;
   } // end init()
 
@@ -650,7 +671,7 @@ public class PythonPr
     // ok, actually run the python program so we can communicate with it. 
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String,String> env = new HashMap<>();
-    if(getOwnGatenlpPackage()) {
+    if(getUseOwnGatenlpPackage()) {
       env.put("PYTHONPATH", usePythonPackagePath);
     }
     if(getDebugMode()) {
@@ -690,7 +711,7 @@ public class PythonPr
    */
   @Override
   public void reInit() throws ResourceInstantiationException {
-    nrDuplicates = null;
+    nrDuplicates = null;  // should we do this?
     if(registeredEditorVR != null) {
       registeredEditorVR.setFile(getCurrentPythonProgramFile());
     }
@@ -726,15 +747,10 @@ public class PythonPr
     String responseJson = (String)process.process(makeExecuteRequest(document));
     try {
       Response response = JSON.std.beanFrom(Response.class, responseJson);
-      /*
-      if(!response.containsKey("status")) {
-        throw new GateRuntimeException("Execute response does not contain a status: "+responseJson);
+      if(!"ok".equals(response.status)) {
+        throw new GateRuntimeException("Error processing document: "+response.error+
+                ", additional info: "+response.info);
       }
-      if(!response.get("status").equals("ok")) {
-        throw new GateRuntimeException("Error processing document: "+getResponseError(response)+
-                ", additional info: "+getResponseInfo(response));
-      }
-      */
       ChangeLog chlog = response.data;
       if(chlog == null) {
         throw new GateRuntimeException("Got null changelog back from process");

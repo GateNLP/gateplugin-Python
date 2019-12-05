@@ -53,7 +53,6 @@ public class PythonEditorVr extends AbstractVisualResource
   @Override
   public void setTarget(Object target) {
     if(target instanceof PythonCodeDriven) {
-      System.out.println("Running PythonEditorVr:setTarget");      
       theTarget = (PythonCodeDriven)target;      
       panel = new PythonEditorPanel();
       this.add(panel);
@@ -63,6 +62,7 @@ public class PythonEditorVr extends AbstractVisualResource
       pr.registerEditorVR(this);
       panel.setPR(pr);
       pr.figureOutPythonFile();
+      pr.tryCompileProgram();
       panel.setFile(pr.getCurrentPythonProgramFile());
       if(!pr.isCompileOk) {
         panel.setCompilationError();

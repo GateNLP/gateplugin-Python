@@ -14,5 +14,6 @@ def run(doc, **kwargs):
     doc.set_feature("feat1", 12)
     doc.set_feature("feat2", "asdf")
     doc.set_feature("feat1", 13)
-
+    print("changelog", doc.changelog)
+    
 interact()

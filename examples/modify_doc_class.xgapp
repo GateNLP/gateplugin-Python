@@ -5,10 +5,9 @@
         <group>uk.ac.gate.plugins</group>
         <artifact>python</artifact>
         <version>2.0-SNAPSHOT</version>
-        <downloadListeners/>
       </gate.creole.Plugin-Maven>
     </localList>
-    <collectionType>java.util.Collections$UnmodifiableSet</collectionType>
+    <collectionType>java.util.ArrayList</collectionType>
   </urlList>
   <application class="gate.util.persistence.ConditionalSerialAnalyserControllerPersistence">
     <corpus class="gate.util.persistence.CorpusPersistence">
@@ -51,18 +50,12 @@
           <featureName></featureName>
           <featureValue></featureValue>
           <pr class="gate.util.persistence.LanguageAnalyserPersistence">
-            <corpus class="gate.util.persistence.CorpusPersistence" reference="../../../../../corpus"/>
             <runtimeParams class="gate.util.persistence.MapPersistence">
               <mapType>gate.util.SimpleFeatureMapImpl</mapType>
-              <localMap>
-                <entry>
-                  <string>corpus</string>
-                  <gate.util.persistence.CorpusPersistence reference="../../../../../../../../corpus"/>
-                </entry>
-              </localMap>
+              <localMap/>
             </runtimeParams>
             <resourceType>gate.plugin.python.PythonPr</resourceType>
-            <resourceName>Python PR 0000C</resourceName>
+            <resourceName>PythonPr:modify_doc_class</resourceName>
             <initParams class="gate.util.persistence.MapPersistence">
               <mapType>gate.util.SimpleFeatureMapImpl</mapType>
               <localMap>
