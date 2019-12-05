@@ -17,11 +17,12 @@ pipeline {
                 __condasetup="\$(/home/johann/software/miniconda3/bin/conda 'shell.bash' 'hook' 2> /dev/null)"
                 eval "\$__condasetup"
                 python --version
-                rm -rf ./tmpenv
-                python -m venv ./tmpenv
-                export PATH=./tmpenv/bin:\$PATH
-                ./tmpenv/pip install -r submodules/python-gatenlp/requirements.txt
+                tmpfile=/tmp/jenkins-build-\$\$-pyenv
+                python -m venv \$tmpfile
+                export PATH=\$tmpfile/bin:\$PATH
+                \$tmpfile/pip install -r submodules/python-gatenlp/requirements.txt
                 mvn -e clean install
+                rm -rf \$tmpfile
                 """
             }
             post {
