@@ -1,6 +1,7 @@
 """Simple example to do very simple whitespace-tokenization"""
 
 import sys
+import re
 from gatenlp import interact, GateNlpPr, Document
 
 @GateNlpPr
@@ -9,12 +10,12 @@ class MyProcessor:
   def __init__(self):
     print("DEBUG: running __init__")
     self.tokens_total = 0
-  def start(**kwargs):
+  def start(self, **kwargs):
     print("DEBUG: running start")
     self.tokens_total = 0
-  def finish(**kwargs):
+  def finish(self, **kwargs):
     print("DEBUG: running finish")
-  def __call__(doc, **kwargs):
+  def __call__(self, doc, **kwargs):
     set1 = doc.get_annotations()  
     set1.clear()   
     text = doc.text  

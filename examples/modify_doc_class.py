@@ -6,10 +6,10 @@ from gatenlp import interact, GateNlpPr, Document
 @GateNlpPr
 class MyProcessor:
 
-  #def start(self, **kwargs):
-  #  print("Running start(), kwargs={}".format(kwargs), file=sys.stderr)
-  #def finish(self, **kwargs):
-  #  print("Running finish(), kwargs={}".format(kwargs), file=sys.stderr)
+  def start(self, **kwargs):
+    print("Running start(), kwargs={}".format(kwargs), file=sys.stderr)
+  def finish(self, **kwargs):
+    print("Running finish(), kwargs={}".format(kwargs), file=sys.stderr)
   def __call__(self, doc, **kwargs):
     print("SOMETHING FOR STDOUT")
     print("SOMETHING FOR STDERR", file=sys.stderr)
