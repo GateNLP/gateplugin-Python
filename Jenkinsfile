@@ -17,10 +17,12 @@ pipeline {
                 __condasetup="\$(/home/johann/software/miniconda3/bin/conda 'shell.bash' 'hook' 2> /dev/null)"
                 eval "\$__condasetup"
                 python --version
+                echo WORKSPACE IS \$WORKSPACE
                 tmpfile=/tmp/jenkins-build-\$\$-pyenv
                 python -m venv \$tmpfile
                 export PATH=\$tmpfile/bin:\$PATH
-                \$tmpfile/pip install -r submodules/python-gatenlp/requirements.txt
+                # \$tmpfile/pip install -r submodules/python-gatenlp/requirements.txt
+                \$tmpfile/pip install sortedcontainers
                 mvn -e clean install
                 rm -rf \$tmpfile
                 """
