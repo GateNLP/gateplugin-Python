@@ -46,14 +46,17 @@ import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 // http://javadoc.fifesoft.com/rsyntaxtextarea/org/fife/ui/rsyntaxtextarea/TextEditorPane.html
 // http://javadoc.fifesoft.com/rsyntaxtextarea/org/fife/ui/rsyntaxtextarea/FileLocation.html
 /**
- *
+ * Visual Resource for the python PR.
+ * 
  * @author Johann Petrak
  */
 public class PythonEditorPanel extends javax.swing.JPanel {
 
   private static final long serialVersionUID = 3527048169263767662L;
 
-  /** Creates new form JavaEditorPanel */
+  /** 
+   * Create new form JavaEditorPanel.
+   */
   public PythonEditorPanel() {
     initComponents();
     initEditor();
@@ -62,25 +65,44 @@ public class PythonEditorPanel extends javax.swing.JPanel {
   PythonCodeDriven owner = null;
   protected PythonPr pr = null;
   
+  /**
+   * Tell the VR which PR it belongs to.
+   * 
+   * @param pr the PR
+   */
   public void setPR(PythonPr pr) {
     this.pr = pr;
   }
 
+  /** 
+   * Notify VR that compilation failed. 
+   */
   public void setCompilationError() {
     jTextField1.setForeground(Color.red);
   }
+  /**
+   * Notify the VR that compilation was ok.
+   */
   public void setCompilationOk() {
     jTextField1.setForeground(Color.black);
   }
   
+  /**
+   * Constructor. 
+   * @param theOwner owner of the panel
+   */
   public PythonEditorPanel(PythonCodeDriven theOwner) {
     owner = theOwner;
     initComponents();
     initEditor();
   }
   
-  TextEditorPane textArea;
+  protected TextEditorPane textArea;
   
+  /**
+   * Set/update which file to edit.
+   * @param scriptFile  file to edit
+   */
   public void setFile(File scriptFile) {
     if(scriptFile != null) {
       try {

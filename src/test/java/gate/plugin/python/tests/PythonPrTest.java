@@ -16,11 +16,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.stream.Collectors;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.Executor;
 
+/**
+ * Class for testing.
+ * @author Johann Petrak
+ */
 public class PythonPrTest extends GATEPluginTestCase {
 
   private static boolean runOnThisHostname() throws FileNotFoundException, IOException {
@@ -44,6 +47,10 @@ public class PythonPrTest extends GATEPluginTestCase {
     return ret;
   }
   
+  /**
+   * A test.
+   * @throws IOException   exception
+   */
   public void testPython() throws IOException {
     Executor executor = new DefaultExecutor();
     System.err.println("Python path:");
@@ -61,7 +68,10 @@ public class PythonPrTest extends GATEPluginTestCase {
   }
   
   
-  
+  /**
+   * Another test.
+   * @throws Exception  exception
+   */
   public void testPythonPr01() throws Exception {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
@@ -105,6 +115,10 @@ public class PythonPrTest extends GATEPluginTestCase {
     assertEquals("asdf", (String)f2);
   }
 
+  /**
+   * Another test.
+   * @throws Exception  exception
+   */
   public void testPythonPr02() throws Exception {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;

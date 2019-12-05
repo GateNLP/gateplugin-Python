@@ -46,6 +46,10 @@ public class PythonEditorVr extends AbstractVisualResource
   protected PythonCodeDriven theTarget;
   protected PythonPr pr = null;
   
+  /**
+   * Set the target PR. 
+   * @param target associated PR.
+   */
   @Override
   public void setTarget(Object target) {
     if(target instanceof PythonCodeDriven) {
@@ -70,14 +74,24 @@ public class PythonEditorVr extends AbstractVisualResource
     }
   }
   
+  /**
+   * Set the file to edit.
+   * @param file file to edit.
+   */
   public void setFile(File file) {
     System.err.println("PythonEditorVr:setFile:"+file);
     panel.setFile(file);
   }
   
+  /**
+   * Notify of compilation error.
+   */
   public void setCompilationError() {
     panel.setCompilationError();
   }
+  /**
+   * Notify of successful compilation.
+   */
   public void setCompilationOk() {
     panel.setCompilationOk();
   }

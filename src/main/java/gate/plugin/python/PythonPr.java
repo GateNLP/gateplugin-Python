@@ -174,7 +174,7 @@ public class PythonPr
    * really be a map with String keys and values which can be serialized as
    * JSON.
    * 
-   * @param value a FeatureMap of parameters
+   * @param parms a FeatureMap of parameters
    */
   @Optional
   @RunTime
@@ -323,7 +323,10 @@ public class PythonPr
    */
   protected transient Process4StringStream process = null; 
             
-  public transient org.apache.log4j.Logger logger = 
+  /**
+   * Our logger instance.
+   */
+  public org.apache.log4j.Logger logger = 
           org.apache.log4j.Logger.getLogger(this.getClass());
   
   // the nrDuplicates counter will get shared between copies when this
@@ -333,10 +336,18 @@ public class PythonPr
   // actual duplicates will get numbers 1, 2, 3 ...
   // (so the first instance does NOT count as a duplicate)
   
+  /**
+   * Shared duplicates counter, setter.
+   * @param value the counter
+   */
   @Sharable
   public void setNrDuplicates(AtomicInteger value) {
     nrDuplicates = value;
   }
+  /**
+   * Shared duplicates counter, getter.
+   * @return the counter
+   */
   public AtomicInteger getNrDuplicates() {
     return nrDuplicates;
   }
@@ -436,10 +447,20 @@ public class PythonPr
   
   private PythonEditorVr registeredEditorVR = null;
 
+  /**
+   * Register the visual resource.
+   * @param vr visual resource
+   */
   public void registerEditorVR(PythonEditorVr vr) {
     registeredEditorVR = vr;
   }
 
+  /**
+   * Find the location of where the gatenlp package is in the zip or classes 
+   * directory.
+   * 
+   * @return location of containing folder
+   */
   public static String getPackageParentPathInZip() {
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
     try {
@@ -468,6 +489,10 @@ public class PythonPr
     return urlString;
   }
 
+  /**
+   * The python package path to use whe running Python.
+   * So that the gatenlp package is properly found.
+   */
   public String usePythonPackagePath;
   
   
@@ -586,6 +611,11 @@ public class PythonPr
     return pythonProgramFile;
   } // end figureOutPythonFile
   
+  /**
+   * Initialize resource.
+   * @return resource the PR instance
+   * @throws ResourceInstantiationException could not initialise
+   */
   @Override
   public Resource init() throws ResourceInstantiationException {
     usePythonPackagePath = PythonPr.getPackageParentPathInZip();
@@ -653,7 +683,11 @@ public class PythonPr
     
   }
   
-  
+  /**
+   * Re-initialize resource.
+   * 
+   * @throws ResourceInstantiationException exception if initialisation fails
+   */
   @Override
   public void reInit() throws ResourceInstantiationException {
     nrDuplicates = null;
@@ -663,6 +697,9 @@ public class PythonPr
     super.reInit();
   }
 
+  /**
+   * Cleanup resource.
+   */
   @Override
   public void cleanup() {
     super.cleanup();
@@ -675,6 +712,10 @@ public class PythonPr
   }
   
 
+  /**
+   * Process document.
+   * @throws ExecutionException exception when processing fails
+   */
   @Override
   public void execute() throws ExecutionException {
     ensureProcess();
@@ -704,17 +745,29 @@ public class PythonPr
     }
   }
 
-  
+  /**
+   * Callback when running over a whole corpus starts.
+   * @param controller the controller used
+   */
   @Override
   public void controllerExecutionStarted(Controller controller) {
     whenStarting();
   }
 
+  /**
+   * Callback when running over a whole corpus finishes. 
+   * @param controller the controller used
+   */
   @Override
   public void controllerExecutionFinished(Controller controller) {
     whenFinishing();
   }
 
+  /**
+   * Callback when running over a wholr corpus terminates with an exception.
+   * @param controller the controller used
+   * @param throwable the throwable from the exception
+   */
   @Override
   public void controllerExecutionAborted(Controller controller, Throwable throwable) {
     whenFinishing();
