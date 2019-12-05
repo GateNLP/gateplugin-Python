@@ -17,8 +17,6 @@
  * License along with this software. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-// TODO: handle inputAS: remove or pass on somehow
 // TODO: make changing runtime pythonpath/workingdir parameters work
 
 package gate.plugin.python;
@@ -168,60 +166,62 @@ public class PythonPr
    */
   public File getCurrentPythonProgramFile() { return currentPythonProgramFile; }
 
+
   /**
-   * Set the input annotation set.
-   * @param asname 
+   * Set parameters to send to the python program.
+   * The given parameters are passed on to all python functions as kwargs.
+   * This expects a FeatureMap because we have a GUI for that but it should 
+   * really be a map with String keys and values which can be serialized as
+   * JSON.
+   * 
+   * @param value a FeatureMap of parameters
    */
-  @Optional
-  @RunTime
-  @CreoleParameter(comment = "The input annotation set", defaultValue = "")
-  public void setInputAS(String asname) {
-    inputAS = asname;
-  }
-
-  public String getInputAS() {
-    return inputAS;
-  }
-  protected String inputAS;
-
-  @Optional
-  @RunTime
-  @CreoleParameter(comment = "The output annotation set", defaultValue = "")
-  public void setOutputAS(String asname) {
-    outputAS = asname;
-  }
-
-  public String getOutputAS() {
-    return outputAS;
-  }
-  protected String outputAS;
-
   @Optional
   @RunTime
   @CreoleParameter(comment = "Extra parameters to pass on to the Python program", defaultValue = "")
   public void setProgramParams(FeatureMap parms) {
     programParams = parms;
   }
+  /**
+   * Get the program parameters.
+   * @return program parameters
+   */
   public FeatureMap getProgramParams() {
     return programParams;
   }
   protected FeatureMap programParams;
 
+  /**
+   * Set the python interpreter command name.
+   * This expects the name of the python interpreter as it can be found
+   * on the binary path. This must be a python version 3 interpreter!
+   * @param value the python interpreter command
+   */
   @Optional
   @RunTime
   @CreoleParameter(
           comment = "Python interpreter name (on system PATH)", 
           disjunction = "pythonbin",
           priority = 10,
-          defaultValue = "python3")
+          defaultValue = "python")
   public void setPythonBinary(String value) {
     pythonBinary = value;
   }
+  /**
+   * Get the python interpreter command.
+   * @return python interpreter command
+   */
   public String getPythonBinary() {
     return pythonBinary;
   }
   protected String pythonBinary;
   
+  /**
+   * The file URL for a python interpreter to use. 
+   * This can be used as an alternative to the pythonBinary parameter and 
+   * runs the specified file as a python interpreter. 
+   * @param value python interpreter program file
+   */
   @Optional
   @RunTime
   @CreoleParameter(
@@ -232,6 +232,10 @@ public class PythonPr
   public void setPythonBinaryUrl(URL value) {
     pythonBinaryUrl = value;
   }
+  /**
+   * Get the python interpreter file URL.
+   * @return python interpreter URL
+   */
   public URL getPythonBinaryUrl() {
     return pythonBinaryUrl;
   }
@@ -239,12 +243,24 @@ public class PythonPr
   
   protected String pythonBinaryCommand;
   
+  /**
+   * The working directory to use.
+   * If this is not set, the current directory of the process running GATE
+   * is used. This is only relevant if the python program file is specified relative
+   * to the working directory or if the python program file needs to get copied
+   * to the working directory for editing and use. 
+   * @param value URL of working directory
+   */
   @Optional
   @RunTime
   @CreoleParameter(comment = "Working directory.")
   public void setWorkingDirUrl(URL value) {
     workingDirUrl = value;
   }
+  /**
+   * Get the working directory URL.
+   * @return working directory URL
+   */
   public URL getWorkingDirUrl() {
     return workingDirUrl;
   }
@@ -252,12 +268,20 @@ public class PythonPr
   protected File workingDir;
   
   
+  /**
+   * Enable debugging mode.
+   * @param value flag to indiciate if debug mode is enabled
+   */
   @Optional
   @RunTime
   @CreoleParameter(comment = "Enable debugging mode", defaultValue = "false")
   public void setDebugMode(Boolean value) {
     debugMode = value;
   }
+  /**
+   * Get debugging mode. 
+   * @return debugging mode
+   */
   public Boolean getDebugMode() {
     if(debugMode == null) {
       return false;
@@ -266,6 +290,13 @@ public class PythonPr
   }
   protected Boolean debugMode;
           
+  /**
+   * If we should use our own copy of the Python gatenlp package.
+   * If this is true (the default), the specific version of gatenlp that
+   * is included in the plugin will be used, otherwise, the version installed
+   * for the python environment is used.
+   * @param value Flag inidicating if own gatenlp package should be used
+   */
   @Optional
   @RunTime
   @CreoleParameter(comment = "Use Python gatenlp package included in the plugin, not the system one.",
@@ -273,6 +304,10 @@ public class PythonPr
   public void setOwnGatenlpPackage(Boolean value) {
     ownGatenlpPackage = value;
   }
+  /**
+   * Get the ownGatenlpPackage parameter value.
+   * @return value of the parameter
+   */
   public Boolean getOwnGatenlpPackage() {
     if (ownGatenlpPackage == null) {
       return true;
