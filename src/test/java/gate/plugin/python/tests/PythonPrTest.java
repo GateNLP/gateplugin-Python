@@ -74,6 +74,13 @@ public class PythonPrTest extends GATEPluginTestCase {
    */
   public void testPythonPr01() throws Exception {
     Document doc1 = Factory.newDocument("This is a small document");
+    // add a document a null document feature and a null annotation feature
+    // to check if this works correctly. The python code copies those 
+    // values back into new document featrues
+    doc1.getFeatures().put("docfeature_null", null);
+    doc1.getFeatures().put("docfeature_str", "asdf");
+    doc1.getAnnotations().add(0L, 2L, "DEBUG", 
+            gate.Utils.featureMap("annfeature_null", null, "annfeature_str", "asdf"));
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
     params.put("pythonBinary", "python");
@@ -87,6 +94,12 @@ public class PythonPrTest extends GATEPluginTestCase {
     controller.setCorpus(corpus);
     if(!runOnThisHostname()) return;
     controller.execute();
+    FeatureMap docfm = doc1.getFeatures();
+    System.err.println("DEBUG (java): doc features: "+doc1.getFeatures());
+    assertEquals(null, docfm.get("copy_docfeature_null"));
+    assertEquals(null, docfm.get("copy_annfeature_null"));
+    assertEquals("asdf", docfm.get("copy_docfeature_str"));
+    assertEquals("asdf", docfm.get("copy_annfeature_str"));
     AnnotationSet anns = doc1.getAnnotations("Set1");
     // System.err.println("Got anns: "+anns);
     assertEquals(1, anns.size());
