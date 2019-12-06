@@ -46,9 +46,12 @@ import gate.lib.basicdocument.GateDocumentUpdater;
 import gate.lib.interaction.process.pipes.Process4StringStream;
 import gate.util.Files;
 import gate.util.GateRuntimeException;
-import gate.util.MethodNotImplementedException;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -59,6 +62,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -78,7 +83,7 @@ import org.apache.commons.io.FileUtils;
  * @author Johann Petrak
  */
 @CreoleResource(
-        name = "Python PR",
+        name = "PythonPr",
         helpURL = "http://gatenlp.github.io/gateplugin-python/",
         comment = "Use a Python program as a processing resource")
 public class PythonPr
@@ -408,9 +413,9 @@ public class PythonPr
     }
     try {
       if(getDebugMode()) {        
-        System.err.println("Trying to compile program:");
-        System.err.println("Python path is "+usePythonPackagePath);
-        System.err.println("Running: "+cmdLine.toString());
+        logger.info("Trying to compile program:");
+        logger.info("Python path is "+usePythonPackagePath);
+        logger.info("Running: "+cmdLine.toString());
       }
       executor.execute(cmdLine, env, resultHandler);
     } catch (IOException ex) {
@@ -424,10 +429,10 @@ public class PythonPr
     int exitCode = resultHandler.getExitValue();
     ExecuteException exc = resultHandler.getException();    
     if(exc != null) {
-      System.err.println("Got exception running the compile command: "+exc);
+      logger.error("Got exception running the compile command: "+exc);
     }
     if(getDebugMode()) {
-      System.err.println("Got return value from compiling: "+exitCode);
+      logger.info("Got return value from compiling: "+exitCode);
     }
     isCompileOk = (exitCode == 0);
     if (registeredEditorVR != null) {
@@ -533,8 +538,8 @@ public class PythonPr
     // if both parms are empty and we need a python program file, we create 
     // a temporary one in the working directory from the program template
     if (pythonProgram == null && (pythonProgramPath == null || pythonProgramPath.isEmpty())) {
-      System.err.println("Creating new Python file with tmp-name from template");
       String tmpfilename = "tmpfile.py";
+      logger.info("Creating new Python file with from template with name: "+tmpfilename);
       pythonProgramFile = new File(workingDir, tmpfilename);
       if(!pythonProgramFile.exists()) {          
         copyResource("/resources/templates/default.py", pythonProgramFile);
@@ -555,26 +560,6 @@ public class PythonPr
     } else if(pythonProgram == null) {
       throw new GateRuntimeException("Should never be thrown");      
     } else  if(pythonProgram.toURI().getScheme().equals("file")) {
-    // We have two cases: either the resourcereference is pointing at a file,
-    // then we just use that, or it is a creole reference or gettable URL,
-    // then we copy the file to whatever our working directory is.
-    // If the file already exists there already, it is not copied and used
-    // instead. 
-    // NOTE: for now, the editor will always edit the actual file which may
-    // be a copy.
-    
-    // TODO/NOTE: The ResourceReference dialog does not allow to enter a relative file
-    // URI, and defaults to creole: scheme. So it is really hard to easily 
-    // specify a new file there. For now we have to live with this!
-    
-    // OK, this got more complicated by the need to split the parameter into two
-    // If we have pythonProgramPath, use that as a file, if it is a relative
-    // path use relative to the working dir. Create the file URI for that 
-    // path and use it. Otherwise use the pythonProgramUri. Then
-    // do for the URI what we described above.
-    
-    //System.err.println("DEBUG: python program URI: "+pythonProgram.toURI());
-    //System.err.println("DEBUG: python program scheme: "+pythonProgram.toURI().getScheme());
       try {
         pythonProgramFile = gate.util.Files.fileFromURL(pythonProgram.toURL());
         if(!pythonProgramFile.exists()) {          
@@ -584,16 +569,29 @@ public class PythonPr
         throw new GateRuntimeException("Could not determine file for pythonProgram "+pythonProgram, ex);
       }
     } else {
-      // check if the working directory already contains a file with the same name
-      // Get the filename for the URL ... this better be a URL that has something like a file name!
       URI pythonProgramUri = pythonProgram.toURI();
       String tmpfilename = Paths.get(pythonProgramUri.getPath()).getFileName().toString();
       pythonProgramFile = new File(workingDir, tmpfilename);
-      if(pythonProgramFile.exists()) {
-        logger.warn("Not copying "+pythonProgram+" to "+pythonProgramFile+", already exists!");
-      } else {
-        // try to read the program from the URL and write it to the file
-        throw new MethodNotImplementedException("Running from read-only URL not implemented yet");
+      // if the file we figured out is already known we do not need to do 
+      // anything, otherwise check if we need to copy and if yes, do it!
+      if(!pythonProgramFile.equals(currentPythonProgramFile)) {      
+        if (pythonProgramFile.exists()) {
+          logger.warn("Not copying " + pythonProgram + " to " + pythonProgramFile + ", already exists!");
+        } else {
+          try (
+                  BufferedReader br
+                  = new BufferedReader(new InputStreamReader(pythonProgram.openStream(), "UTF-8"));
+                  PrintStream osr
+                  = new PrintStream(new FileOutputStream(pythonProgramFile), true, "UTF-8");) {
+            String line;
+            while (null != (line = br.readLine())) {
+              osr.println(line);
+            }
+            logger.info("Copied from JAR to " + pythonProgramFile);
+          } catch (IOException ex) {
+            Logger.getLogger(PythonPr.class.getName()).log(Level.SEVERE, null, ex);
+          }
+        }
       }
     }
     try {
@@ -700,7 +698,7 @@ public class PythonPr
     // processing at some point!
     int exitValue = process.stop();
     if(exitValue != 0) {
-      System.err.println("Warning: python process ended with exit value "+exitValue);
+      logger.info("Warning: python process ended with exit value "+exitValue);
     }
     
   }
@@ -868,10 +866,6 @@ public class PythonPr
    */
   public static void copyResource(String source, File targetPath) {
 
-    // TODO: check targetDir is a dir?
-    //if (!hasResources())
-    //  throw new UnsupportedOperationException(
-    //      "this plugin doesn't have any resources you can copy as you would know had you called hasResources first :P");
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
     try {
       artifactURL = new URL(artifactURL, ".");
