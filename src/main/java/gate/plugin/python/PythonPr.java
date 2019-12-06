@@ -653,6 +653,7 @@ public class PythonPr
     return this;
   } // end init()
 
+  
   /**
    * This will run whenever a corpus gets run.
    * We start the python process for every new run on a corpus and stop
@@ -824,6 +825,7 @@ public class PythonPr
     request.put("command", "execute");
     // create the BdocDocument from our document    
     BdocDocument bdoc = new BdocDocumentBuilder().fromGate(document).buildBdoc();
+    bdoc.features.put("gate.plugin.python.docName", document.getName());
     request.put("data", bdoc);
     try {
       return JSON.std.asString(request);
@@ -837,8 +839,10 @@ public class PythonPr
     Map<String, Object> request = new HashMap<>();
     request.put("command", "start");
     Map<String,Object> params = BdocUtils.featureMap2Map(programParams, null);
-    params.put("gate.plugin.python.duplicateId", duplicateId);
-    params.put("gate.plugin.python.nrDuplicates", nrDuplicates);            
+    params.put("gate_plugin_python_duplicateId", duplicateId);
+    params.put("gate_plugin_python_nrDuplicates", nrDuplicates);   
+    params.put("gate_plugin_python_workingDir", workingDir.getAbsolutePath());
+    params.put("gate_plugin_python_pythonFile", currentPythonProgramFile.getAbsolutePath());
     request.put("data", params);
     try {
       return JSON.std.asString(request);

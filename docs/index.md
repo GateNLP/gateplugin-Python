@@ -55,6 +55,42 @@ interact()
 The function gets the document passed as a `gatenlp.Document` and also gets all the 
 parameters defined in the `PythonPr` `programParams` parameter. 
 
+Instead of a function, a class can be implemented with the `@GateNlpPr` decorator. The 
+class must implement an `execute` or `__call__` method, but in addition can also 
+implement the `start`, `finish`, `reduce` and `result` methods. The following 
+example implements the same tokenizer as above in a class but also counts and prints out
+the total number of tokens over all documents:
+
+
+```python
+import re
+from gatenlp import @GateNlpPr, interact
+
+@GateNlpPr
+class MyProcessor:
+  def __init__(self):
+    self.tokens_total = 0
+  def start(self, **kwargs):
+    self.tokens_total = 0
+  def finish(self, **kwargs):
+    print("Total number of tokens:", self.tokens_total)
+  def __call__(self, doc, **kwargs):
+    set1 = doc.get_annotations()
+    set1.clear()
+    text = doc.text
+    whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$",text)] 
+    nrtokens = len(whitespaces)-1
+    for k in range(nrtokens):
+        fromoff=whitespaces[k].end()   
+        tooff=whitespaces[k+1].start() 
+        set1.add(fromoff, tooff, "Token", {"tokennr": k})
+    doc.set_feature("nr_tokens", nrtokens)
+    self.tokens_total += nrtokens
+
+interact()
+```
+
+
 ### PythonPr Init Parameters
 
 Parameters that have to get set when the processing resource is created:
@@ -79,7 +115,12 @@ If a file path is specified that does not exist, it is created and initialized w
 * `debugMode` (Boolean, default: false): if set to `true` more information about what the PR does is provided in the message pane
 * `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the 
   Python side, via the `**kwargs` of the invoked method. Though this is a FeatureMap, the type of the key should be String
-  and the type of each value should be something that can be serialized as JSON.
+  and the type of each value should be something that can be serialized as JSON. In addition to the parameters specified here, the following
+  default parameters will always get passed as well:
+  * `gate_plugin_python_nrDuplicates`: the number of duplicates if multiprocessing is done 
+  * `gate_plugin_python_duplicateId` : the duplicate id (0 .. nrDuplicates-1) of this PR.
+  * `gate_plugin_python_workingDir` : the effective working directory used by the PR
+  * `gate_plugin_python_pythonFile`: the effective python program file used
 * `pythonBinary` (String, default: "python"): the name of the command (the Python interpreter) to invoke from the PATH. On some systems, where 
   the `python` command invokes Python version 2.x, the command `python3` can be used to invoke Python version 3.x.
 * `pythonBinaryUrl` (URL, default: empty): If this is specified, it takes precedence over `pythonBinary`. This should be
@@ -89,4 +130,9 @@ If a file path is specified that does not exist, it is created and initialized w
   of the package first on the PYTHONPATH). If this is `false` then nothing is put on the PYTHONPATH and whatever version of 
   the `gatenlp` package is installed on the system is used. 
 
+NOTE: The document name is passed on to the Python code via the document feature `gate.plugin.python.docName`.
+
+## Calculating and Returning Over-The-Corpus Results
+
+TBD
 
