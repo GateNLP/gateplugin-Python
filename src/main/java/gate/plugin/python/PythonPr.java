@@ -539,10 +539,12 @@ public class PythonPr
     // a temporary one in the working directory from the program template
     if (pythonProgram == null && (pythonProgramPath == null || pythonProgramPath.isEmpty())) {
       String tmpfilename = "tmpfile.py";
-      logger.info("Creating new Python file with from template with name: "+tmpfilename);
       pythonProgramFile = new File(workingDir, tmpfilename);
       if(!pythonProgramFile.exists()) {          
+        logger.info("Creating new Python file from template: "+pythonProgramFile);
         copyResource("/resources/templates/default.py", pythonProgramFile);
+      } else{
+        logger.info("Using existing Python file "+pythonProgramFile);
       }
     } else if(pythonProgramPath != null && !pythonProgramPath.isEmpty()) {
       // If the pythonProgramPath is set, it takes precedence of ther the pythonProgram
@@ -861,10 +863,14 @@ public class PythonPr
   
 /**
    * Copy resource from plugin jar to target path.
+   * NOTE: normally this copies from whatever JAR file the creole.xml for this
+   * PR is in, but when running the gapploading test, the creole.xml is in
+   * the target classes directory instead and we then need to copy in a 
+   * different way.
    * @param source the path of the resource to copy
    * @param targetPath where to copy to, must not already exist
    */
-  public static void copyResource(String source, File targetPath) {
+  public void copyResource(String source, File targetPath) {
 
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
     try {
@@ -872,18 +878,31 @@ public class PythonPr
     } catch (MalformedURLException ex) {
       throw new GateRuntimeException("Could not get jar URL");
     }
-    try (
-            FileSystem zipFs
-            = FileSystems.newFileSystem(artifactURL.toURI(), new HashMap<>());) {
-
-      Path target = Paths.get(targetPath.toURI());
-      Path pathInZip = zipFs.getPath(source);
-      if (java.nio.file.Files.isDirectory(pathInZip)) {
-        throw new GateRuntimeException("ODD: is a directory " + pathInZip);
+    if(artifactURL.toString().startsWith("file:/")) {
+      try {
+        File containingDir = gate.util.Files.fileFromURL(artifactURL);
+        File fromFile = new File(containingDir, source);
+        logger.info("Copying python file from "+fromFile+" to "+targetPath);
+        java.nio.file.Files.copy(
+                fromFile.toPath(),
+                targetPath.toPath());
+      } catch (IOException ex) {
+        throw new GateRuntimeException("Error trying to copy the resources", ex);
       }
-      java.nio.file.Files.copy(pathInZip, target);
-    } catch (IOException | URISyntaxException ex) {
-      throw new GateRuntimeException("Error trying to copy the resources", ex);
+    } else {
+      try (
+            FileSystem zipFs
+            = FileSystems.newFileSystem(artifactURL.toURI(), new HashMap<>()); 
+          ) {      
+        Path target = Paths.get(targetPath.toURI());
+        Path pathInZip = zipFs.getPath(source);
+        if (java.nio.file.Files.isDirectory(pathInZip)) {
+          throw new GateRuntimeException("ODD: is a directory " + pathInZip);
+        }
+        java.nio.file.Files.copy(pathInZip, target);
+      } catch (IOException | URISyntaxException ex) {
+        throw new GateRuntimeException("Error trying to copy the resources", ex);
+      }
     }
   }
   
