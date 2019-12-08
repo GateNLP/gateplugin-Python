@@ -14,7 +14,7 @@ class MyProcessor:
     self.nr_docs = 0
   def start(self, **kwargs):
     if "spacyModel" in kwargs:
-        self.nlp = spacy.load(kwargs.get("spacyModel")
+        self.nlp = spacy.load(kwargs.get("spacyModel"))
     else:
         self.nlp = spacy.load("en_core_web_sm")
     self.tokens_total = 0
