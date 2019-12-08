@@ -12,8 +12,8 @@ def run(doc, **kwargs):
     ann = next(iter(setdef))
     annfeature_null = ann.get_feature("annfeature_null");
     annfeature_str = ann.get_feature("annfeature_str");
-    print("DEBUG (python): doc features we got: ", doc.features, file=sys.stderr)
-    print("DEBUG (python): ann features we got: ", ann.features, file=sys.stderr)
+    # print("DEBUG (python): doc features we got: ", doc.features, file=sys.stderr)
+    # print("DEBUG (python): ann features we got: ", ann.features, file=sys.stderr)
     set1 = doc.get_annotations("Set1")
     set1.clear()
     set1.add(1,4,"Type1",{"f1":12, "f2": "val2"})
