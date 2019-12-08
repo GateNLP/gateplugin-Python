@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<metadata xmlns="http://gate.ac.uk/ns/pipeline-metadata">
+  <pipeline-name>Annotate documents using Python spacy</pipeline-name>
+  <slug>python-spacy</slug>
+  <tags>
+    <tag>Python</tag>
+    <tag>Spacy</tag>
+  </tags>
+</metadata>

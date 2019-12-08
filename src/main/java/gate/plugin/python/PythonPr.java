@@ -392,7 +392,6 @@ public class PythonPr
     CommandLine cmdLine = new CommandLine(pythonBinaryCommand);
     cmdLine.addArgument("-m");
     cmdLine.addArgument("py_compile");
-    figureOutPythonFile();
     cmdLine.addArgument(currentPythonProgramFile.getAbsolutePath());
     // System.err.println("DEBUG: running: "+cmdLine.toString());
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
@@ -533,7 +532,6 @@ public class PythonPr
     // in that case, we create a new file in the effective working directory,
     // initialised with the code template. 
     // 2) a pythonProgramPath is set: 
-
     File pythonProgramFile = null;   // the file we will end up using
     // if both parms are empty and we need a python program file, we create 
     // a temporary one in the working directory from the program template
@@ -603,6 +601,7 @@ public class PythonPr
     } catch (IOException ex) {
       throw new GateRuntimeException("Could not read the python program from " + pythonProgramFile, ex);
     }
+
     if(!pythonProgramFile.equals(currentPythonProgramFile)) {
       currentPythonProgramFile = pythonProgramFile;
       if(registeredEditorVR != null) {
@@ -647,9 +646,6 @@ public class PythonPr
     } else {
       duplicateId = nrDuplicates.getAndAdd(1);
     }
-    //System.err.println("Duplicate id is "+duplicateId);
-    figureOutPythonFile();
-    tryCompileProgram();
     return this;
   } // end init()
 

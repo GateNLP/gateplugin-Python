@@ -1,4 +1,4 @@
-"""Simple example to do very simple whitespace-tokenization"""
+"""Run spacy"""
 
 from gatenlp import interact, GateNlpPr, Document
 import sys
@@ -13,17 +13,20 @@ class MyProcessor:
     self.tokens_total = 0
     self.nr_docs = 0
   def start(self, **kwargs):
-    # TODO: allow to set model via parms!
-    # NOTE: model may influence wich info we can extract/transfer later!
-    self.nlp = spacy.load("en_core_web_sm")
+    if "spacyModel" in kwargs:
+        self.nlp = spacy.load(kwargs.get("spacyModel")
+    else:
+        self.nlp = spacy.load("en_core_web_sm")
     self.tokens_total = 0
     self.nr_docs = 0
   def finish(self, **kwargs):
     print("Total number of tokens:", self.tokens_total)
     print("Number of documents:", self.nr_docs)
   def __call__(self, doc, **kwargs):
-    # TODO: allow to override which set to use via parms!    
-    set1 = doc.get_annotations()
+    if "outputAnnotationSet" in kwargs:
+        set1 =  doc.get_annotations(kwargs.get("outputAnnotationSet"))
+    else:
+        set1 = doc.get_annotations()
     set1.clear()   
     text = doc.text  
     doc = self.nlp(text)
@@ -71,7 +74,7 @@ class MyProcessor:
             pass # could add space token here
         for ent in doc.ents:
             from_off = doc[ent.start].idx
-            to_off = from_off + sum([len(t)+len(t.whitespace_) for t in ent])
+            to_off = ent[-1].idx + len(ent[-1])
             set1.add(from_off, to_off, ent.label_, {"lemma": ent.lemma_})
     self.tokens_total += len(doc)    
     self.nr_docs += 1

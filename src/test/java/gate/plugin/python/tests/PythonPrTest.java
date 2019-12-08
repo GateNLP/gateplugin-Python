@@ -26,27 +26,6 @@ import org.apache.commons.exec.Executor;
  */
 public class PythonPrTest extends GATEPluginTestCase {
 
-  private static boolean runOnThisHostname() throws FileNotFoundException, IOException {
-    boolean ret = true;
-    if(new File("/etc/hostname").exists()) {
-      try (
-            InputStream is = new FileInputStream("/etc/hostname");
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
-          ) 
-      {
-        String nameLine = br.readLine().trim();
-        System.err.println("DEBUG: we are running tests on host "+nameLine);
-        if (nameLine.equals("gateserviceX")) {  // enable: X=2
-          ret = false;
-          System.err.println("DEBUG: NOT RUNNING TESTS HERE!");
-        }
-      } catch (Exception ex) {
-      }
-    }
-    return ret;
-  }
-  
   /**
    * A test.
    * @throws IOException   exception
@@ -92,10 +71,8 @@ public class PythonPrTest extends GATEPluginTestCase {
             "gate.creole.SerialAnalyserController");
     controller.add(pr);
     controller.setCorpus(corpus);
-    if(!runOnThisHostname()) return;
     controller.execute();
     FeatureMap docfm = doc1.getFeatures();
-    System.err.println("DEBUG (java): doc features: "+doc1.getFeatures());
     assertEquals(null, docfm.get("copy_docfeature_null"));
     assertEquals(null, docfm.get("copy_annfeature_null"));
     assertEquals("asdf", docfm.get("copy_docfeature_str"));
@@ -145,7 +122,6 @@ public class PythonPrTest extends GATEPluginTestCase {
             "gate.creole.SerialAnalyserController");
     controller.add(pr);
     controller.setCorpus(corpus);
-    if(!runOnThisHostname()) return;
     controller.execute();
     AnnotationSet anns = doc1.getAnnotations("Set1");
     // System.err.println("Got anns: "+anns);
