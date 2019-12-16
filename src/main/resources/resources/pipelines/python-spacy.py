@@ -73,9 +73,7 @@ class MyProcessor:
         else:
             pass # could add space token here
         for ent in doc.ents:
-            from_off = doc[ent.start].idx
-            to_off = ent[-1].idx + len(ent[-1])
-            set1.add(from_off, to_off, ent.label_, {"lemma": ent.lemma_})
+            set1.add(ent.start_char, ent.end_char, ent.label_, {"lemma": ent.lemma_})
     self.tokens_total += len(doc)    
     self.nr_docs += 1
     
