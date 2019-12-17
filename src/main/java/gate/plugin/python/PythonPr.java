@@ -348,6 +348,26 @@ public class PythonPr
   }
   protected AtomicInteger nrDuplicates;
   
+  /**
+   * Number of duplicates running on a corpus.
+   * This gets incremented for each duplicate that receives a controllerExecutionStarted
+   * callback and decremented for each duplicate that receives a controllerExecutionFinished
+   * or controllerExecutionAborted callback.
+   * @param value the value
+   */
+  @Sharable
+  public void setRunningDuplicates(AtomicInteger value) {
+    runningDuplicates = value;
+  }
+  /**
+   * Return the value of the currently running duplicates counter.
+   * @return  number of running duplicates.
+   */
+  public AtomicInteger getRunningDuplicates() {
+    return runningDuplicates;
+  }
+  protected AtomicInteger runningDuplicates;
+  
   protected int duplicateId = 0;
   /**
    * Return the duplicate id of the PR instance.
@@ -643,6 +663,7 @@ public class PythonPr
     // duplicates will find the instance from the first instance
     if(nrDuplicates==null) {
       nrDuplicates = new AtomicInteger(1);      
+      runningDuplicates = new AtomicInteger(0);
       duplicateId = 0;
     } else {
       duplicateId = nrDuplicates.getAndAdd(1);
@@ -657,6 +678,7 @@ public class PythonPr
    * it when the corpus is finished. 
    */
   protected void whenStarting() {
+    runningDuplicates.getAndIncrement();
     figureOutPythonFile();
     ensurePythonProgramCommand();
     // Make sure we have a Python program that at least looks like we could run it    
@@ -692,14 +714,19 @@ public class PythonPr
   }
 
   protected void whenFinishing() {
+    runningDuplicates.getAndDecrement();
     process.process(makeFinishRequest());
     // TODO: here or around here we need to do the python process result 
     // processing at some point!
+    // If we have only one duplicate, call the result method with no
+    // argument, this should tell the method to use its own result only.
+    // If we have more than one duplicate, collect all the results from the
+    // finishing method and call the result method 
+    // TODO TODO TODO
     int exitValue = process.stop();
     if(exitValue != 0) {
       logger.info("Warning: python process ended with exit value "+exitValue);
-    }
-    
+    }    
   }
   
   /**
@@ -737,6 +764,9 @@ public class PythonPr
    */
   @Override
   public void execute() throws ExecutionException {
+    if(isInterrupted()) {
+      throw new ExecutionException("Processing was interrupted");
+    }
     ensureProcess();
     // send over the current document in an execute command
     // get back the changelog in a result object (or some error)
