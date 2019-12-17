@@ -634,7 +634,7 @@ public class PythonPr
   } // end figureOutPythonFile
   
   /**
-   * Initialize resource.
+   * Initialise resource.
    * @return resource the PR instance
    * @throws ResourceInstantiationException could not initialise
    */
@@ -695,9 +695,24 @@ public class PythonPr
       env.put("PYTHONPATH", usePythonPackagePath);
     }
     if(getDebugMode()) {
-      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, "-d", currentPythonProgramFile.getAbsolutePath());
+      process = Process4StringStream.create(
+              workingDir, 
+              env, 
+              pythonBinaryCommand, 
+              "-d", 
+              currentPythonProgramFile.getAbsolutePath(),
+              "--mode",
+              "pipe"
+      );
     } else {
-      process = Process4StringStream.create(workingDir, env, pythonBinaryCommand, currentPythonProgramFile.getAbsolutePath());
+      process = Process4StringStream.create(
+              workingDir, 
+              env, 
+              pythonBinaryCommand, 
+              currentPythonProgramFile.getAbsolutePath(),
+              "--mode",
+              "pipe"
+      );
     }
     String responseJson = (String)process.process(makeStartRequest());
     if(responseJson == null) {
@@ -783,7 +798,9 @@ public class PythonPr
       if(chlog == null) {
         throw new GateRuntimeException("Got null changelog back from process");
       }
-      new GateDocumentUpdater(document).fromChangeLog(chlog);
+      new GateDocumentUpdater(document).
+              handleNewAnnotation(GateDocumentUpdater.HandleNewAnns.ADD_WITH_BDOC_ID).
+              fromChangeLog(chlog);
     } catch (IOException ex) {
       throw new GateRuntimeException("Could not convert execute response JSON: "+responseJson, ex);
     }
