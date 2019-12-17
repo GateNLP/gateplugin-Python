@@ -80,7 +80,6 @@ public class PythonEditorVr extends AbstractVisualResource
    * @param file file to edit.
    */
   public void setFile(File file) {
-    System.err.println("PythonEditorVr:setFile:"+file);
     panel.setFile(file);
   }
   
