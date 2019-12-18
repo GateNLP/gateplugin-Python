@@ -14,7 +14,7 @@ class MyProcessor:
     print("SOMETHING FOR STDOUT")
     print("SOMETHING FOR STDERR", file=sys.stderr)
     print("We are running on a doc! kwargs={}".format(kwargs), file=sys.stderr)
-    set1 = doc.get_annotations("Set1")
+    set1 = doc.get_annotations("PythonModifyClass")
     set1.clear()
     set1.add(1,4,"Type1",{"f1":12, "f2": "val2"})
     doc.set_feature("FEAT", "VAL")

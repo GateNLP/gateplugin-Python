@@ -6,7 +6,7 @@ from gatenlp import interact, GateNlpPr, Document
 @GateNlpPr
 def run(doc, **kwargs):
     print("We are running on a doc! kwargs={}".format(kwargs), file=sys.stderr)
-    set1 = doc.get_annotations("Set1")
+    set1 = doc.get_annotations("PythonModifyFunc")
     set1.clear()
     set1.add(1,4,"Type1",{"f1":12, "f2": "val2"})
     doc.set_feature("FEAT", "VAL")
