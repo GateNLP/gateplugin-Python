@@ -22,6 +22,17 @@ class MyProcessor:
     doc.set_feature("feat1", 12)
     doc.set_feature("feat2", "asdf")
     doc.set_feature("feat1", 13)
+    set2 = doc.get_annotations("PythonModifClass_Copy")
+    set2.clear()
+    set_def = doc.get_annotations()
+    for ann in set_def:
+        annid = set2.add(ann.start, ann.end, ann.type, ann.features)
+        ann = set2.get(annid)
+        ann.set_feature("python_start", ann.start)
+        ann.set_feature("python_end", ann.end)
+    # print("!!!!!!!! CHANGELOG:")
+    # for ch in doc.changelog.changes:
+    #     print(ch)
 
 if __name__ == '__main__':
   interact()
