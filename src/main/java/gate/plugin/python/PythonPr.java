@@ -92,7 +92,7 @@ public class PythonPr
         implements ControllerAwarePR, PythonCodeDriven
 {
 
-  private static final long serialVersionUID = -7294043477613502768L;
+  private static final long serialVersionUID = -7294555647613502768L;
 
   /**
    * Set the location of the python program.
