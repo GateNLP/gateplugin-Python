@@ -10,7 +10,9 @@
 </GateDocumentFeatures>
 <!-- The document content area with serialized nodes -->
 
-<TextWithNodes>This is a document with some text for testing.</TextWithNodes>
+<TextWithNodes>This is a document with some text for testing.
+It contains some Hangeul: 안녕하세요
+And then some latin again to check the offsets.</TextWithNodes>
 <!-- The default annotation set -->
 
 <AnnotationSet>
