@@ -262,28 +262,50 @@ public class PythonPr
   protected URL workingDirUrl;
   protected File workingDir;   // the file to use, based on the workingDirUrl
   
+  /**
+   * Possible python side logging level values.
+   */
+  public static enum LoggingLevel {
+    /**
+     * DEBUG
+     */
+    DEBUG,
+    /**
+     * INFO
+     */
+    INFO,
+    /**
+     * WARNING
+     */
+    WARNING,
+    /**
+     * ERROR
+     */
+    ERROR,
+    /**
+     * CRITICAL
+     */
+    CRITICAL
+  }
   
   /**
-   * Enable debugging mode.
-   * @param value flag to indiciate if debug mode is enabled
+   * Select log level on the python side.
+   * @param value one of the LoggingLevel enum values
    */
   @Optional
   @RunTime
-  @CreoleParameter(comment = "Enable debugging mode", defaultValue = "false")
-  public void setDebugMode(Boolean value) {
-    debugMode = value;
+  @CreoleParameter(comment = "Logging level to use on the python side", defaultValue = "INFO")
+  public void setLoggingLevel(LoggingLevel value) {
+    loggingLevel = value;
   }
   /**
-   * Get debugging mode. 
-   * @return debugging mode
+   * Get python logging level.
+   * @return logging level.
    */
-  public Boolean getDebugMode() {
-    if(debugMode == null) {
-      return false;
-    }
-    return debugMode;
+  public LoggingLevel getLoggingLevel() {
+    return loggingLevel;
   }
-  protected Boolean debugMode;
+  protected LoggingLevel loggingLevel;
           
   /**
    * If we should use our own copy of the Python gatenlp package.
@@ -432,7 +454,7 @@ public class PythonPr
       env.put("PYTHONPATH", usePythonPackagePath);
     }
     try {
-      if(getDebugMode()) {        
+      if(loggingLevel == LoggingLevel.DEBUG) {        
         logger.info("Trying to compile program:");
         logger.info("Python path is "+usePythonPackagePath);
         logger.info("Running: "+cmdLine.toString());
@@ -451,7 +473,7 @@ public class PythonPr
     if(exc != null) {
       logger.error("Got exception running the compile command: "+exc);
     }
-    if(getDebugMode()) {
+    if(loggingLevel == LoggingLevel.DEBUG) {
       logger.info("Got return value from compiling: "+exitCode);
     }
     isCompileOk = (exitCode == 0);
@@ -694,26 +716,16 @@ public class PythonPr
     if(getUseOwnGatenlpPackage()) {
       env.put("PYTHONPATH", usePythonPackagePath);
     }
-    if(getDebugMode()) {
-      process = Process4StringStream.create(
-              workingDir, 
-              env, 
-              pythonBinaryCommand, 
-              "-d", 
-              currentPythonProgramFile.getAbsolutePath(),
-              "--mode",
-              "pipe"
-      );
-    } else {
-      process = Process4StringStream.create(
+    process = Process4StringStream.create(
               workingDir, 
               env, 
               pythonBinaryCommand, 
               currentPythonProgramFile.getAbsolutePath(),
               "--mode",
-              "pipe"
+              "pipe",
+              "--log_lvl", 
+              loggingLevel.toString()
       );
-    }
     String responseJson = (String)process.process(makeStartRequest());
     if(responseJson == null) {
       throw new GateRuntimeException("Invalid null response from Python process, did you run interact()?");
