@@ -1,7 +1,7 @@
 # GATE Python Plugin
 
 This plugin provides a processing resource, `PythonPr` which allows the editing and running of python code for processing
-GATE documents. The Python API for processing documents is the Python `gatenlp` package, see  https://gatenlp.github.io/python-gat
+GATE documents. The Python API for processing documents is the Python `gatenlp` package, see https://gatenlp.github.io/python-gatenlp.
 
 The plugin provides its own copy of a specific version of the `gatenlp` package which is used by default, but it is possible to
 instead use whatever version of the `gatenlp` package is installed on the system.
@@ -11,7 +11,7 @@ instead use whatever version of the `gatenlp` package is installed on the system
 Before the plugin can be used Python must be installed:
 
 * Python version 3.6 or later must be installed
-* The python package sortedcontainers must be installed
+* The python package [sortedcontainers](https://pypi.org/project/sortedcontainers/) must be installed
 
 ## The PythonPr Processing Resource
 
@@ -19,14 +19,14 @@ The `PythonPr` processing resource can be used to run a Python program on docume
 
 When a pipeline that contains the `PythonPr` processing resource is run, the following main steps happens:
 
-* The python program is run in a separate process. The python program must implement a function or class that 
-  uses the gatenlp.@GateNlpPr decorator and it must invoke the gatenlp.interact() function.
+* The Python program is run in a separate process. The Python program must implement a function or class that 
+  uses the `@gatenlp.GateNlpPr` decorator and it must invoke the `gatenlp.interact()` function.
   (see examples below)
-* The processing resource sends each document to the python program
-* the implemented `@GateNlpPr` function or the `execute` or `__call__` method of the implemented `@GateNlpPr` class is 
+* The processing resource sends each document to the Python program
+* The implemented `@GateNlpPr` function or the `execute` or `__call__` method of the implemented `@GateNlpPr` class is 
   invoked and the document is passed to that function. The function can use the `gatenlp` API to modify the document.
   All the changes are recorded.
-* The recorded changes are sent back to the `PythonPr` which applies the changes to the GATE document
+* The recorded changes are sent back to the `PythonPr` which applies the changes to the GATE document.
 
 Here is a simple example Python program which splits the document into white-space separated tokens and creates
 an annotation with the type "Token" in the default annotation set for each token. For each token annotation,
@@ -42,7 +42,7 @@ def run(doc, **kwargs):
     set1 = doc.get_annotations() 
     set1.clear()  
     text = doc.text  
-    whitespaces = [m for m in re.finditer("[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$",text)]
+    whitespaces = [m for m in re.finditer("[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$", text)]
     for k in range(len(whitespaces)-1):  
         fromoff=whitespaces[k].end() 
         tooff=whitespaces[k+1].start() 
@@ -52,11 +52,11 @@ def run(doc, **kwargs):
 interact()
 ```
 
-The function gets the document passed as a `gatenlp.Document` and also gets all the 
+The function gets the document passed (as its first argument) a `gatenlp.Document` and also gets all the 
 parameters defined in the `PythonPr` `programParams` parameter. 
 
-Instead of a function, a class can be implemented with the `@GateNlpPr` decorator. The 
-class must implement an `execute` or `__call__` method, but in addition can also 
+Instead of a function, a class can be implemented with the `@GateNlpPr` decorator.
+The class must implement an `execute` or `__call__` method, but in addition can also 
 implement the `start`, `finish`, `reduce` and `result` methods. The following 
 example implements the same tokenizer as above in a class but also counts and prints out
 the total number of tokens over all documents:
@@ -78,7 +78,7 @@ class MyProcessor:
     set1 = doc.get_annotations()
     set1.clear()
     text = doc.text
-    whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$",text)] 
+    whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$", text)] 
     nrtokens = len(whitespaces)-1
     for k in range(nrtokens):
         fromoff=whitespaces[k].end()   
@@ -112,22 +112,22 @@ If a file path is specified that does not exist, it is created and initialized w
 
 ### PythonPr Runtime Parameters
 
-* `debugMode` (Boolean, default: false): if set to `true` more information about what the PR does is provided in the message pane
+* `debugMode` (Boolean, default: false): if set to `true` more information about what the PR does is provided in the message pane.
 * `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the 
-  Python side, via the `**kwargs` of the invoked method. Though this is a FeatureMap, the type of the key should be String
+  Python side, via the `**kwargs` of the invoked method. Though this is a `FeatureMap`, the type of the key should be `String`
   and the type of each value should be something that can be serialized as JSON. In addition to the parameters specified here, the following
   default parameters will always get passed as well:
   * `gate_plugin_python_nrDuplicates`: the number of duplicates if multiprocessing is done 
-  * `gate_plugin_python_duplicateId` : the duplicate id (0 .. nrDuplicates-1) of this PR.
+  * `gate_plugin_python_duplicateId` : the duplicate id (0 to nrDuplicates-1) of this PR.
   * `gate_plugin_python_workingDir` : the effective working directory used by the PR
-  * `gate_plugin_python_pythonFile`: the effective python program file used
+  * `gate_plugin_python_pythonFile`: the effective Python program file used
 * `pythonBinary` (String, default: "python"): the name of the command (the Python interpreter) to invoke from the PATH. On some systems, where 
   the `python` command invokes Python version 2.x, the command `python3` can be used to invoke Python version 3.x.
 * `pythonBinaryUrl` (URL, default: empty): If this is specified, it takes precedence over `pythonBinary`. This should be
   the URL of a file that should be invoked as the Python interpreter. 
 * `useOwnGatenlpPackage` (Boolean, default: true): to make sure results are reliable between systems, the Python plugin 
-  contains its own copy of the Python `gatenlp` package and uses it if this parameter is set to true (By putting the location
-  of the package first on the PYTHONPATH). If this is `false` then nothing is put on the PYTHONPATH and whatever version of 
+  contains its own copy of the Python `gatenlp` package and uses it if this parameter is set to `true` (by putting the location
+  of the package first on the `PYTHONPATH`). If this is `false` then nothing is put on the `PYTHONPATH` and whatever version of 
   the `gatenlp` package is installed on the system is used. 
 
 NOTE: The document name is passed on to the Python code via the document feature `gate.plugin.python.docName`.
