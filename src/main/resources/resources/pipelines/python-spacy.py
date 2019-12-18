@@ -30,14 +30,13 @@ class MyProcessor:
     set1.clear()   
     text = doc.text  
     doc = self.nlp(text)
+    tokidx2annid = {}
     for tok in doc:
         from_off = tok.idx
         to_off = tok.idx + len(tok)
         is_space = tok.is_space
         if not is_space:
             fm = {
-                    "ent_type": tok.ent_type_,
-                    "dep": tok.dep_,
                     "is_alpha": tok.is_alpha,
                     "is_bracket": tok.is_bracket,
                     "is_currency": tok.is_currency,
@@ -64,16 +63,37 @@ class MyProcessor:
                     "prob": tok.prob,
                     "rank": tok.rank,
                     "sentiment": tok.sentiment,
+                    "tag": tok.tag_,
                     "shape": tok.shape_,
                     "suffix": tok.suffix_,
             }
-            set1.add(from_off, to_off, "Token", fm)  
+            if doc.is_nered:
+                fm["ent_type"] = tok.ent_type_
+            if doc.is_parsed:
+                fm["dep"] = tok.dep_
+            annid = set1.add(from_off, to_off, "Token", fm)
+            print("Added annotation with id: {}".format(annid))
+            tokidx2annid[tok.idx] = annid
             ws = tok.whitespace_
             # TODO: if ws is not length 0, could add space token here
         else:
             pass # could add space token here
+    # if we have a dependency parse, now also add the parse edges
+    if doc.is_parsed:
+        for tok in doc:
+            ann = set1.get(tokidx2annid[tok.idx])
+            ann.set_feature("head", tokidx2annid[tok.head.idx])
+            ann.set_feature("left_edge", tokidx2annid[tok.left_edge.idx])
+            ann.set_feature("right_edge", tokidx2annid[tok.right_edge.idx])
+    if doc.ents:
         for ent in doc.ents:
             set1.add(ent.start_char, ent.end_char, ent.label_, {"lemma": ent.lemma_})
+    if doc.sents:
+        for sent in doc.sents:
+            set1.add(sent.start_char, sent.end_char, "Sentence", {})
+    if doc.noun_chunks:
+        for chunk in doc.noun_chunks:
+            set1.add(chunk.start_char, chunk.end_char, "NounChunk", {})
     self.tokens_total += len(doc)    
     self.nr_docs += 1
     
