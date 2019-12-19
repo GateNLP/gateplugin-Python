@@ -433,10 +433,17 @@ public class PythonPr
     // see https://docs.python.org/3/library/py_compile.html
     // For now we do this by using apache commons exec with a watchdog
     CommandLine cmdLine = new CommandLine(pythonBinaryCommand);
-    cmdLine.addArgument("-m");
-    cmdLine.addArgument("py_compile");
-    cmdLine.addArgument(currentPythonProgramFile.getAbsolutePath());
+    // In the past we actually just tried to compile the script, but this does
+    // not catch other problems, e.g. when requirements are not installed.
+    // cmdLine.addArgument("-m");
+    // cmdLine.addArgument("py_compile");
+    // cmdLine.addArgument(currentPythonProgramFile.getAbsolutePath());
     // System.err.println("DEBUG: running: "+cmdLine.toString());
+    // Instead, we actually run the script, but using mode "check" which has
+    // been added for that purpose and does nothing
+    cmdLine.addArgument(currentPythonProgramFile.getAbsolutePath());
+    cmdLine.addArgument("--mode");
+    cmdLine.addArgument("check");
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
     ExecuteWatchdog watchdog = new ExecuteWatchdog(10*1000); // 10 secs
     Executor executor = new DefaultExecutor();
