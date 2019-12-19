@@ -112,7 +112,8 @@ If a file path is specified that does not exist, it is created and initialized w
 
 ### PythonPr Runtime Parameters
 
-* `debugMode` (Boolean, default: false): if set to `true` more information about what the PR does is provided in the message pane.
+* `loggingLevel` (drop down selection, default: INFO): choose the logging level to use in python. If DEBUG is used, then
+  some additional information is also logged as info on the Java side.
 * `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the 
   Python side, via the `**kwargs` of the invoked method. Though this is a `FeatureMap`, the type of the key should be `String`
   and the type of each value should be something that can be serialized as JSON. In addition to the parameters specified here, the following
