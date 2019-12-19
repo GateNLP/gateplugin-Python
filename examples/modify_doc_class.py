@@ -34,5 +34,4 @@ class MyProcessor:
     # for ch in doc.changelog.changes:
     #     print(ch)
 
-if __name__ == '__main__':
-  interact()
+interact()
