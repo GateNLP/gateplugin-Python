@@ -66,8 +66,7 @@ the total number of tokens over all documents:
 
 ```python
 import re
-from gatenlp import GateNlpPr, interact
-
+from gatenlp import GateNlpPr, interact, logger
 
 @GateNlpPr
 class MyProcessor:
@@ -78,7 +77,7 @@ class MyProcessor:
         self.tokens_total = 0
 
     def finish(self, **kwargs):
-        print("Total number of tokens:", self.tokens_total)
+        logger.info("Total number of tokens: {}".format(self.tokens_total))
 
     def __call__(self, doc, **kwargs):
         set1 = doc.get_annotations()
@@ -92,7 +91,6 @@ class MyProcessor:
             set1.add(fromoff, tooff, "Token", {"tokennr": k})
         doc.set_feature("nr_tokens", nrtokens)
         self.tokens_total += nrtokens
-
 
 interact()
 ```
