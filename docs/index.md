@@ -1,7 +1,7 @@
 # GATE Python Plugin
 
 This plugin provides a processing resource, `PythonPr` which allows the editing and running of python code for processing
-GATE documents. The Python API for processing documents is the Python `gatenlp` package, see https://gatenlp.github.io/python-gatenlp.
+GATE documents. The Python API for processing documents is the [Python `gatenlp` package](https://gatenlp.github.io/python-gatenlp).
 
 The plugin provides its own copy of a specific version of the `gatenlp` package which is used by default, but it is possible to
 instead use whatever version of the `gatenlp` package is installed on the system.
@@ -35,19 +35,21 @@ It also sets the total number of tokens as a document feature:
 
 ```python
 import re
-from gatenlp import @GateNlpPr, interact
+from gatenlp import GateNlpPr, interact
+
 
 @GateNlpPr
 def run(doc, **kwargs):
-    set1 = doc.get_annotations() 
-    set1.clear()  
-    text = doc.text  
-    whitespaces = [m for m in re.finditer("[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$", text)]
-    for k in range(len(whitespaces)-1):  
-        fromoff=whitespaces[k].end() 
-        tooff=whitespaces[k+1].start() 
+    set1 = doc.get_annotations()
+    set1.clear()
+    text = doc.text
+    whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$", text)]
+    for k in range(len(whitespaces) - 1):
+        fromoff = whitespaces[k].end()
+        tooff = whitespaces[k + 1].start()
         set1.add(fromoff, tooff, "Token", {"tokennr": k})
-    doc.set_feature("nr_tokens", len(whitespaces)-1)
+    doc.set_feature("nr_tokens", len(whitespaces) - 1)
+
 
 interact()
 ```
@@ -64,28 +66,33 @@ the total number of tokens over all documents:
 
 ```python
 import re
-from gatenlp import @GateNlpPr, interact
+from gatenlp import GateNlpPr, interact
+
 
 @GateNlpPr
 class MyProcessor:
-  def __init__(self):
-    self.tokens_total = 0
-  def start(self, **kwargs):
-    self.tokens_total = 0
-  def finish(self, **kwargs):
-    print("Total number of tokens:", self.tokens_total)
-  def __call__(self, doc, **kwargs):
-    set1 = doc.get_annotations()
-    set1.clear()
-    text = doc.text
-    whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$", text)] 
-    nrtokens = len(whitespaces)-1
-    for k in range(nrtokens):
-        fromoff=whitespaces[k].end()   
-        tooff=whitespaces[k+1].start() 
-        set1.add(fromoff, tooff, "Token", {"tokennr": k})
-    doc.set_feature("nr_tokens", nrtokens)
-    self.tokens_total += nrtokens
+    def __init__(self):
+        self.tokens_total = 0
+
+    def start(self, **kwargs):
+        self.tokens_total = 0
+
+    def finish(self, **kwargs):
+        print("Total number of tokens:", self.tokens_total)
+
+    def __call__(self, doc, **kwargs):
+        set1 = doc.get_annotations()
+        set1.clear()
+        text = doc.text
+        whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$", text)]
+        nrtokens = len(whitespaces) - 1
+        for k in range(nrtokens):
+            fromoff = whitespaces[k].end()
+            tooff = whitespaces[k + 1].start()
+            set1.add(fromoff, tooff, "Token", {"tokennr": k})
+        doc.set_feature("nr_tokens", nrtokens)
+        self.tokens_total += nrtokens
+
 
 interact()
 ```
