@@ -896,7 +896,7 @@ public class PythonPr
     request.put("command", "start");
     Map<String,Object> params = BdocUtils.featureMap2Map(programParams, null);
     params.put("gate_plugin_python_duplicateId", duplicateId);
-    params.put("gate_plugin_python_nrDuplicates", nrDuplicates);   
+    params.put("gate_plugin_python_nrDuplicates", nrDuplicates.get());   
     params.put("gate_plugin_python_workingDir", workingDir.getAbsolutePath());
     params.put("gate_plugin_python_pythonFile", currentPythonProgramFile.getAbsolutePath());
     request.put("data", params);
