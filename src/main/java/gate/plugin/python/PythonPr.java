@@ -516,7 +516,7 @@ public class PythonPr
    * 
    * @return location of containing folder
    */
-  public static String getPackageParentPathInZip() {
+  public String getPackageParentPathInZip() {
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
     try {
       artifactURL = new URL(artifactURL, ".");
@@ -524,6 +524,9 @@ public class PythonPr
       throw new GateRuntimeException("Could not get jar URL");
     }
     String urlString = artifactURL.toString();
+    if(loggingLevel==LoggingLevel.DEBUG) {
+      logger.info("Got python package URL: "+urlString);
+    }
     if(urlString.startsWith("jar:file:///")) {
       urlString = urlString.substring(11);
       urlString = urlString.substring(0, urlString.length()-2);
@@ -686,7 +689,7 @@ public class PythonPr
       if(!workingDir.canWrite()) {
         throw new ResourceInstantiationException("Working directory must be writable");
       }
-    usePythonPackagePath = PythonPr.getPackageParentPathInZip();
+    usePythonPackagePath = getPackageParentPathInZip();
     //System.err.println("DEBUG: pythonpath is "+usePythonPath);
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
