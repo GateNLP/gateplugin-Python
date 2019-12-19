@@ -308,7 +308,7 @@ public class PythonPr
   protected LoggingLevel loggingLevel;
           
   /**
-   * If we should use our own copy of the Python gatenlp package.
+   * If we should use our own (the plugin's) copy of the Python gatenlp package.
    * If this is true (the default), the specific version of gatenlp that
    * is included in the plugin will be used, otherwise, the version installed
    * for the python environment is used.
