@@ -524,9 +524,6 @@ public class PythonPr
       throw new GateRuntimeException("Could not get jar URL");
     }
     String urlString = artifactURL.toString();
-    if(loggingLevel==LoggingLevel.DEBUG) {
-      logger.info("Got python package URL: "+urlString);
-    }
     if(urlString.startsWith("jar:file:///")) {
       urlString = urlString.substring(11);
       urlString = urlString.substring(0, urlString.length()-2);
@@ -541,6 +538,11 @@ public class PythonPr
       urlString = urlString.substring(0, urlString.length()-1);
     } else {
       throw new GateRuntimeException("Odd JAR URL: "+urlString);
+    }
+    // On a windows system, we must remove the leading slash because 
+    // there, we want to start with the drive
+    if(System.getProperty("os.name").toLowerCase().contains("win")) {
+      urlString = urlString.substring(1);
     }
     urlString = urlString + "/resources/";
     //System.err.println("DEBUG: resources location: "+urlString);
