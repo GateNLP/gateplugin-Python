@@ -27,13 +27,13 @@ import gate.Factory;
 import gate.FeatureMap;
 import gate.ProcessingResource;
 import gate.creole.SerialAnalyserController;
+import gate.plugin.python.PythonPr;
 import gate.test.GATEPluginTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.Executor;
-import gate.plugin.python.PythonPr;
 
 /**
  * Class for testing.
@@ -45,7 +45,6 @@ public class PythonPrTest extends GATEPluginTestCase {
    * A test.
    * @throws IOException   exception
    */
-  /*
   public void testPython() throws IOException {
     Executor executor = new DefaultExecutor();
     System.err.println("Python path:");
@@ -66,7 +65,6 @@ public class PythonPrTest extends GATEPluginTestCase {
     retval = executor.execute(cmdLine1);
     assertEquals(0, retval);    
   }
-  */
   /**
    * Very basic test.
    * @throws Exception  exception
@@ -77,11 +75,11 @@ public class PythonPrTest extends GATEPluginTestCase {
     params.put("markupAware", true);
     params.put("sourceUrl",  new File("./src/test/docs/tiny1.xml").toURI().toURL());
     Document doc1 = (Document)Factory.createResource("gate.corpora.DocumentImpl", params);
-    System.err.println("!!!DEBUG: document text="+doc1.getContent().toString());
-    System.err.println("!!!DEBUG: document len="+doc1.getContent().size());
+    //System.err.println("!!!DEBUG: document text="+doc1.getContent().toString());
+    // System.err.println("!!!DEBUG: document len="+doc1.getContent().size());
     AnnotationSet defset = doc1.getAnnotations();
     defset.clear();
-    defset.add(0L, (Long)doc1.getContent().size(), "Document", Factory.newFeatureMap());
+    defset.add(0L, doc1.getContent().size(), "Document", Factory.newFeatureMap());
     ProcessingResource pr;
     params = Factory.newFeatureMap();
     params.put("pythonBinary", "python");
@@ -96,13 +94,13 @@ public class PythonPrTest extends GATEPluginTestCase {
     controller.execute();
     
     AnnotationSet anns = doc1.getAnnotations("Copy");
-    System.err.println("Got anns: "+anns);
-    //assertEquals(1, anns.size());
-    //Annotation ann = anns.iterator().next();
+    // System.err.println("Got anns: "+anns);
+    assertEquals(1, anns.size());
+    Annotation ann = anns.iterator().next();
     //System.err.println("Got ann: "+ann);
-    //assertEquals("Document", ann.getType());
-    //assertEquals(0L, (long)ann.getStartNode().getOffset());
-    //assertEquals((long)doc1.getContent().size(), (long)ann.getEndNode().getOffset());
+    assertEquals("Document", ann.getType());
+    assertEquals(0L, (long)ann.getStartNode().getOffset());
+    assertEquals((long)doc1.getContent().size(), (long)ann.getEndNode().getOffset());
   }
 
   
@@ -110,7 +108,6 @@ public class PythonPrTest extends GATEPluginTestCase {
    * Another test.
    * @throws Exception  exception
    */
-  /*
   public void testPythonPr01() throws Exception {
     Document doc1 = Factory.newDocument("This is a small document");
     // add a document a null document feature and a null annotation feature
@@ -164,12 +161,11 @@ public class PythonPrTest extends GATEPluginTestCase {
     assertEquals(13, (int)f1);
     assertEquals("asdf", (String)f2);
   }
-  */
+  
   /**
    * Another test.
    * @throws Exception  exception
-   */
-  /*
+   */  
   public void testPythonPr02() throws Exception {
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
@@ -211,5 +207,5 @@ public class PythonPrTest extends GATEPluginTestCase {
     assertEquals(13, (int)f1);
     assertEquals("asdf", (String)f2);
   }
-  */
+  
 }
