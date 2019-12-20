@@ -543,9 +543,9 @@ public class PythonPr
     }
     // On a windows system, we must remove the leading slash because 
     // there, we want to start with the drive
-    if(System.getProperty("os.name").toLowerCase(Locale.UK).contains("win")) {
+    if(PythonPr.isOsWindows()) {
       urlString = urlString.substring(1);
-    }    
+    }
     urlString = urlString + "/resources/";
     //System.err.println("DEBUG: resources location: "+urlString);
     System.err.println("DEBUG: final package parent urlString "+urlString);
