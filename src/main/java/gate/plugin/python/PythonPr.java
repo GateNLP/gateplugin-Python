@@ -525,6 +525,7 @@ public class PythonPr
       throw new GateRuntimeException("Could not get jar URL");
     }
     String urlString = artifactURL.toString();
+    System.err.println("DEBUG: original package parent urlString "+urlString);
     if(urlString.startsWith("jar:file:///")) {
       urlString = urlString.substring(11);
       urlString = urlString.substring(0, urlString.length()-2);
@@ -544,9 +545,10 @@ public class PythonPr
     // there, we want to start with the drive
     if(System.getProperty("os.name").toLowerCase(Locale.UK).contains("win")) {
       urlString = urlString.substring(1);
-    }
+    }    
     urlString = urlString + "/resources/";
     //System.err.println("DEBUG: resources location: "+urlString);
+    System.err.println("DEBUG: final package parent urlString "+urlString);
     return urlString;
   }
 
@@ -975,5 +977,13 @@ public class PythonPr
     }
   }
   
+  /**
+   * Check if we are running on windows.
+   * 
+   * @return true if on Windows, false otherwise
+   */
+  public static boolean isOsWindows() {
+    return System.getProperty("os.name").toLowerCase(Locale.UK).contains("win");
+  }
   
 }

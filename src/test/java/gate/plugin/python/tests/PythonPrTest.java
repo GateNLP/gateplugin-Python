@@ -28,16 +28,12 @@ import gate.FeatureMap;
 import gate.ProcessingResource;
 import gate.creole.SerialAnalyserController;
 import gate.test.GATEPluginTestCase;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.Executor;
+import gate.plugin.python.PythonPr;
 
 /**
  * Class for testing.
@@ -52,7 +48,12 @@ public class PythonPrTest extends GATEPluginTestCase {
   public void testPython() throws IOException {
     Executor executor = new DefaultExecutor();
     System.err.println("Python path:");
-    CommandLine cmdLine1 = CommandLine.parse("/bin/bash which python");
+    CommandLine cmdLine1;
+    if(PythonPr.isOsWindows()) {
+      cmdLine1 = CommandLine.parse("cmd.exe /C where python");  
+    } else {
+      cmdLine1 = CommandLine.parse("/bin/bash which python");
+    }
     int retval = executor.execute(cmdLine1);
     assertEquals(0, retval);
     
