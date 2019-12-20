@@ -12,6 +12,7 @@ Before the plugin can be used Python must be installed:
 
 * Python version 3.6 or later must be installed
 * The python package [sortedcontainers](https://pypi.org/project/sortedcontainers/) must be installed
+* [Detailed installation instructions](python-install.md)
 
 ## The PythonPr Processing Resource
 
@@ -19,18 +20,18 @@ The `PythonPr` processing resource can be used to run a Python program on docume
 
 When a pipeline that contains the `PythonPr` processing resource is run, the following main steps happens:
 
-* The Python program is run in a separate process. The Python program must implement a function or class that 
+* The Python program is run in a separate process. The Python program must implement a function or class that
   uses the `@gatenlp.GateNlpPr` decorator and it must invoke the `gatenlp.interact()` function.
   (see examples below)
 * The processing resource sends each document to the Python program
-* The implemented `@GateNlpPr` function or the `execute` or `__call__` method of the implemented `@GateNlpPr` class is 
+* The implemented `@GateNlpPr` function or the `execute` or `__call__` method of the implemented `@GateNlpPr` class is
   invoked and the document is passed to that function. The function can use the `gatenlp` API to modify the document.
   All the changes are recorded.
 * The recorded changes are sent back to the `PythonPr` which applies the changes to the GATE document.
 
 Here is a simple example Python program which splits the document into white-space separated tokens and creates
 an annotation with the type "Token" in the default annotation set for each token. For each token annotation,
-a feature "tokennr" is set to the sequence number of the token in the document. 
+a feature "tokennr" is set to the sequence number of the token in the document.
 It also sets the total number of tokens as a document feature:
 
 ```python
@@ -54,12 +55,12 @@ def run(doc, **kwargs):
 interact()
 ```
 
-The function gets the document passed (as its first argument) a `gatenlp.Document` and also gets all the 
-parameters defined in the `PythonPr` `programParams` parameter. 
+The function gets the document passed (as its first argument) a `gatenlp.Document` and also gets all the
+parameters defined in the `PythonPr` `programParams` parameter.
 
 Instead of a function, a class can be implemented with the `@GateNlpPr` decorator.
-The class must implement an `execute` or `__call__` method, but in addition can also 
-implement the `start`, `finish`, `reduce` and `result` methods. The following 
+The class must implement an `execute` or `__call__` method, but in addition can also
+implement the `start`, `finish`, `reduce` and `result` methods. The following
 example implements the same tokenizer as above in a class but also counts and prints out
 the total number of tokens over all documents:
 
@@ -99,19 +100,19 @@ interact()
 ### PythonPr Init Parameters
 
 Parameters that have to get set when the processing resource is created:
-* `pythonProgram` (ResourceReference, default: empty): this specifies the Python program to run. Since this is 
+* `pythonProgram` (ResourceReference, default: empty): this specifies the Python program to run. Since this is
   a ResourceReference, the selection dialog can be used to select a file from file storage, a plugin resource
   or any other known URL. If something is specified that is not a local file, it is copied to the working directory
   and that copy is used.
 * `pythonProgramPath` (String, default: empty): if this is specified it takes precedence over the `pythonProgram` parameter.
-  This can be used to specify an absolute or relative local file path. If the path is relative it is resolved against the 
+  This can be used to specify an absolute or relative local file path. If the path is relative it is resolved against the
   working directory.
-* `workingDirUrl` (URL, default: empty): this can be used to specify a working directory. The working directory is used 
-  as the current directory when running the Python process and is also used for creating a copy of the python program, if the 
+* `workingDirUrl` (URL, default: empty): this can be used to specify a working directory. The working directory is used
+  as the current directory when running the Python process and is also used for creating a copy of the python program, if the
   python program is not on the local file system. If this is left empty, the current directory of the running Java process is used.
 
-If neither `pythonProgram` nor `pythonProgramPath` is specified, a file with the name `tmpfile.py` is created in the 
-working directory and initialized with an initial code template. 
+If neither `pythonProgram` nor `pythonProgramPath` is specified, a file with the name `tmpfile.py` is created in the
+working directory and initialized with an initial code template.
 If a file path is specified that does not exist, it is created and initialized with the initial code template.
 
 
@@ -119,26 +120,25 @@ If a file path is specified that does not exist, it is created and initialized w
 
 * `loggingLevel` (drop down selection, default: INFO): choose the logging level to use in python. If DEBUG is used, then
   some additional information is also logged as info on the Java side.
-* `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the 
+* `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the
   Python side, via the `**kwargs` of the invoked method. Though this is a `FeatureMap`, the type of the key should be `String`
   and the type of each value should be something that can be serialized as JSON. In addition to the parameters specified here, the following
   default parameters will always get passed as well:
-  * `gate_plugin_python_nrDuplicates`: the number of duplicates if multiprocessing is done 
+  * `gate_plugin_python_nrDuplicates`: the number of duplicates if multiprocessing is done
   * `gate_plugin_python_duplicateId` : the duplicate id (0 to nrDuplicates-1) of this PR.
   * `gate_plugin_python_workingDir` : the effective working directory used by the PR
   * `gate_plugin_python_pythonFile`: the effective Python program file used
-* `pythonBinary` (String, default: "python"): the name of the command (the Python interpreter) to invoke from the PATH. On some systems, where 
+* `pythonBinary` (String, default: "python"): the name of the command (the Python interpreter) to invoke from the PATH. On some systems, where
   the `python` command invokes Python version 2.x, the command `python3` can be used to invoke Python version 3.x.
 * `pythonBinaryUrl` (URL, default: empty): If this is specified, it takes precedence over `pythonBinary`. This should be
-  the URL of a file that should be invoked as the Python interpreter. 
-* `useOwnGatenlpPackage` (Boolean, default: true): to make sure results are reliable between systems, the Python plugin 
+  the URL of a file that should be invoked as the Python interpreter.
+* `useOwnGatenlpPackage` (Boolean, default: true): to make sure results are reliable between systems, the Python plugin
   contains its own copy of the Python `gatenlp` package and uses it if this parameter is set to `true` (by putting the location
-  of the package first on the `PYTHONPATH`). If this is `false` then nothing is put on the `PYTHONPATH` and whatever version of 
-  the `gatenlp` package is installed on the system is used. 
+  of the package first on the `PYTHONPATH`). If this is `false` then nothing is put on the `PYTHONPATH` and whatever version of
+  the `gatenlp` package is installed on the system is used.
 
 NOTE: The document name is passed on to the Python code via the document feature `gate.plugin.python.docName`.
 
 ## Calculating and Returning Over-The-Corpus Results
 
 TBD
-
