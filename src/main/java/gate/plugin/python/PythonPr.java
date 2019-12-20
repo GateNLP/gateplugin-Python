@@ -61,6 +61,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -541,7 +542,7 @@ public class PythonPr
     }
     // On a windows system, we must remove the leading slash because 
     // there, we want to start with the drive
-    if(System.getProperty("os.name").toLowerCase().contains("win")) {
+    if(System.getProperty("os.name").toLowerCase(Locale.UK).contains("win")) {
       urlString = urlString.substring(1);
     }
     urlString = urlString + "/resources/";
