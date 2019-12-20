@@ -1,0 +1,106 @@
+<gate.util.persistence.GateApplication>
+  <urlList class="gate.util.persistence.CollectionPersistence">
+    <localList>
+      <gate.creole.Plugin-Maven>
+        <group>uk.ac.gate.plugins</group>
+        <artifact>format-bdoc</artifact>
+        <version>1.0-SNAPSHOT</version>
+      </gate.creole.Plugin-Maven>
+      <gate.creole.Plugin-Maven>
+        <group>uk.ac.gate.plugins</group>
+        <artifact>python</artifact>
+        <version>2.0-SNAPSHOT</version>
+      </gate.creole.Plugin-Maven>
+      <gate.creole.Plugin-Maven>
+        <group>uk.ac.gate.plugins</group>
+        <artifact>annie</artifact>
+        <version>8.7-SNAPSHOT</version>
+      </gate.creole.Plugin-Maven>
+    </localList>
+    <collectionType>java.util.ArrayList</collectionType>
+  </urlList>
+  <application class="gate.util.persistence.ConditionalSerialAnalyserControllerPersistence">
+    <corpus class="gate.util.persistence.CorpusPersistence">
+      <docList>
+        <gate.util.persistence.LRPersistence>
+          <resourceType>gate.corpora.DocumentImpl</resourceType>
+          <resourceName>tiny1.xml_00040</resourceName>
+          <initParams class="gate.util.persistence.MapPersistence">
+            <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+            <localMap>
+              <entry>
+                <string>encoding</string>
+                <string>windows-1252</string>
+              </entry>
+              <entry>
+                <string>sourceUrl</string>
+                <gate.util.persistence.PersistenceManager-URLHolder>
+                  <urlString>$relpath$docs/tiny1.xml</urlString>
+                </gate.util.persistence.PersistenceManager-URLHolder>
+              </entry>
+              <entry>
+                <string>stringContent</string>
+                <string></string>
+              </entry>
+            </localMap>
+          </initParams>
+        </gate.util.persistence.LRPersistence>
+      </docList>
+      <resourceType>gate.corpora.CorpusImpl</resourceType>
+      <resourceName>Corpus for tiny1.xml_00040</resourceName>
+      <initParams class="gate.util.persistence.MapPersistence">
+        <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+        <localMap/>
+      </initParams>
+    </corpus>
+    <strategiesList class="gate.util.persistence.CollectionPersistence">
+      <localList>
+        <gate.util.persistence.AnalyserRunningStrategyPersistence>
+          <runMode>1</runMode>
+          <featureName></featureName>
+          <featureValue></featureValue>
+          <pr class="gate.util.persistence.LanguageAnalyserPersistence">
+            <runtimeParams class="gate.util.persistence.MapPersistence">
+              <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+              <localMap/>
+            </runtimeParams>
+            <resourceType>gate.plugin.python.PythonPr</resourceType>
+            <resourceName>PythonPr:debug1</resourceName>
+            <initParams class="gate.util.persistence.MapPersistence">
+              <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+              <localMap>
+                <entry>
+                  <string>pythonProgram</string>
+                  <gate.util.persistence.PersistenceManager-RRPersistence>
+                    <uriString>$relpath$debug1.py</uriString>
+                  </gate.util.persistence.PersistenceManager-RRPersistence>
+                </entry>
+              </localMap>
+            </initParams>
+            <features class="gate.util.persistence.MapPersistence">
+              <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+              <localMap/>
+            </features>
+          </pr>
+        </gate.util.persistence.AnalyserRunningStrategyPersistence>
+      </localList>
+      <collectionType>java.util.ArrayList</collectionType>
+    </strategiesList>
+    <prList class="gate.util.persistence.CollectionPersistence">
+      <localList>
+        <gate.util.persistence.LanguageAnalyserPersistence reference="../../../strategiesList/localList/gate.util.persistence.AnalyserRunningStrategyPersistence/pr"/>
+      </localList>
+      <collectionType>java.util.ArrayList</collectionType>
+    </prList>
+    <resourceType>gate.creole.ConditionalSerialAnalyserController</resourceType>
+    <resourceName>debug1</resourceName>
+    <initParams class="gate.util.persistence.MapPersistence">
+      <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+      <localMap/>
+    </initParams>
+    <features class="gate.util.persistence.MapPersistence">
+      <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+      <localMap/>
+    </features>
+  </application>
+</gate.util.persistence.GateApplication>
