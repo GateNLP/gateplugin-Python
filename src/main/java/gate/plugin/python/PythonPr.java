@@ -61,6 +61,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -516,7 +517,7 @@ public class PythonPr
    * 
    * @return location of containing folder
    */
-  public static String getPackageParentPathInZip() {
+  public String getPackageParentPathInZip() {
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
     try {
       artifactURL = new URL(artifactURL, ".");
@@ -538,6 +539,11 @@ public class PythonPr
       urlString = urlString.substring(0, urlString.length()-1);
     } else {
       throw new GateRuntimeException("Odd JAR URL: "+urlString);
+    }
+    // On a windows system, we must remove the leading slash because 
+    // there, we want to start with the drive
+    if(System.getProperty("os.name").toLowerCase(Locale.UK).contains("win")) {
+      urlString = urlString.substring(1);
     }
     urlString = urlString + "/resources/";
     //System.err.println("DEBUG: resources location: "+urlString);
@@ -686,7 +692,7 @@ public class PythonPr
       if(!workingDir.canWrite()) {
         throw new ResourceInstantiationException("Working directory must be writable");
       }
-    usePythonPackagePath = PythonPr.getPackageParentPathInZip();
+    usePythonPackagePath = getPackageParentPathInZip();
     //System.err.println("DEBUG: pythonpath is "+usePythonPath);
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
