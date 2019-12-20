@@ -1,24 +1,16 @@
-<?xml version='1.0' encoding='windows-1252'?>
+<?xml version='1.0' encoding='utf-8'?>
 <GateDocument version="3">
 <!-- The document's features-->
 
 <GateDocumentFeatures>
 <Feature>
-  <Name className="java.lang.String">parsingError</Name>
-  <Value className="java.lang.Boolean">true</Value>
-</Feature>
-<Feature>
   <Name className="java.lang.String">gate.SourceURL</Name>
-  <Value className="java.lang.String">file:/C:/Users/johann/gate-home/gateplugin-python/examples/docs/tiny1.xml</Value>
-</Feature>
-<Feature>
-  <Name className="java.lang.String">MimeType</Name>
-  <Value className="java.lang.String">text/xml</Value>
+  <Value className="java.lang.String">created from String</Value>
 </Feature>
 </GateDocumentFeatures>
 <!-- The document content area with serialized nodes -->
 
-<TextWithNodes><Node id="0"/>Tiny<Node id="4"/> <Node id="5"/>&#xd83d;&#xdca9;<Node id="7"/> <Node id="8"/>tiny<Node id="12"/>.<Node id="13"/></TextWithNodes>
+<TextWithNodes><Node id="0"/>Tiny<Node id="4"/> <Node id="5"/>💩<Node id="7"/> <Node id="8"/>tiny<Node id="12"/>.<Node id="13"/></TextWithNodes>
 <!-- The default annotation set -->
 
 <AnnotationSet>
@@ -65,7 +57,7 @@
 </Feature>
 <Feature>
   <Name className="java.lang.String">string</Name>
-  <Value className="java.lang.String">&#xd83d;&#xdca9;</Value>
+  <Value className="java.lang.String">💩</Value>
 </Feature>
 <Feature>
   <Name className="java.lang.String">category</Name>
