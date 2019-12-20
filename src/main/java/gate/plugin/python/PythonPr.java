@@ -51,6 +51,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
@@ -680,37 +681,61 @@ public class PythonPr
    */
   @Override
   public Resource init() throws ResourceInstantiationException {
-    if (!versionInfoShown) {
-      Properties properties = new Properties();
+    // TODO: should re-factor this at some point
+    if (!versionInfoShown) {      
       try {
-        properties.load(getClass().getClassLoader().getResourceAsStream("git.properties"));
-        String buildVersion = properties.getProperty("gitInfo.build.version");
-        if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
-          System.out.println("Plugin Python version=" + buildVersion
-                  + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev"));
+        Properties properties = new Properties();    
+        InputStream is = getClass().getClassLoader().getResourceAsStream("gateplugin-Python.git.properties");
+        if(is != null) {
+          properties.load(is);
+          String buildVersion = properties.getProperty("gitInfo.build.version");
+          String isDirty = properties.getProperty("gitInfo.dirty");
+          if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
+            logger.info("Plugin Python version=" + buildVersion
+                    + " commit=" + 
+                    properties.getProperty("gitInfo.commit.id.abbrev") +
+                    " dirty=" + isDirty
+            );
+          }
+        } else {
+          logger.error("Could not obtain plugin Python version info");
         }
-      } catch (IOException ex) {
-        System.err.println("Could not obtain version info: " + ex.getMessage());
+       } catch (IOException ex) {
+        logger.error("Could not obtain plugin Python version info: " + ex.getMessage(),ex);
       }
       try {
-        properties.load(BdocDocument.class.getClassLoader().getResourceAsStream("git.properties"));
-        String buildVersion = properties.getProperty("gitInfo.build.version");
-        if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
-          System.out.println("Lib basicdocument version=" + buildVersion
-                  + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev"));
+        Properties properties = new Properties();    
+        InputStream is = BdocDocument.class.getClassLoader().getResourceAsStream("gatelib-basicdocument.git.properties");
+        if(is != null) {
+          properties.load(is);
+          String buildVersion = properties.getProperty("gitInfo.build.version");
+          String isDirty = properties.getProperty("gitInfo.dirty");
+          if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
+            logger.info("Lib basicdocument version=" + buildVersion
+                    + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev") +
+                    " dirty=" + isDirty
+            );
+          }
         }
-      } catch (IOException ex) {
-        System.err.println("Could not obtain version info: " + ex.getMessage());
+       } catch (IOException ex) {
+        logger.error("Could not obtain lib basicdocument version info: " + ex.getMessage(), ex);
       }
       try {
-        properties.load(Process4StringStream.class.getClassLoader().getResourceAsStream("git.properties"));
-        String buildVersion = properties.getProperty("gitInfo.build.version");
-        if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
-          System.out.println("Lib interaction version=" + buildVersion
-                  + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev"));
+        Properties properties = new Properties();    
+        InputStream is = Process4StringStream.class.getClassLoader().getResourceAsStream("gatelib-interaction.git.properties");
+        if(is != null) {
+          properties.load(is);
+          String buildVersion = properties.getProperty("gitInfo.build.version");
+          String isDirty = properties.getProperty("gitInfo.dirty");
+          if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
+            logger.info("Lib interaction version=" + buildVersion
+                    + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev") +
+                    " dirty=" + isDirty
+            );
+          }
         }
-      } catch (IOException ex) {
-        System.err.println("Could not obtain version info: " + ex.getMessage());
+       } catch (IOException ex) {
+        logger.error("Could not obtain lib interaction version info: " + ex.getMessage(), ex);
       }
       versionInfoShown = true;
     }
