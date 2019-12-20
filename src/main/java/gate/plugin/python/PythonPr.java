@@ -671,7 +671,7 @@ public class PythonPr
     return pythonProgramFile;
   } // end figureOutPythonFile
   
-  static protected boolean versionInfoShown = false;
+  static boolean versionInfoShown = false;
   
   /**
    * Initialise resource.
