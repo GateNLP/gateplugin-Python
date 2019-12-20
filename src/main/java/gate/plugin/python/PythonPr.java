@@ -63,6 +63,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -670,6 +671,8 @@ public class PythonPr
     return pythonProgramFile;
   } // end figureOutPythonFile
   
+  static protected boolean versionInfoShown = false;
+  
   /**
    * Initialise resource.
    * @return resource the PR instance
@@ -677,6 +680,40 @@ public class PythonPr
    */
   @Override
   public Resource init() throws ResourceInstantiationException {
+    if (!versionInfoShown) {
+      Properties properties = new Properties();
+      try {
+        properties.load(getClass().getClassLoader().getResourceAsStream("git.properties"));
+        String buildVersion = properties.getProperty("gitInfo.build.version");
+        if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
+          System.out.println("Plugin Python version=" + buildVersion
+                  + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev"));
+        }
+      } catch (IOException ex) {
+        System.err.println("Could not obtain version info: " + ex.getMessage());
+      }
+      try {
+        properties.load(BdocDocument.class.getClassLoader().getResourceAsStream("git.properties"));
+        String buildVersion = properties.getProperty("gitInfo.build.version");
+        if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
+          System.out.println("Lib basicdocument version=" + buildVersion
+                  + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev"));
+        }
+      } catch (IOException ex) {
+        System.err.println("Could not obtain version info: " + ex.getMessage());
+      }
+      try {
+        properties.load(Process4StringStream.class.getClassLoader().getResourceAsStream("git.properties"));
+        String buildVersion = properties.getProperty("gitInfo.build.version");
+        if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
+          System.out.println("Lib interaction version=" + buildVersion
+                  + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev"));
+        }
+      } catch (IOException ex) {
+        System.err.println("Could not obtain version info: " + ex.getMessage());
+      }
+      versionInfoShown = true;
+    }
     // First of all, check the init parms:
     if(workingDirUrl == null) {
       workingDir = new File(".");
