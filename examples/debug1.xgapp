@@ -24,13 +24,13 @@
       <docList>
         <gate.util.persistence.LRPersistence>
           <resourceType>gate.corpora.DocumentImpl</resourceType>
-          <resourceName>tiny1.xml_00040</resourceName>
+          <resourceName>tiny1.xml_0002E</resourceName>
           <initParams class="gate.util.persistence.MapPersistence">
             <mapType>gate.util.SimpleFeatureMapImpl</mapType>
             <localMap>
               <entry>
                 <string>encoding</string>
-                <string>windows-1252</string>
+                <string>utf-8</string>
               </entry>
               <entry>
                 <string>sourceUrl</string>
@@ -47,7 +47,7 @@
         </gate.util.persistence.LRPersistence>
       </docList>
       <resourceType>gate.corpora.CorpusImpl</resourceType>
-      <resourceName>Corpus for tiny1.xml_00040</resourceName>
+      <resourceName>Corpus for tiny1.xml_0002E</resourceName>
       <initParams class="gate.util.persistence.MapPersistence">
         <mapType>gate.util.SimpleFeatureMapImpl</mapType>
         <localMap/>
