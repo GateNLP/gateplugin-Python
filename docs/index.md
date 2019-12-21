@@ -101,20 +101,13 @@ interact()
 
 Parameters that have to get set when the processing resource is created:
 * `pythonProgram` (ResourceReference, default: empty): this specifies the Python program to run. Since this is
-  a ResourceReference, the selection dialog can be used to select a file from file storage, a plugin resource
-  or any other known URL. If something is specified that is not a local file, it is copied to the working directory
-  and that copy is used.
-* `pythonProgramPath` (String, default: empty): if this is specified it takes precedence over the `pythonProgram` parameter.
-  This can be used to specify an absolute or relative local file path. If the path is relative it is resolved against the
-  working directory.
-* `workingDirUrl` (URL, default: empty): this can be used to specify a working directory. The working directory is used
-  as the current directory when running the Python process and is also used for creating a copy of the python program, if the
-  python program is not on the local file system. If this is left empty, the current directory of the running Java process is used.
+  a ResourceReference, the selection dialog can be used to select a file from file storage, or a plugin resource.
+  If a plugin resource is used, or the file selected file is read-only, the editor is disabled.
+  Only file or creole/jar URLs are allowed. If a file URL is specified for a file that does not exist, it
+  is created and filled with a python code template.
 
-If neither `pythonProgram` nor `pythonProgramPath` is specified, a file with the name `tmpfile.py` is created in the
-working directory and initialized with an initial code template.
-If a file path is specified that does not exist, it is created and initialized with the initial code template.
-
+If file URL is specified and the file is writable, the file can be changed and edited within GATE by double clicking
+on the processing resource. See [PythonFileEditor]
 
 ### PythonPr Runtime Parameters
 
