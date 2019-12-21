@@ -213,7 +213,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>target/classes/resources/gatenlp</outputDirectory>
+              <outputDirectory>target/classes/resources/pythonpath/gatenlp</outputDirectory>
               <resources>
                 <resource>
                   <directory>submodules/python-gatenlp/gatenlp</directory>
@@ -229,7 +229,13 @@
       </plugin>
     </plugins>
     <resources>
-</resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      <excludes>
+        <exclude>**/__pycache__/</exclude>
+      </excludes>
+      </resource>
+    </resources>
   </build>
   <reporting>
     <plugins>
