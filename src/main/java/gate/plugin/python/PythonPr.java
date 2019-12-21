@@ -435,7 +435,9 @@ public class PythonPr
       if(pythonPath.isEmpty()) {
         pythonPath = pythonProgramPathInJar;
       } else {
-        pythonPath = pythonPath + ":" + pythonProgramPathInJar;
+        pythonPath = pythonPath + 
+                (PythonPr.isOsWindows() ? ";" : ":")  + 
+                pythonProgramPathInJar;
       }
       cmdLine.addArgument("-m");
       cmdLine.addArgument(pythonProgramModuleInJar);
@@ -772,7 +774,9 @@ public class PythonPr
       if(pythonPath.isEmpty()) {
         pythonPath = pythonProgramPathInJar;
       } else {
-        pythonPath = pythonPath + ":" + pythonProgramPathInJar;
+        pythonPath = pythonPath + 
+                (PythonPr.isOsWindows() ? ";" : ":") + 
+                pythonProgramPathInJar;
       }
       env.put("PYTHONPATH", pythonPath);      
       process = Process4StringStream.create(
