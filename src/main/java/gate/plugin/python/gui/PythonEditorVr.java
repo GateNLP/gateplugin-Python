@@ -64,7 +64,7 @@ public class PythonEditorVr extends AbstractVisualResource
       panel.setPR(pr);
       pr.figureOutPythonFile();
       pr.tryCompileProgram();
-      panel.setFile(pr.getCurrentPythonProgramFile());
+      panel.setFile(pr.getPythonProgramFile());
       if(!pr.isCompileOk) {
         panel.setCompilationError();
       } else {
