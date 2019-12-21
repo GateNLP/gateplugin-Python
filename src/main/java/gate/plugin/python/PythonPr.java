@@ -381,11 +381,6 @@ public class PythonPr
       String[] info = jarUrl2PythonPathAndModule(pythonProgramUrl);
       pythonProgramPathInJar = info[0];
       pythonProgramModuleInJar = info[1];
-      System.err.println("DEBUG: Non file pythonProgram: "+pythonProgram);
-      System.err.println("DEBUG: pythonProgram URL: "+pythonProgramUrl);
-      System.err.println("DEBUG: pythonProgram path: "+pythonProgramPathInJar);
-      System.err.println("DEBUG: pythonProgram module: "+pythonProgramModuleInJar);
-
     }
   } // end figureOutPythonFile
   
@@ -425,7 +420,6 @@ public class PythonPr
     if(getUsePluginGatenlpPackage()) {
       pythonPath = usePythonPackagePath;
     }
-    System.err.println("DEBUG: trying to compile");
     if(!pythonProgramIsJar) {
       cmdLine.addArgument(pythonProgramFile.getAbsolutePath());
     } else {
@@ -457,8 +451,6 @@ public class PythonPr
     Map<String,String> env = new HashMap<>();
     env.putAll(System.getenv());
     env.put("PYTHONPATH", pythonPath);
-    System.err.println("DEBUG: python path is "+pythonPath);
-    System.err.println("DEBUG: cmdline is "+cmdLine.toString());
     try {
       if(loggingLevel == LoggingLevel.DEBUG) {        
         logger.info("Trying to compile program:");
@@ -526,11 +518,8 @@ public class PythonPr
     if(!"jar".equals(jarUrl.getProtocol())) {
       throw new RuntimeException("Expected JAR url but got: "+jarUrl);
     }
-    System.err.println("DEBUG: ORIGINAL URL="+jarUrl);
     String urlString = jarUrl.toString();
-    System.err.println("DEBUG: ORIGINAL URL STRING="+urlString);
     urlString = removeValidProtocols(urlString);
-    System.err.println("DEBUG: ORIGINAL URL STRING NO PROTOCOL="+urlString);
     // first of all, split the whole url into the urlfile and urlpath parts
     // before and after the !/ 
     int sepIdx = urlString.indexOf("!/");
@@ -543,8 +532,6 @@ public class PythonPr
       urlFile = urlString.substring(0, sepIdx);
       urlPath = urlString.substring(sepIdx+1);
     }
-    System.err.println("DEBUG: GOT urlFile="+urlFile);
-    System.err.println("DEBUG: GOT urlPath="+urlPath);
     // now process the urlPath
     // everything after the last slash is the file, everything before the last
     // slash is the path-part
@@ -557,8 +544,6 @@ public class PythonPr
     }
     // now prepend the file again
     path = urlFile+path;
-    System.err.println("DEBUG: url2path path="+path);
-    System.err.println("DEBUG: url2path module=>"+file+"<=");
     String[] ret = new String[2];
     ret[0] = path;
     ret[1] = file;
@@ -618,17 +603,13 @@ public class PythonPr
       throw new GateRuntimeException("Could not get jar URL");
     }
     String urlString = artifactURL.toString();
-    System.err.println("DEBUG: original package parent urlString "+urlString);
     urlString = removeValidProtocols(urlString);
-    System.err.println("DEBUG: no-protocol package parent urlString "+urlString);
     if(urlString.endsWith("!/")) {
       urlString = urlString.substring(0, urlString.length()-2);
     } else if(urlString.endsWith("/")) {
       urlString = urlString.substring(0, urlString.length()-1);
     }
-    System.err.println("DEBUG: cleaned package parent urlString "+urlString);
     urlString = urlString + "/resources/pythonpath";
-    //System.err.println("DEBUG: final package parent urlString "+urlString);
     return urlString;
   }
 
@@ -719,7 +700,6 @@ public class PythonPr
     }
     String scheme = pythonProgram.toURI().getScheme();
     String schemespec = pythonProgram.toURI().getSchemeSpecificPart();
-    System.err.println("!!!DEBUG: scheme="+scheme+" / schemespec="+schemespec);
     // creole://uk.ac.gate.plugins;python;2.0-SNAPSHOT/resources/pipelines/python-spacy.py
     if(!"file".equals(scheme) && !"jar".equals(scheme) && !"creole".equals(scheme)) {
       throw new ResourceInstantiationException(
@@ -734,7 +714,6 @@ public class PythonPr
       throw new ResourceInstantiationException("Could not convert to URL: "+pythonProgram, ex);
     }
     figureOutPythonFile(pythonProgramUrl);
-    //System.err.println("DEBUG: pythonpath is "+usePythonPath);
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
     if(nrDuplicates==null) {
