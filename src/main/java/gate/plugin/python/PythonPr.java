@@ -642,6 +642,7 @@ public class PythonPr
     } else {
       duplicateId = nrDuplicates.getAndAdd(1);
     }
+    figureOutPythonFile();
     return this;
   } // end init()
 
@@ -716,6 +717,7 @@ public class PythonPr
   @Override
   public void reInit() throws ResourceInstantiationException {
     nrDuplicates = null;  // should we do this?
+    figureOutPythonFile();   // in case the init parm has changed?
     super.reInit();
   }
 
