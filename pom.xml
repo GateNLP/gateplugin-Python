@@ -161,27 +161,26 @@
           </gitDescribe>
         </configuration>
       </plugin>
-
-		<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.5</version>
-				<executions>
-					<execution>
-						<id>default-prepare-agent</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-report</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>        
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.5</version>
+        <executions>
+          <execution>
+            <id>default-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
@@ -213,7 +212,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>target/classes/resources/gatenlp</outputDirectory>
+              <outputDirectory>target/classes/resources/pythonpath/gatenlp</outputDirectory>
               <resources>
                 <resource>
                   <directory>submodules/python-gatenlp/gatenlp</directory>
@@ -229,24 +228,29 @@
       </plugin>
     </plugins>
     <resources>
-</resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+          <exclude>**/__pycache__/</exclude>
+        </excludes>
+      </resource>
+    </resources>
   </build>
   <reporting>
     <plugins>
-		<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.5</version>
-				<configuration>
-					<excludes>
-						<!-- this excludes known GUI code from the code coverage results as 
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.5</version>
+        <configuration>
+          <excludes>
+            <!-- this excludes known GUI code from the code coverage results as 
 							we know we aren't testing them so will likely have a 0% coverage -->
-						<exclude>**/gui/**/*</exclude>
-						<exclude>**/swing/**/*</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-        
+            <exclude>**/gui/**/*</exclude>
+            <exclude>**/swing/**/*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>

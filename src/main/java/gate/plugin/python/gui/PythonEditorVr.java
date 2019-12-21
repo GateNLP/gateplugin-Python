@@ -54,17 +54,20 @@ public class PythonEditorVr extends AbstractVisualResource
   @Override
   public void setTarget(Object target) {
     if(target instanceof PythonCodeDriven) {
-      theTarget = (PythonCodeDriven)target;      
+      theTarget = (PythonCodeDriven)target; 
+      pr = (PythonPr)target;      
+      if(!pr.pythonFileCanBeEdited()) {
+        return;
+      }
       panel = new PythonEditorPanel();
       this.add(panel);
       this.setLayout(new GridLayout(1,1));
       // register ourselves as the EditorVR
-      pr = (PythonPr)target;      
+      
       pr.registerEditorVR(this);
       panel.setPR(pr);
-      pr.figureOutPythonFile();
       pr.tryCompileProgram();
-      panel.setFile(pr.getCurrentPythonProgramFile());
+      panel.setFile(pr.getPythonProgramFile());
       if(!pr.isCompileOk) {
         panel.setCompilationError();
       } else {

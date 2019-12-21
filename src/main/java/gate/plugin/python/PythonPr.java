@@ -45,17 +45,11 @@ import gate.lib.basicdocument.BdocUtils;
 import gate.lib.basicdocument.ChangeLog;
 import gate.lib.basicdocument.GateDocumentUpdater;
 import gate.lib.interaction.process.pipes.Process4StringStream;
-import gate.util.Files;
 import gate.util.GateRuntimeException;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -66,8 +60,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -75,7 +67,6 @@ import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
-import org.apache.commons.io.FileUtils;
 
 
 
@@ -100,28 +91,22 @@ public class PythonPr
   /**
    * Set the location of the python program.
    * This parameter allows to set the location of the python program as 
-   * either a normal URL (a file: URL for files on a local disk) or as an URL
-   * that points into the plugin's jar. If the URL points to something that is
-   * not a local file, the content gets copied into the working directory and
-   * that copy of the file is used instead.
-   * <p>
-   * This parameter gets ignored if the pythonProgramPath parameter is set.
-   * <p>
-   * If both this and the pythonProgramPath parameter are empty, a new 
-   * file is created in the working directory.
+   * either a file URL for files on a local disk or as an URL
+   * that points into the plugin's jar. If the URL points to a file in a JAR
+   * or a local file that is not writable, the file cannot be edited in
+   * the editor. If the local file does not exist, it gets created with
+   * a template content.
    * 
    * @param value the URL pointing to the python file. 
    */
   @Optional
   @CreoleParameter(
-          comment = "The URL of the Python program to run",
-          disjunction = "program",
-          priority = 0,
+          comment = "The (file or jar) URL of the Python program to run",
           suffixes = ".py")
   public void setPythonProgram(ResourceReference value) {
     pythonProgram = value;
   }
-  /**
+/**
    * Get the python program path parameter.
    * @return the value of the parameter
    */
@@ -129,41 +114,13 @@ public class PythonPr
     return pythonProgram;
   }
   protected ResourceReference pythonProgram;
-
-  /**
-   * Set the python program path.
-   * 
-   * This can be used as an alternative to the setPythonProgram method to 
-   * set the path to the python program as an absolute or relative file path.
-   * If the path is relative, it is interpreted as relative to whatever 
-   * directory is used as a working directory.
-   * 
-   * @param value the python program file path
-   */
-  @Optional
-  @CreoleParameter(
-          comment = "An absolute or relative file path to the python program",
-          disjunction = "program",
-          priority = 1,
-          suffixes = ".py")
-  public void setPythonProgramPath(String value) {
-    pythonProgramPath = value;
-  }
-  /**
-   * Get the python program file path.
-   * @return the value of the parameter
-   */
-  public String getPythonProgramPath() {
-    return pythonProgramPath;
-  }
-  protected String pythonProgramPath;
   
-  protected File currentPythonProgramFile = null;
-  /**
-   * Get the currently known python program file. 
-   * @return python program file
-   */
-  public File getCurrentPythonProgramFile() { return currentPythonProgramFile; }
+  // fields calculated from pythonProgram
+  protected boolean pythonProgramIsJar;
+  protected boolean pythonProgramIsReadonly;
+  protected File    pythonProgramFile;  // if not jar, the file on the disk
+  protected String  pythonProgramPathInJar;  // if jar, the parent dir of the file
+  protected String  pythonProgramModuleInJar; // if jar the module name 
 
 
   /**
@@ -243,29 +200,6 @@ public class PythonPr
   protected String pythonBinaryCommand;
   
   /**
-   * The working directory to use.
-   * If this is not set, the current directory of the process running GATE
-   * is used. This is only relevant if the python program file is specified relative
-   * to the working directory or if the python program file needs to get copied
-   * to the working directory for editing and use. 
-   * @param value URL of working directory
-   */
-  @Optional
-  @CreoleParameter(comment = "Working directory.")
-  public void setWorkingDirUrl(URL value) {
-    workingDirUrl = value;
-  }
-  /**
-   * Get the working directory URL.
-   * @return working directory URL
-   */
-  public URL getWorkingDirUrl() {
-    return workingDirUrl;
-  }
-  protected URL workingDirUrl;
-  protected File workingDir;   // the file to use, based on the workingDirUrl
-  
-  /**
    * Possible python side logging level values.
    */
   public static enum LoggingLevel {
@@ -321,20 +255,20 @@ public class PythonPr
   @RunTime
   @CreoleParameter(comment = "Use Python gatenlp package included in the plugin, not the system one.",
           defaultValue = "true")
-  public void setUseOwnGatenlpPackage(Boolean value) {
-    useOwnGatenlpPackage = value;
+  public void setUsePluginGatenlpPackage(Boolean value) {
+    usePluginGatenlpPackage = value;
   }
   /**
    * Get the ownGatenlpPackage parameter value.
    * @return value of the parameter
    */
-  public Boolean getUseOwnGatenlpPackage() {
-    if (useOwnGatenlpPackage == null) {
+  public Boolean getUsePluginGatenlpPackage() {
+    if (usePluginGatenlpPackage == null) {
       return true;
     }
-    return useOwnGatenlpPackage;
+    return usePluginGatenlpPackage;
   }
-  protected Boolean useOwnGatenlpPackage;
+  protected Boolean usePluginGatenlpPackage;
   
   /**
    * This field contains the currently active process for the python program.
@@ -414,37 +348,94 @@ public class PythonPr
       throw new GateRuntimeException("Cannot run, pythonBinary or pythonBinaryUrl must be specified");
     }
     if(pythonBinaryUrl != null) {
-      pythonBinaryCommand = Files.fileFromURL(pythonBinaryUrl).getAbsolutePath();
+      pythonBinaryCommand = gate.util.Files.fileFromURL(pythonBinaryUrl).getAbsolutePath();
     } else {
       pythonBinaryCommand = pythonBinary;
     }    
   }
   
+  /**
+   * Figure out what kind of python file we use.
+   * 
+   * We allow two kinds of locations: on the local file system, i.e. a file:
+   * URL, and from within a JAR.
+   * This program determines which of those we have and sets the 
+   * fields pythonProgramXXXX. 
+   */
+  public void figureOutPythonFile(URL pythonProgramUrl) {
+    if(pythonProgramUrl.getProtocol().equals("file")) {
+      pythonProgramFile = gate.util.Files.fileFromURL(pythonProgramUrl);
+      if(!pythonProgramFile.exists()) {          
+        copyResource("/resources/templates/default.py", pythonProgramFile);
+      }
+      pythonProgramIsJar = false;
+      pythonProgramPathInJar = null;
+      pythonProgramModuleInJar = null;
+      Path pythonProgramPath = FileSystems.getDefault().getPath(pythonProgramFile.getAbsolutePath());
+      if(!java.nio.file.Files.isReadable(pythonProgramPath)) {
+        throw new GateRuntimeException("File is not readable: "+pythonProgramFile);
+      }
+      pythonProgramIsReadonly = !java.nio.file.Files.isWritable(pythonProgramPath);
+    } else {
+      pythonProgramIsJar = true;
+      String[] info = jarUrl2PythonPathAndModule(pythonProgramUrl);
+      pythonProgramPathInJar = info[0];
+      pythonProgramModuleInJar = info[1];
+    }
+  } // end figureOutPythonFile
+  
+  /**
+   * Return flag indicating if the python file can be edited.
+   * 
+   * @return  true if it can be edited
+   */
+  public boolean pythonFileCanBeEdited() {
+    return !pythonProgramIsJar && !pythonProgramIsReadonly;
+  }
+  
+  /**
+   * Return the python file or null if in JAR.
+   * @return file or null
+   */
+  public File getPythonProgramFile() {
+    return pythonProgramFile;
+  }
   
   /**
    * Rough check if the program can be compiled.
    * 
-   * This uses py_compile to check if the program can be compiled. 
-   * Being able to compile does not guarantee there are no other errors
-   * in it of course.
+   * This invokes the program with the --mode check parameters to check
+   * for syntax errors, import erros and anything that will be detected 
+   * without actually running the class and interchaning data.
+   * <p>
+   * The python program is run as a normal program if it is a normal file,
+   * if it is in the jar, it gets invoked by loading it as a library.
    * 
    * @return true if compilation went ok, false otherwise
    */
   public boolean tryCompileProgram() {
     ensurePythonProgramCommand();
-    // we check for syntax errors by running <pythonbinary> -m py_compile <file>
-    // see https://docs.python.org/3/library/py_compile.html
-    // For now we do this by using apache commons exec with a watchdog
     CommandLine cmdLine = new CommandLine(pythonBinaryCommand);
-    // In the past we actually just tried to compile the script, but this does
-    // not catch other problems, e.g. when requirements are not installed.
-    // cmdLine.addArgument("-m");
-    // cmdLine.addArgument("py_compile");
-    // cmdLine.addArgument(currentPythonProgramFile.getAbsolutePath());
-    // System.err.println("DEBUG: running: "+cmdLine.toString());
-    // Instead, we actually run the script, but using mode "check" which has
-    // been added for that purpose and does nothing
-    cmdLine.addArgument(currentPythonProgramFile.getAbsolutePath());
+    String pythonPath = "";
+    if(getUsePluginGatenlpPackage()) {
+      pythonPath = usePythonPackagePath;
+    }
+    if(!pythonProgramIsJar) {
+      cmdLine.addArgument(pythonProgramFile.getAbsolutePath());
+    } else {
+      // to load as library, we need the RELATIVE path in the jar, relative
+      // to what we have set as PYTHONPATH (which is the /resources dir).
+      // AND we need to remove the .py extension.
+      if(pythonPath.isEmpty()) {
+        pythonPath = pythonProgramPathInJar;
+      } else {
+        pythonPath = pythonPath + 
+                (PythonPr.isOsWindows() ? ";" : ":")  + 
+                pythonProgramPathInJar;
+      }
+      cmdLine.addArgument("-m");
+      cmdLine.addArgument(pythonProgramModuleInJar);
+    }
     cmdLine.addArgument("--mode");
     cmdLine.addArgument("check");
     DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
@@ -452,7 +443,6 @@ public class PythonPr
     Executor executor = new DefaultExecutor();
     
     executor.setWatchdog(watchdog);
-    executor.setWorkingDirectory(workingDir);
     // Note: not sure if the following is how to do it and if does what 
     // I think it does: if the execute watchdog was not able to terminate
     // the process, mayne this makes sure it gets destroyed so that the Java
@@ -460,14 +450,12 @@ public class PythonPr
     executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
     Map<String,String> env = new HashMap<>();
     env.putAll(System.getenv());
-    if(getUseOwnGatenlpPackage()) {
-      env.put("PYTHONPATH", usePythonPackagePath);
-    }
+    env.put("PYTHONPATH", pythonPath);
     try {
       if(loggingLevel == LoggingLevel.DEBUG) {        
         logger.info("Trying to compile program:");
-        logger.info("Python path is "+usePythonPackagePath);
-        logger.info("Running: "+cmdLine.toString());
+        logger.info("Python path is "+pythonPath);
+        logger.info("Running: "+cmdLine);
       }
       executor.execute(cmdLine, env, resultHandler);
     } catch (IOException ex) {
@@ -507,6 +495,12 @@ public class PythonPr
 
   /**
    * Register the visual resource.
+   * 
+   * This gets called by the visual resource as part of the code that is 
+   * run when setTarget is invoked. 
+   * If setTarget finds out we should not have VR in the first place, it 
+   * does not call back and our registeredEditorVR remains null.
+   * 
    * @param vr visual resource
    */
   public void registerEditorVR(PythonEditorVr vr) {
@@ -514,32 +508,68 @@ public class PythonPr
   }
 
   /**
-   * Find the location of where the gatenlp package is in the zip or classes 
-   * directory.
-   * 
-   * @return location of containing folder
+   * Return the path and module from a JAR URL.
+   * @param jarUrl expected to point to a python file inside a jar
+   * @return array with two elements, the pythonpath and the module name
    */
-  public String getPackageParentPathInZip() {
-    URL artifactURL = PythonPr.class.getResource("/creole.xml");
-    try {
-      artifactURL = new URL(artifactURL, ".");
-    } catch (MalformedURLException ex) {
-      throw new GateRuntimeException("Could not get jar URL");
+  public String[] jarUrl2PythonPathAndModule(URL jarUrl) {
+    // eg jar:file:/home/johann/.m2/repository/uk/ac/gate/plugins/python/2.0-SNAPSHOT/python-2.0-SNAPSHOT.jar!/resources/pipelines/python-spacy.py
+    // should return /resources/pipelines/python-spacy.py
+    if(!"jar".equals(jarUrl.getProtocol())) {
+      throw new RuntimeException("Expected JAR url but got: "+jarUrl);
     }
-    String urlString = artifactURL.toString();
-    //System.err.println("DEBUG: original package parent urlString "+urlString);
+    String urlString = jarUrl.toString();
+    urlString = removeValidProtocols(urlString);
+    // first of all, split the whole url into the urlfile and urlpath parts
+    // before and after the !/ 
+    int sepIdx = urlString.indexOf("!/");
+    String urlFile;
+    String urlPath;
+    if(sepIdx == -1) {
+      urlFile = urlString;
+      urlPath = "/";
+    } else {
+      urlFile = urlString.substring(0, sepIdx);
+      urlPath = urlString.substring(sepIdx+1);
+    }
+    // now process the urlPath
+    // everything after the last slash is the file, everything before the last
+    // slash is the path-part
+    sepIdx = urlPath.lastIndexOf("/");
+    String file = urlPath.substring(sepIdx+1);
+    String path = urlPath.substring(0, sepIdx);
+    // if the file ends with .py, we remove that
+    if(file.endsWith(".py")) {
+      file = file.substring(0, file.length()-3);
+    }
+    // now prepend the file again
+    path = urlFile+path;
+    String[] ret = new String[2];
+    ret[0] = path;
+    ret[1] = file;
+    return  ret;
+  }
+  
+  /**
+   * Given a jar/file URL, remove the valid protocol parts.
+   * 
+   * @param urlString the URL string
+   * @return  url string with protocols removed
+   */
+  public String removeValidProtocols(String urlString) {
+    // file URL if of the form file://host/path where //host may be missing
+    // or host may be empty, so we can have file:/path or file:///path
+    // jar: can be prepended to identify this as a JAR file
+    // In theory we could also have file://localhost/path etc. but we 
+    // do not handle these here yet
     if(urlString.startsWith("jar:file:///")) {
       urlString = urlString.substring(11);
-      urlString = urlString.substring(0, urlString.length()-2);
     } else if(urlString.startsWith("jar:file:/")) {
       urlString = urlString.substring(9);
-      urlString = urlString.substring(0, urlString.length()-2);
     } else if(urlString.startsWith("file:///")) {
       urlString = urlString.substring(7);
-      urlString = urlString.substring(0, urlString.length()-1);
     } else if(urlString.startsWith("file:/")) {
       urlString = urlString.substring(5);
-      urlString = urlString.substring(0, urlString.length()-1);
     } else {
       throw new GateRuntimeException("Odd JAR URL: "+urlString);
     }
@@ -548,8 +578,38 @@ public class PythonPr
     if(PythonPr.isOsWindows()) {
       urlString = urlString.substring(1);
     }
-    urlString = urlString + "/resources/";
-    //System.err.println("DEBUG: final package parent urlString "+urlString);
+    return urlString;
+  }
+  
+  /**
+   * Find the location of where the gatenlp package is in the jar
+   * or, for the tests, in the classes directory.
+   * 
+   * This returns the absolute path we need to specify in the PYTHONPATH
+   * environment variable in order to put the included gatenlp package 
+   * on the python path. This first figures out which location our own 
+   * class got loaded from which is either the plugin JAR or the classes
+   * directory during building and testing. Then converts any of these 
+   * locations into the full path needed for python to find the directory,
+   * ither as a zip import or from the ordinary file system. 
+   * 
+   * @return location of containing folder
+   */
+  public String getPythonpathInZip() {
+    URL artifactURL = PythonPr.class.getResource("/creole.xml");
+    try {
+      artifactURL = new URL(artifactURL, ".");
+    } catch (MalformedURLException ex) {
+      throw new GateRuntimeException("Could not get jar URL");
+    }
+    String urlString = artifactURL.toString();
+    urlString = removeValidProtocols(urlString);
+    if(urlString.endsWith("!/")) {
+      urlString = urlString.substring(0, urlString.length()-2);
+    } else if(urlString.endsWith("/")) {
+      urlString = urlString.substring(0, urlString.length()-1);
+    }
+    urlString = urlString + "/resources/pythonpath";
     return urlString;
   }
 
@@ -560,118 +620,14 @@ public class PythonPr
   public String usePythonPackagePath;
   
   
-  /**
-   * Figure out which python file to use.
-   * 
-   * This is not trivial because which file to use depends on the following 
-   * parameters: pythonProgram (ResourceReference), pythonProgramPath(String), 
-   * and workingDirUrl(URL). Since all these parameters are runtime parameters,
-   * they also can change at almost any time and they are all empty initially. 
-   * <p>
-   * A further complication is that we have a visual resource for editing 
-   * the python code. This means that as soon as the user activates the 
-   * visual resource, we must decide on which file to edit. This means that
-   * if now program has explicitly been set yet, we should use some temporary
-   * file somewhere. Also, if the program has been set to a location in the 
-   * JAR (through the ResourceReference) than we need to create a copy of that
-   * somewhere in order to edit it and use that copy instead. 
-   * <p>
-   * This method decides which file to use, and, if necessary, also creates
-   * that file. The File object representing the file gets returned. 
-   * The method also updates the global currentPythonProgramFile variable and
-   * tries to update the editor, if necessary. 
-   * 
-   * @return the File representing the Python program file
-   */
-  public File figureOutPythonFile() {
-    // This gets called to figure out the python file we want to use.
-    //
-    // Here are the main situations:
-    // 1) no parameter is set but the user wants to edit/run:
-    // in that case, we create a new file in the effective working directory,
-    // initialised with the code template. 
-    // 2) a pythonProgramPath is set: 
-    File pythonProgramFile = null;   // the file we will end up using
-    // if both parms are empty and we need a python program file, we create 
-    // a temporary one in the working directory from the program template
-    if (pythonProgram == null && (pythonProgramPath == null || pythonProgramPath.isEmpty())) {
-      String tmpfilename = "tmpfile.py";
-      pythonProgramFile = new File(workingDir, tmpfilename);
-      if(!pythonProgramFile.exists()) {          
-        logger.info("Creating new Python file from template: "+pythonProgramFile);
-        copyResource("/resources/templates/default.py", pythonProgramFile);
-      } else{
-        logger.info("Using existing Python file "+pythonProgramFile);
-      }
-    } else if(pythonProgramPath != null && !pythonProgramPath.isEmpty()) {
-      // If the pythonProgramPath is set, it takes precedence of ther the pythonProgram
-      // if the path is absolute, use just that file, otherwise, make it
-      // relative to the working directory, not the current directory
-      File tmpfile = new File(pythonProgramPath);
-      if(tmpfile.isAbsolute()) {
-        pythonProgramFile = tmpfile;
-      } else {
-        pythonProgramFile = new File(workingDir, pythonProgramPath);
-      }
-      if(!pythonProgramFile.exists()) {          
-        copyResource("/resources/templates/default.py", pythonProgramFile);
-      }
-    } else if(pythonProgram == null) {
-      throw new GateRuntimeException("Should never be thrown");      
-    } else  if(pythonProgram.toURI().getScheme().equals("file")) {
-      try {
-        pythonProgramFile = gate.util.Files.fileFromURL(pythonProgram.toURL());
-        if(!pythonProgramFile.exists()) {          
-          copyResource("/resources/templates/default.py", pythonProgramFile);
-        }
-      } catch (IOException ex) {
-        throw new GateRuntimeException("Could not determine file for pythonProgram "+pythonProgram, ex);
-      }
-    } else {
-      URI pythonProgramUri = pythonProgram.toURI();
-      String tmpfilename = Paths.get(pythonProgramUri.getPath()).getFileName().toString();
-      pythonProgramFile = new File(workingDir, tmpfilename);
-      // if the file we figured out is already known we do not need to do 
-      // anything, otherwise check if we need to copy and if yes, do it!
-      if(!pythonProgramFile.equals(currentPythonProgramFile)) {      
-        if (pythonProgramFile.exists()) {
-          logger.warn("Not copying " + pythonProgram + " to " + pythonProgramFile + ", already exists!");
-        } else {
-          try (
-                  BufferedReader br
-                  = new BufferedReader(new InputStreamReader(pythonProgram.openStream(), "UTF-8"));
-                  PrintStream osr
-                  = new PrintStream(new FileOutputStream(pythonProgramFile), true, "UTF-8");) {
-            String line;
-            while (null != (line = br.readLine())) {
-              osr.println(line);
-            }
-            logger.info("Copied from JAR to " + pythonProgramFile);
-          } catch (IOException ex) {
-            Logger.getLogger(PythonPr.class.getName()).log(Level.SEVERE, null, ex);
-          }
-        }
-      }
-    }
-    try {
-      // just check if we can read the script here ... what we read is not actually 
-      // ever used
-      FileUtils.readFileToString(pythonProgramFile, "UTF-8");
-    } catch (IOException ex) {
-      throw new GateRuntimeException("Could not read the python program from " + pythonProgramFile, ex);
-    }
-
-    if(!pythonProgramFile.equals(currentPythonProgramFile)) {
-      currentPythonProgramFile = pythonProgramFile;
-      if(registeredEditorVR != null) {
-        registeredEditorVR.setFile(currentPythonProgramFile);
-      }
-    }
-    
-    return pythonProgramFile;
-  } // end figureOutPythonFile
   
   static boolean versionInfoShown = false;
+  
+  //public boolean isJarUrl(URL url) {
+  //  String scheme = url.toURI().getScheme();
+  //  if()
+ //}
+  
   
   /**
    * Initialise resource.
@@ -738,25 +694,26 @@ public class PythonPr
       }
       versionInfoShown = true;
     }
-    // First of all, check the init parms:
-    if(workingDirUrl == null) {
-      workingDir = new File(".");
-    } else {
-      workingDir = Files.fileFromURL(workingDirUrl);
+    // check the pythonProgram parameter: must be JAR or file URL
+    if(pythonProgram == null) {
+      throw new ResourceInstantiationException("Parameter pythonProgram must be set!");
     }
-    // check some problems with the working dir here because using something
-    // odd can cause problems that are hard to debug when running commands later
-      if(!workingDir.isDirectory()) {
-        throw new ResourceInstantiationException("Working directory URL must specify a directory");
-      }
-      if(!workingDir.canRead()) {
-        throw new ResourceInstantiationException("Working directory must be readable");
-      }
-      if(!workingDir.canWrite()) {
-        throw new ResourceInstantiationException("Working directory must be writable");
-      }
-    usePythonPackagePath = getPackageParentPathInZip();
-    //System.err.println("DEBUG: pythonpath is "+usePythonPath);
+    String scheme = pythonProgram.toURI().getScheme();
+    String schemespec = pythonProgram.toURI().getSchemeSpecificPart();
+    // creole://uk.ac.gate.plugins;python;2.0-SNAPSHOT/resources/pipelines/python-spacy.py
+    if(!"file".equals(scheme) && !"jar".equals(scheme) && !"creole".equals(scheme)) {
+      throw new ResourceInstantiationException(
+              "Parameter pythonProgram is not a file, jar, or creole URL but: "
+                      +getPythonProgram());      
+    }
+    usePythonPackagePath = getPythonpathInZip();
+    URL pythonProgramUrl = null;
+    try {
+       pythonProgramUrl = pythonProgram.toURL();
+    } catch (IOException ex) {
+      throw new ResourceInstantiationException("Could not convert to URL: "+pythonProgram, ex);
+    }
+    figureOutPythonFile(pythonProgramUrl);
     // count which duplication id we have, the first instance gets null, the 
     // duplicates will find the instance from the first instance
     if(nrDuplicates==null) {
@@ -777,7 +734,6 @@ public class PythonPr
    */
   protected void whenStarting() {
     runningDuplicates.getAndIncrement();
-    figureOutPythonFile();
     ensurePythonProgramCommand();
     // Make sure we have a Python program that at least looks like we could run it    
     // Get the effective path to the python binary: either use the pythonbinary name
@@ -789,19 +745,43 @@ public class PythonPr
     // ok, actually run the python program so we can communicate with it. 
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String,String> env = new HashMap<>();
-    if(getUseOwnGatenlpPackage()) {
-      env.put("PYTHONPATH", usePythonPackagePath);
+    String pythonPath = "";
+    if(getUsePluginGatenlpPackage()) {
+      pythonPath = usePythonPackagePath;
     }
-    process = Process4StringStream.create(
-              workingDir, 
+    if(pythonProgramIsJar) {
+      if(pythonPath.isEmpty()) {
+        pythonPath = pythonProgramPathInJar;
+      } else {
+        pythonPath = pythonPath + 
+                (PythonPr.isOsWindows() ? ";" : ":") + 
+                pythonProgramPathInJar;
+      }
+      env.put("PYTHONPATH", pythonPath);      
+      process = Process4StringStream.create(
+              new File("."), 
               env, 
               pythonBinaryCommand, 
-              currentPythonProgramFile.getAbsolutePath(),
+              "-m",
+              pythonProgramModuleInJar,
               "--mode",
               "pipe",
               "--log_lvl", 
               loggingLevel.toString()
       );
+    } else {
+      env.put("PYTHONPATH", pythonPath);
+      process = Process4StringStream.create(
+              new File("."), 
+              env, 
+              pythonBinaryCommand, 
+              pythonProgramFile.getAbsolutePath(),
+              "--mode",
+              "pipe",
+              "--log_lvl", 
+              loggingLevel.toString()
+      );
+    }
     String responseJson = (String)process.process(makeStartRequest());
     if(responseJson == null) {
       throw new GateRuntimeException("Invalid null response from Python process, did you run interact()?");
@@ -840,10 +820,8 @@ public class PythonPr
   @Override
   public void reInit() throws ResourceInstantiationException {
     nrDuplicates = null;  // should we do this?
-    if(registeredEditorVR != null) {
-      registeredEditorVR.setFile(getCurrentPythonProgramFile());
-    }
     super.reInit();
+    init();
   }
 
   /**
@@ -973,8 +951,12 @@ public class PythonPr
     Map<String,Object> params = BdocUtils.featureMap2Map(programParams, null);
     params.put("gate_plugin_python_duplicateId", duplicateId);
     params.put("gate_plugin_python_nrDuplicates", nrDuplicates.get());   
-    params.put("gate_plugin_python_workingDir", workingDir.getAbsolutePath());
-    params.put("gate_plugin_python_pythonFile", currentPythonProgramFile.getAbsolutePath());
+    if(pythonProgramIsJar) {
+      params.put("gate_plugin_python_pythonPath", pythonProgramPathInJar);
+      params.put("gate_plugin_python_pythonModule", pythonProgramModuleInJar);
+    } else {
+      params.put("gate_plugin_python_pythonFile", pythonProgramFile.getAbsolutePath());
+    }
     request.put("data", params);
     try {
       return JSON.std.asString(request);
