@@ -361,6 +361,8 @@ public class PythonPr
    * URL, and from within a JAR.
    * This program determines which of those we have and sets the 
    * fields pythonProgramXXXX. 
+   * 
+   * @param pythonProgramUrl python progrsam url
    */
   public void figureOutPythonFile(URL pythonProgramUrl) {
     if(pythonProgramUrl.getProtocol().equals("file")) {
