@@ -699,8 +699,6 @@ public class PythonPr
       throw new ResourceInstantiationException("Parameter pythonProgram must be set!");
     }
     String scheme = pythonProgram.toURI().getScheme();
-    String schemespec = pythonProgram.toURI().getSchemeSpecificPart();
-    // creole://uk.ac.gate.plugins;python;2.0-SNAPSHOT/resources/pipelines/python-spacy.py
     if(!"file".equals(scheme) && !"jar".equals(scheme) && !"creole".equals(scheme)) {
       throw new ResourceInstantiationException(
               "Parameter pythonProgram is not a file, jar, or creole URL but: "
