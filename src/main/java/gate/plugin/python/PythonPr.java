@@ -55,7 +55,10 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -270,6 +273,14 @@ public class PythonPr
   }
   protected Boolean usePluginGatenlpPackage;
   
+  public void setResultResource(PythonPrResult value) {
+    pythonPrResult = value;
+  }
+  public PythonPrResult getResultResource() {
+    return pythonPrResult;
+  }
+  protected PythonPrResult pythonPrResult;
+  
   /**
    * This field contains the currently active process for the python program.
    * Otherwise, the field should be null.
@@ -306,6 +317,24 @@ public class PythonPr
     return nrDuplicates;
   }
   protected AtomicInteger nrDuplicates;
+  
+  /**
+   * Result list setter.
+   * @param value should be a synchronized list
+   */
+  @Sharable
+  public void setResultList(List<Object> value) {
+    resultList = value;
+  }
+  /**
+   * Result list getter.
+   * @return the list
+   */
+  public List<Object> getResultList() {
+    return resultList;
+  }
+  protected List<Object> resultList;
+  
   
   /**
    * Number of duplicates running on a corpus.
@@ -720,6 +749,8 @@ public class PythonPr
       nrDuplicates = new AtomicInteger(1);      
       runningDuplicates = new AtomicInteger(0);
       duplicateId = 0;
+      List<Object> wrappedList = new ArrayList<>();
+      setResultList(Collections.synchronizedList(wrappedList));
     } else {
       duplicateId = nrDuplicates.getAndAdd(1);
     }
@@ -798,7 +829,46 @@ public class PythonPr
 
   protected void whenFinishing() {
     runningDuplicates.getAndDecrement();
-    process.process(makeFinishRequest());
+    String responseJson = (String)process.process(makeFinishRequest());
+    Map<String,Object> result = null;
+    try {
+      FinishResponse response = JSON.std.beanFrom(FinishResponse.class, responseJson);
+      if(!"ok".equals(response.status)) {
+        throw new GateRuntimeException("Error Finishing Processing: "+response.error+
+                ", additional info: "+response.info);
+      }
+      Map<String,Object> data = response.data;
+      // if the number of duplicates is 1, then data already is the final result
+      if(nrDuplicates.get() == 1) {
+        result = data;
+      } else {
+        // add the data to the resultList, but only if we got something 
+        if(data != null) {
+          getResultList().add(data);
+        }
+      }
+    } catch (IOException ex) {
+      throw new GateRuntimeException("Could not convert execute response JSON: "+responseJson, ex);
+    }
+    // if the number of running duplicates is 0, call the reduce method
+    // but only if there is something in the list
+    if (runningDuplicates.get() == 0) {
+      logger.info("DEBUG: last whenFinishing");
+      if (!getResultList().isEmpty()) {
+        logger.info("DEBUG: calling reduce for number of results: " + getResultList().size());
+      } else {
+        logger.info("DEBUG: not calling reduce, result list is empty");
+      }
+      // if we have a result resource, set the result in the resource      
+      // otherwise check if the result we got is a map and if yes, set
+      // the features of the PR. 
+      if(getResultResource() != null) {
+        getResultResource().setResultData(result);        
+      } else {
+        this.getFeatures().putAll(features);
+      }
+    }
+    
     // TODO: here or around here we need to do the python process result 
     // processing at some point!
     // If we have only one duplicate, call the result method with no
@@ -838,7 +908,6 @@ public class PythonPr
     }
   }
   
-
   /**
    * Process document.
    * @throws ExecutionException exception when processing fails
@@ -855,7 +924,7 @@ public class PythonPr
     // if we get an error, throw an error condition and abort the process
     String responseJson = (String)process.process(makeExecuteRequest(document));
     try {
-      Response response = JSON.std.beanFrom(Response.class, responseJson);
+      ExecuteResponse response = JSON.std.beanFrom(ExecuteResponse.class, responseJson);
       if(!"ok".equals(response.status)) {
         throw new GateRuntimeException("Error processing document: "+response.error+
                 ", additional info: "+response.info);
@@ -902,11 +971,18 @@ public class PythonPr
   }
 
   
-  static protected class Response {
+  static protected class ExecuteResponse {
     public String status;
     public String error;
     public String info;
     public ChangeLog data;
+  }
+
+  static protected class FinishResponse {
+    public String status;
+    public String error;
+    public String info;
+    public Map<String,Object> data;
   }
   
   protected String getResponseError(Map<String,Object> response) {
