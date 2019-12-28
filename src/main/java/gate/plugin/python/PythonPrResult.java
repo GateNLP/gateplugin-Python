@@ -5,15 +5,8 @@
  */
 package gate.plugin.python;
 
-import gate.DataStore;
-import gate.Factory;
-import gate.FeatureMap;
-import gate.LanguageResource;
-import gate.Resource;
 import gate.creole.AbstractLanguageResource;
-import gate.creole.ResourceInstantiationException;
 import gate.creole.metadata.CreoleResource;
-import gate.persist.PersistenceException;
 import java.util.Map;
 
 /**

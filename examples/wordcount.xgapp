@@ -80,7 +80,19 @@
           <pr class="gate.util.persistence.LanguageAnalyserPersistence">
             <runtimeParams class="gate.util.persistence.MapPersistence">
               <mapType>gate.util.SimpleFeatureMapImpl</mapType>
-              <localMap/>
+              <localMap>
+                <entry>
+                  <string>resultResource</string>
+                  <gate.util.persistence.LRPersistence>
+                    <resourceType>gate.plugin.python.PythonPrResult</resourceType>
+                    <resourceName>PythonPrResult_0000B</resourceName>
+                    <initParams class="gate.util.persistence.MapPersistence">
+                      <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+                      <localMap/>
+                    </initParams>
+                  </gate.util.persistence.LRPersistence>
+                </entry>
+              </localMap>
             </runtimeParams>
             <resourceType>gate.plugin.python.PythonPr</resourceType>
             <resourceName>PythonPr:wordcount</resourceName>

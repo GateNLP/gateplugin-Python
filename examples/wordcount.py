@@ -25,5 +25,10 @@ class MyProcessor:
         self.counter["cat_"+cat] += 1
         self.counter["kind_"+kind] += 1
     self.counter["nr_docs"] += 1
+  def reduce(self, resultlist):
+    sums = Counter()
+    for c in resultlist:
+       sums.update(c)
+    return sums
 
 interact()
