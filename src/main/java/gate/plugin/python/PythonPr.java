@@ -293,6 +293,11 @@ public class PythonPr
     pythonPrResult = value;
   }
 
+  /**
+   * Result language resource, accessor. 
+   * 
+   * @return 
+   */
   public PythonPrResult getResultResource() {
     return pythonPrResult;
   }

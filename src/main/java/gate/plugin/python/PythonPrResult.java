@@ -22,6 +22,7 @@ public class PythonPrResult
         extends AbstractLanguageResource
         implements Result<Map<String,Object>> {
 
+  private static final long serialVersionUID = -7248763456343502768L;
 
   protected Map<String, Object> resultData;
 
