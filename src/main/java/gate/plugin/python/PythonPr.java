@@ -273,6 +273,15 @@ public class PythonPr
   }
   protected Boolean usePluginGatenlpPackage;
   
+  
+  /**
+   * Result language resource to store any corpus processing results.
+   * 
+   * @param value a PythonPrResult language resource
+   */
+  @Optional
+  @RunTime
+  @CreoleParameter(comment = "Result object.")
   public void setResultResource(PythonPrResult value) {
     pythonPrResult = value;
   }
@@ -829,7 +838,9 @@ public class PythonPr
 
   protected void whenFinishing() {
     runningDuplicates.getAndDecrement();
+    System.err.println("DEBUG: finishing duplicate "+duplicateId+" running: "+runningDuplicates.get());
     String responseJson = (String)process.process(makeFinishRequest());
+    System.err.println("DEBUG: finish response: "+responseJson);
     Map<String,Object> result = null;
     try {
       FinishResponse response = JSON.std.beanFrom(FinishResponse.class, responseJson);
@@ -838,6 +849,7 @@ public class PythonPr
                 ", additional info: "+response.info);
       }
       Map<String,Object> data = response.data;
+      System.err.println("DEBUG: finish data: "+data);
       // if the number of duplicates is 1, then data already is the final result
       if(nrDuplicates.get() == 1) {
         result = data;
