@@ -29,7 +29,6 @@ public class PythonPrResult
   @Override
   public void setResultData(Map<String, Object> resultData) {
     this.resultData = resultData;
-    System.err.println("DEBUG Setting result: "+resultData);
     if(resultData != null) {
       getFeatures().putAll(resultData);
     }

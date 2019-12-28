@@ -850,9 +850,8 @@ public class PythonPr
   
   protected void whenFinishing() {
     runningDuplicates.getAndDecrement();
-    System.err.println("DEBUG: finishing duplicate " + duplicateId + " running: " + runningDuplicates.get());
+    logger.debug("Finishing duplicate " + duplicateId + " running: " + runningDuplicates.get());
     String responseJson = (String) process.process(makeFinishRequest());
-    System.err.println("DEBUG: finish response: " + responseJson);
     Map<String, Object> result = null;
     try {
       FinishResponse response = JSON.std.beanFrom(FinishResponse.class, responseJson);
@@ -861,16 +860,12 @@ public class PythonPr
                 + ", additional info: " + response.info);
       }
       Map<String, Object> data = response.data;
-      System.err.println("DEBUG: finish data: " + data);
       // if the number of duplicates is 1, then data already is the final result
       if (nrDuplicates.get() == 1) {
-        System.err.println("DEBUG: one duplicate, setting result");
         result = data;
       } else {
         // add the data to the resultList, but only if we got something 
-        System.err.println("DEBUG: more than one duplicate");
         if (data != null) {
-          System.err.println("DEBUG: and not null, adding to result list");
           getResultList().add(data);
         }
       }
@@ -880,12 +875,10 @@ public class PythonPr
     // if the number of running duplicates is 0, call the reduce method
     // but only if there is something in the list
     if (runningDuplicates.get() == 0) {
-      logger.info("DEBUG: last whenFinishing");
       if (!getResultList().isEmpty()) {
-        logger.info("DEBUG: calling reduce for number of results: " + getResultList().size());
+        logger.debug("Calling reduce for number of results: " + getResultList().size());
         // Call the reduce method
         responseJson = (String) process.process(makeReduceRequest());
-        logger.info("DEBUG: response JSON from reduce: " + responseJson);
         try {
           FinishResponse response = JSON.std.beanFrom(FinishResponse.class, responseJson);
           if (!"ok".equals(response.status)) {
@@ -893,27 +886,22 @@ public class PythonPr
                     + ", additional info: " + response.info);
           }
           result = response.data;
-          System.err.println("DEBUG: reduce data: " + result);
         } catch (IOException ex) {
           throw new GateRuntimeException("Could not convert execute response JSON: " + responseJson, ex);
         }        
         
       } else {
-        logger.info("DEBUG: not calling reduce, result list is empty");
+        logger.debug("Not calling reduce, result list is empty");
       }
       // if we have a result resource, set the result in the resource      
       // otherwise check if the result we got is a map and if yes, set
       // the features of the PR. 
       if (getResultResource() != null) {
-        logger.info("DEBUG: setting result in result resource");
         getResultResource().setResultData(result);        
       } else {
         if (result != null) {
-          logger.info("DEBUG: setting result in PR: " + this.getName());
           this.getFeatures().putAll(result);
-        } else {
-          logger.info("DEBUG: not setting result in PR, is null");
-        }
+        } 
       }
     }
 
