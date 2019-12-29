@@ -82,13 +82,18 @@
               <mapType>gate.util.SimpleFeatureMapImpl</mapType>
               <localMap>
                 <entry>
-                  <string>resultResource</string>
+                  <string>outputResultResource</string>
                   <gate.util.persistence.LRPersistence>
                     <resourceType>gate.plugin.python.PythonPrResult</resourceType>
-                    <resourceName>PythonPrResult_0000B</resourceName>
+                    <resourceName>PythonPrResult_00014</resourceName>
                     <initParams class="gate.util.persistence.MapPersistence">
                       <mapType>gate.util.SimpleFeatureMapImpl</mapType>
-                      <localMap/>
+                      <localMap>
+                        <entry>
+                          <string>logFeatures</string>
+                          <boolean>true</boolean>
+                        </entry>
+                      </localMap>
                     </initParams>
                   </gate.util.persistence.LRPersistence>
                 </entry>

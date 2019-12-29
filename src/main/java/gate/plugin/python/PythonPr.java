@@ -289,8 +289,8 @@ public class PythonPr
   @Optional
   @RunTime
   @CreoleParameter(comment = "Result object.")
-  public void setResultResource(PythonPrResult value) {
-    pythonPrResult = value;
+  public void setOutputResultResource(PythonPrResult value) {
+    outputResultResource = value;
   }
 
   /**
@@ -298,11 +298,12 @@ public class PythonPr
    * 
    * @return the result resource
    */
-  public PythonPrResult getResultResource() {
-    return pythonPrResult;
+  public PythonPrResult getOutputResultResource() {
+    return outputResultResource;
   }
-  protected PythonPrResult pythonPrResult;
+  protected PythonPrResult outputResultResource;
 
+  
   /**
    * This field contains the currently active process for the python program.
    * Otherwise, the field should be null.
@@ -901,8 +902,8 @@ public class PythonPr
       // if we have a result resource, set the result in the resource      
       // otherwise check if the result we got is a map and if yes, set
       // the features of the PR. 
-      if (getResultResource() != null) {
-        getResultResource().setResultData(result);        
+      if (getOutputResultResource() != null) {
+        getOutputResultResource().setResultData(result);        
       } else {
         if (result != null) {
           this.getFeatures().putAll(result);
