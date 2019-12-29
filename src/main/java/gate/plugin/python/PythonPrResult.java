@@ -62,6 +62,10 @@ public class PythonPrResult
   protected Boolean logFeatures = false;
   
   
+  /**
+   * Set the file URL
+   * @param value file URL
+   */
   @Optional
   @CreoleParameter(
           comment = "File to use for saving/loading the result. Nothing saved/loaded if missing."
@@ -69,6 +73,10 @@ public class PythonPrResult
   public void setFileUrl(URL value) {
     fileUrl = value;
   }
+  /**
+   * Get the file URL.
+   * @return file URL
+   */
   public URL getFileUrl() {
     return fileUrl;
   }
@@ -76,7 +84,7 @@ public class PythonPrResult
   
   /**
    * Initialize resource.
-   * @return 
+   * @return this resource
    */
   @Override
   public Resource init() {

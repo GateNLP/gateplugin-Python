@@ -36,7 +36,7 @@ public class PythonSlave {
   /**
    * Our logger instance.
    */
-  public static org.apache.log4j.Logger logger
+  public static final org.apache.log4j.Logger logger
           = org.apache.log4j.Logger.getLogger(PythonSlave.class);
   
   
