@@ -1,10 +1,18 @@
 package gate.plugin.python;
 
 import gate.FeatureMap;
+import gate.Resource;
 import gate.creole.AbstractLanguageResource;
 import gate.creole.metadata.CreoleParameter;
 import gate.creole.metadata.CreoleResource;
 import gate.creole.metadata.Optional;
+import gate.util.GateRuntimeException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
@@ -54,11 +62,6 @@ public class PythonPrResult
   protected Boolean logFeatures = false;
   
   
-  /*
-  
-  // NOTE: as long as we save everything as features, those should get 
-  // saved and loaded from the gapp automatically.
-  
   @Optional
   @CreoleParameter(
           comment = "File to use for saving/loading the result. Nothing saved/loaded if missing."
@@ -70,6 +73,17 @@ public class PythonPrResult
     return fileUrl;
   }
   protected URL fileUrl;
+  
+  /**
+   * Initialize resource.
+   * @return 
+   */
+  @Override
+  public Resource init() {
+    loadFromFile();
+    return this;
+  }
+  
   
   protected void saveToFile() {
     if(fileUrl != null) {
@@ -97,13 +111,11 @@ public class PythonPrResult
     }
   }
   
-  */
-  
   /**
    * Log the current features to the logger.
    * @param level log level to use
    */
-  public void logFeatures(org.apache.log4j.Level level) {
+  public void outputFeaturesToLog(org.apache.log4j.Level level) {
     TreeSet<String> keys = new TreeSet<>();
     FeatureMap fm = getFeatures();
     for(Object k : fm.keySet()) {
@@ -127,8 +139,9 @@ public class PythonPrResult
     if(resultData != null) {
       getFeatures().clear();
       getFeatures().putAll(resultData);
-      if(getLogFeatures()) {
-        logFeatures(org.apache.log4j.Level.INFO);
+      saveToFile();
+      if(getLogFeatures() != null && getLogFeatures()) {
+        outputFeaturesToLog(org.apache.log4j.Level.INFO);
       }
     }
   }

@@ -85,13 +85,15 @@
                   <string>outputResultResource</string>
                   <gate.util.persistence.LRPersistence>
                     <resourceType>gate.plugin.python.PythonPrResult</resourceType>
-                    <resourceName>PythonPrResult_00014</resourceName>
+                    <resourceName>PythonPrResult_0000D</resourceName>
                     <initParams class="gate.util.persistence.MapPersistence">
                       <mapType>gate.util.SimpleFeatureMapImpl</mapType>
                       <localMap>
                         <entry>
-                          <string>logFeatures</string>
-                          <boolean>true</boolean>
+                          <string>fileUrl</string>
+                          <gate.util.persistence.PersistenceManager-URLHolder>
+                            <urlString>$relpath$wordcount.data</urlString>
+                          </gate.util.persistence.PersistenceManager-URLHolder>
                         </entry>
                       </localMap>
                     </initParams>

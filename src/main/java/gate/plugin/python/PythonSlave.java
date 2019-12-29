@@ -24,7 +24,13 @@ import py4j.GatewayServer;
  * @author Johann Petrak
  */
 public class PythonSlave {
-  protected int port;
+
+
+  /**
+   * Port number to use.
+   */
+  public int port;
+
   protected GatewayServer server;
   
   /**
@@ -34,13 +40,11 @@ public class PythonSlave {
           = org.apache.log4j.Logger.getLogger(PythonSlave.class);
   
   
-  public PythonSlave() {
-    port = 25333;
-  }
-  public PythonSlave(int port) {
-    this.port = port;
-  }
-  
+  /**
+   * Load a pipeline from a file.
+   * @param path gapp/xgapp file
+   * @return the corpus controller
+   */
   public static CorpusController loadPipeline(String path) {
     logger.info("Loading pipeline (CorpusController) from "+path);
     try {
@@ -50,10 +54,21 @@ public class PythonSlave {
     } 
   }
   
+  /**
+   * Load document from the file.
+   * @param path file
+   * @return document
+   */
   public static Document loadDocument(String path) {
     return loadDocument(path, null);
   }
   
+  /**
+   * Load document from the file, using mime type
+   * @param path file
+   * @param mimeType mime type
+   * @return document
+   */
   public static Document loadDocument(String path, String mimeType) {
     logger.info("Loading document from "+path);
     FeatureMap params = Factory.newFeatureMap();
@@ -70,21 +85,40 @@ public class PythonSlave {
     }
   }
   
+  /**
+   * Save document to a file.
+   * @param path file
+   * @param mimetype  mime type
+   */
   public static void saveDocument(String path, String mimetype) {
     logger.info("[NOT IMPLEMENTED YET!!!] Saving document from "+path);    
   }
   
+  /**
+   * Get the JSON serialization of the Bdoc representation of a document.
+   * @param doc document
+   * @return json
+   */
   public static String getBdocDocumentJson(Document doc) {
     BdocDocument bdoc = new BdocDocumentBuilder().fromGate(doc).buildBdoc();
     return new SimpleJson().dumps(bdoc);
   }
   
-  
+
+  /**
+   * Start the server.
+   * Uses whatever has been set before for port number.
+   * 
+   */
   public void startServer() {
     Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
     server = new GatewayServer(this, port);
     server.start();
   }
+  
+  /**
+   * Stop the server.
+   */
   public void stopServer() {
     server.shutdown();
   }

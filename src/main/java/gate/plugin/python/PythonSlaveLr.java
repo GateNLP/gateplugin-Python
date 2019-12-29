@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package gate.plugin.python;
 
 import gate.Resource;
@@ -22,6 +18,7 @@ import gate.creole.metadata.Optional;
         helpURL = "")
 public class PythonSlaveLr extends AbstractLanguageResource  {
   private static final long serialVersionUID = -1392763456343502768L;
+  
   /**
    * Our logger instance.
    */
@@ -56,7 +53,8 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   
   @Override
   public Resource init() {
-    pythonSlave = new PythonSlave(port);
+    pythonSlave = new PythonSlave();
+    pythonSlave.port = port;
     pythonSlave.startServer();
     logger.info("Python slave started at port "+port);
     return this;
