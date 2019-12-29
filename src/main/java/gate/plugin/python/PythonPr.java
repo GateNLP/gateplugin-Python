@@ -296,7 +296,7 @@ public class PythonPr
   /**
    * Result language resource, accessor. 
    * 
-   * @return 
+   * @return the result resource
    */
   public PythonPrResult getResultResource() {
     return pythonPrResult;
