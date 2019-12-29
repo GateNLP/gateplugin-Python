@@ -110,6 +110,10 @@ public class PythonPrResult
   
   */
   
+  /**
+   * Log the current features to the logger.
+   * @param level log level to use
+   */
   public void logFeatures(org.apache.log4j.Level level) {
     TreeSet<String> keys = new TreeSet<>();
     FeatureMap fm = getFeatures();
