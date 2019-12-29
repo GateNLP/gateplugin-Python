@@ -43,6 +43,11 @@ public class PythonPrResult
           = org.apache.log4j.Logger.getLogger(this.getClass());
   
   
+  /**
+   * Set log features flag.
+   * If true, features will get logged whenever updated.
+   * @param value flag
+   */
   @Optional
   @CreoleParameter(
           comment = "If true, log the current features whenever the result is updated."
@@ -50,6 +55,10 @@ public class PythonPrResult
   public void setLogFeatures(Boolean value) {
     logFeatures = value;
   }
+  /**
+   * Get the log features flag.
+   * @return flag
+   */
   public Boolean getLogFeatures() {
     return logFeatures;
   }
@@ -119,7 +128,7 @@ public class PythonPrResult
    * Updates the resource with the passed result data. Existing features
    * are cleared first.
    * 
-   * @param resultData 
+   * @param resultData the result data to set
    */
   public void setResultData(Map<String, Object> resultData) {
     if(resultData != null) {
