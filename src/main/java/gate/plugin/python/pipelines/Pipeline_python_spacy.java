@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2019 The University of Sheffield.
  *
- * This file is part of gateplugin-python 
- * (see https://github.com/GateNLP/gateplugin-python).
+ * This file is part of gateplugin-Python 
+ * (see https://github.com/GateNLP/gateplugin-Python).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ import gate.creole.metadata.CreoleResource;
 @CreoleResource(
         name = "python-spacy", 
         comment = "Example pipeline to run Python spacy on documents",
-        icon = "gateplugin-python", 
+        icon = "gateplugin-Python", 
         autoinstances = @AutoInstance(parameters = {
           @AutoInstanceParam(name="pipelineURL", value="resources/pipelines/python-spacy.xgapp"), 
           @AutoInstanceParam(name="menu", value="Python")})) 

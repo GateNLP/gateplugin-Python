@@ -9,7 +9,7 @@
     A GATE plugin that provides a processing resource 
     for running Python on GATE.
   </description>
-  <url>https://github.com/GateNLP/gateplugin-python/wiki</url>
+  <url>http://gatenlp.github.io/gateplugin-Python/</url>
   <organization>
     <name>GATE Team</name>
     <url>http://gate.ac.uk</url>
@@ -29,9 +29,9 @@
     </developer>
   </developers>
   <scm>
-    <connection>scm:git:git://github.com/GateNLP/gateplugin-python.git</connection>
-    <developerConnection>scm:git:git@github.com:GateNLP/gateplugin-python.git</developerConnection>
-    <url>https://github.com/GateNLP/gateplugin-python</url>
+    <connection>scm:git:git://github.com/GateNLP/gateplugin-Python.git</connection>
+    <developerConnection>scm:git:git@github.com:GateNLP/gateplugin-Python.git</developerConnection>
+    <url>https://github.com/GateNLP/gateplugin-Python</url>
   </scm>
   <licenses>
     <license>
