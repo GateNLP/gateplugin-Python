@@ -202,7 +202,7 @@
           <showDeprecation>true</showDeprecation>
           <compilerArgs>
             <arg>-Xlint:all</arg>
-            <arg>-Xdoclint:all/public</arg>
+            <!-- <arg>-Xdoclint:all/public</arg> -->
           </compilerArgs>
         </configuration>
       </plugin>
