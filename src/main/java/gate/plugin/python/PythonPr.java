@@ -314,7 +314,7 @@ public class PythonPr
   /**
    * Our logger instance.
    */
-  public org.apache.log4j.Logger logger
+  public transient org.apache.log4j.Logger logger
           = org.apache.log4j.Logger.getLogger(this.getClass());
 
   // the nrDuplicates counter will get shared between copies when this

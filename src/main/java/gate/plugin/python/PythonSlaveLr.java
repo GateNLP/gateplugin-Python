@@ -22,7 +22,7 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   /**
    * Our logger instance.
    */
-  public org.apache.log4j.Logger logger
+  public transient org.apache.log4j.Logger logger
           = org.apache.log4j.Logger.getLogger(this.getClass());
   
   
@@ -49,7 +49,7 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   protected Integer port = 25333;
   
   
-  protected PythonSlave pythonSlave;
+  protected transient PythonSlave pythonSlave;
   
   @Override
   public Resource init() {
