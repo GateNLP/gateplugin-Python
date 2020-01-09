@@ -1,3 +1,15 @@
 <FindBugsFilter>
+   <Match>
+     <Field name="logger"/>
+     <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
+   </Match>
+   <Match>
+     <Field name="versionInfoShown"/>
+     <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+   </Match>
+   <Match>
+     <Field name="panel"/>
+     <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
+   </Match>
 </FindBugsFilter>
 
