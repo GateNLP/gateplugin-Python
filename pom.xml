@@ -130,6 +130,13 @@
   </dependencies>
   <build>
     <plugins>
+      <!-- for testing spotbugs
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>3.1.12.2</version>
+      </plugin>    
+      -->
       <plugin>
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
@@ -203,6 +210,21 @@
   </build>
   <reporting>
     <plugins>
+      <!-- for testing spotbugs
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>3.1.12.2</version>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+          <excludeFilterFile>src/build/resources/findbugs-excluded.xml</excludeFilterFile>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+          <maxHeap>1024</maxHeap>
+        </configuration>
+      </plugin>
+      -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
