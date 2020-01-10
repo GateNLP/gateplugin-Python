@@ -2,10 +2,12 @@
 
 import sys
 from gatenlp import interact, GateNlpPr, Document
+from mypackage import helpermodule
 
 @GateNlpPr
 def run(doc, **kwargs):
     print("We are running on a doc! kwargs={}".format(kwargs), file=sys.stderr)
+    helpermodule.helperfunc()
     set1 = doc.get_annotations("PythonModifyFunc")
     set1.clear()
     set1.add(1,4,"Type1",{"f1":12, "f2": "val2"})
