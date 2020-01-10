@@ -17,11 +17,13 @@ Before the plugin can be used Python must be installed:
 The plugin should be compatible with GATE 8.5 or later and 
 should run on Windows, MacOS and Linux-like operating systems.
 
-## Reporint problems
+## Reporting problems
 
 If you encounter problems please use:
+
 * the github issue tracker: https://github.com/GateNLP/gateplugin-Python/issues
 * for questions the GATE mailing list: https://groups.io/g/gate-users/topics
+
 Please give as much details as possible about your operating system,
 GATE version, Java version, Python version and whatever else might be relevant.
 
