@@ -43,7 +43,7 @@
   <parent>
     <groupId>uk.ac.gate</groupId>
     <artifactId>gate-plugin-base</artifactId>
-    <version>9.0-SNAPSHOT</version>
+    <version>8.7-SNAPSHOT</version>
     <relativePath/>
   </parent>
   <properties>
@@ -72,6 +72,7 @@
           <groupId>commons-io</groupId>
           <artifactId>commons-io</artifactId>
         </exclusion>
+        
         <exclusion>
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
@@ -84,6 +85,7 @@
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-1.2-api</artifactId>
         </exclusion>
+        
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
@@ -99,16 +101,11 @@
       <artifactId>basicdocument</artifactId>
       <version>1.0-SNAPSHOT</version>
       <exclusions>
-        <!--
-        <exclusion>
-          <groupId>uk.ac.gate</groupId>
-          <artifactId>gate-core</artifactId>
-        </exclusion>
-        -->
         <exclusion>
           <groupId>commons-io</groupId>
           <artifactId>commons-io</artifactId>
         </exclusion>
+        
         <exclusion>
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
@@ -121,6 +118,7 @@
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-1.2-api</artifactId>
         </exclusion>
+        
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
@@ -144,13 +142,6 @@
   </dependencies>
   <build>
     <plugins>
-      <!-- for testing spotbugs
-      <plugin>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>3.1.12.2</version>
-      </plugin>    
-      -->
       <plugin>
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
@@ -224,21 +215,6 @@
   </build>
   <reporting>
     <plugins>
-      <!-- for testing spotbugs
-      <plugin>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>3.1.12.2</version>
-        <configuration>
-          <xmlOutput>true</xmlOutput>
-          <excludeFilterFile>src/build/resources/findbugs-excluded.xml</excludeFilterFile>
-          <xmlOutput>true</xmlOutput>
-          <effort>Max</effort>
-          <threshold>Low</threshold>
-          <maxHeap>1024</maxHeap>
-        </configuration>
-      </plugin>
-      -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>

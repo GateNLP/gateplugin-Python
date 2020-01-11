@@ -69,6 +69,9 @@ import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
+import org.apache.log4j.Appender;
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
 
 /**
  * Processing resource for running a python program on a document. This allows
@@ -696,7 +699,7 @@ public class PythonPr
    */
   @Override
   public Resource init() throws ResourceInstantiationException {
-    // TODO: should re-factor this at some point
+    logger.setLevel(Level.INFO);
     if (!versionInfoShown) {      
       try {
         Properties properties = new Properties();        
