@@ -99,10 +99,12 @@
       <artifactId>basicdocument</artifactId>
       <version>1.0-SNAPSHOT</version>
       <exclusions>
+        <!--
         <exclusion>
           <groupId>uk.ac.gate</groupId>
           <artifactId>gate-core</artifactId>
         </exclusion>
+        -->
         <exclusion>
           <groupId>commons-io</groupId>
           <artifactId>commons-io</artifactId>
