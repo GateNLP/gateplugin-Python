@@ -69,9 +69,8 @@ import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
-import org.apache.log4j.Appender;
-import org.apache.log4j.Level;
-import org.apache.log4j.PatternLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Processing resource for running a python program on a document. This allows
@@ -317,8 +316,7 @@ public class PythonPr
   /**
    * Our logger instance.
    */
-  public transient org.apache.log4j.Logger logger
-          = org.apache.log4j.Logger.getLogger(this.getClass());
+  public transient Logger logger = LoggerFactory.getLogger(this.getClass());
 
   // the nrDuplicates counter will get shared between copies when this
   // PR is being duplicated. We will do a synchronized increment of the 
@@ -698,8 +696,7 @@ public class PythonPr
    * @throws ResourceInstantiationException could not initialise
    */
   @Override
-  public Resource init() throws ResourceInstantiationException {
-    logger.setLevel(Level.INFO);
+  public Resource init() throws ResourceInstantiationException {    
     if (!versionInfoShown) {      
       try {
         Properties properties = new Properties();        

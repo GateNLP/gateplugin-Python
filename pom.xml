@@ -126,6 +126,14 @@
       <groupId>org.zeroturnaround</groupId>
       <artifactId>zt-exec</artifactId>
       <version>1.11</version>
+      <exclusions>
+        <!-- include once we inherit slf4j from gate-code
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+        -->
+      </exclusions>
     </dependency>
   </dependencies>
   <build>
