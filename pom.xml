@@ -3,7 +3,6 @@
   <groupId>uk.ac.gate.plugins</groupId>
   <artifactId>python</artifactId>
   <version>2.0-SNAPSHOT</version>
-  <!-- PLUGINVERSION -->
   <name>Python</name>
   <description>
     A GATE plugin that provides a processing resource 
@@ -43,13 +42,13 @@
   <parent>
     <groupId>uk.ac.gate</groupId>
     <artifactId>gate-plugin-base</artifactId>
-    <version>8.7-SNAPSHOT</version>
+    <version>9.0-SNAPSHOT</version>
     <relativePath/>
   </parent>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <gate-core.version>8.5</gate-core.version>
+    <gate-core.version>9.0-SNAPSHOT</gate-core.version>
   </properties>
   <packaging>jar</packaging>
   <dependencies>
@@ -68,24 +67,6 @@
       <artifactId>interaction</artifactId>
       <version>4.1-SNAPSHOT</version>
       <exclusions>
-        <exclusion>
-          <groupId>commons-io</groupId>
-          <artifactId>commons-io</artifactId>
-        </exclusion>
-        
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>log4j-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>log4j-1.2-api</artifactId>
-        </exclusion>
-        
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
@@ -127,12 +108,10 @@
       <artifactId>zt-exec</artifactId>
       <version>1.11</version>
       <exclusions>
-        <!-- include once we inherit slf4j from gate-code
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>
         </exclusion>
-        -->
       </exclusions>
     </dependency>
   </dependencies>
