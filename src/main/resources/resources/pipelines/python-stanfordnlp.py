@@ -1,11 +1,10 @@
-"""Run spacy"""
+"""Run StanfordNLP"""
 
 from gatenlp import interact, GateNlpPr, Document
 import stanfordnlp
 from gatenlp.stanfordnlp import apply_stanfordnlp
 import sys
 import re
-import spacy
 
 @GateNlpPr
 class MyProcessor:
