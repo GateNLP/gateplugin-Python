@@ -5,8 +5,8 @@
   <version>2.0-SNAPSHOT</version>
   <name>Python</name>
   <description>
-    A GATE plugin that provides a processing resource 
-    for running Python on GATE.
+    A GATE plugin for running Python code from GATE and for
+    using the GATE API from Python.
   </description>
   <url>http://gatenlp.github.io/gateplugin-Python/</url>
   <organization>
