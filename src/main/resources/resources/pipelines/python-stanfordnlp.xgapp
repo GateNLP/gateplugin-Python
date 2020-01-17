@@ -1,0 +1,87 @@
+<gate.util.persistence.GateApplication>
+  <urlList class="gate.util.persistence.CollectionPersistence">
+    <localList>
+      <gate.creole.Plugin-Maven>
+        <group>uk.ac.gate.plugins</group>
+        <artifact>python</artifact>
+        <version>2.0-SNAPSHOT</version>
+      </gate.creole.Plugin-Maven>
+    </localList>
+    <collectionType>java.util.ArrayList</collectionType>
+  </urlList>
+  <application class="gate.util.persistence.ConditionalSerialAnalyserControllerPersistence">
+    <strategiesList class="gate.util.persistence.CollectionPersistence">
+      <localList>
+        <gate.util.persistence.AnalyserRunningStrategyPersistence>
+          <runMode>1</runMode>
+          <featureName></featureName>
+          <featureValue></featureValue>
+          <pr class="gate.util.persistence.LanguageAnalyserPersistence">
+            <runtimeParams class="gate.util.persistence.MapPersistence">
+              <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+              <localMap>
+                <entry>
+                  <string>programParams</string>
+                  <gate.util.persistence.MapPersistence>
+                    <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+                    <localMap>
+                      <entry>
+                        <string>outputAnnotationSet</string>
+                        <string>StanfordNLP</string>
+                      </entry>
+                    </localMap>
+                  </gate.util.persistence.MapPersistence>
+                </entry>
+              </localMap>
+            </runtimeParams>
+            <resourceType>gate.plugin.python.PythonPr</resourceType>
+            <resourceName>PythonPr:python-stanfordnlp</resourceName>
+            <initParams class="gate.util.persistence.MapPersistence">
+              <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+              <localMap>
+                <entry>
+                  <string>pythonProgram</string>
+                  <gate.util.persistence.PersistenceManager-RRPersistence>
+                    <uriString>$relpath$python-stanfordnlp.py</uriString>
+                  </gate.util.persistence.PersistenceManager-RRPersistence>
+                </entry>
+              </localMap>
+            </initParams>
+            <features class="gate.util.persistence.MapPersistence">
+              <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+              <localMap/>
+            </features>
+          </pr>
+        </gate.util.persistence.AnalyserRunningStrategyPersistence>
+      </localList>
+      <collectionType>java.util.ArrayList</collectionType>
+    </strategiesList>
+    <prList class="gate.util.persistence.CollectionPersistence">
+      <localList>
+        <gate.util.persistence.LanguageAnalyserPersistence reference="../../../strategiesList/localList/gate.util.persistence.AnalyserRunningStrategyPersistence/pr"/>
+      </localList>
+      <collectionType>java.util.ArrayList</collectionType>
+    </prList>
+    <resourceType>gate.creole.ConditionalSerialAnalyserController</resourceType>
+    <resourceName>python-stanfordnlp</resourceName>
+    <initParams class="gate.util.persistence.MapPersistence">
+      <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+      <localMap/>
+    </initParams>
+    <features class="gate.util.persistence.MapPersistence">
+      <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+      <localMap>
+        <entry>
+          <string>gate.app.MetadataURL</string>
+          <gate.util.persistence.PersistenceManager-URLHolder>
+            <urlString>$relpath$.python-stanfordnlp.metadata/metadata.xml</urlString>
+          </gate.util.persistence.PersistenceManager-URLHolder>
+        </entry>
+        <entry>
+          <string>gate.gui.icon</string>
+          <string>python-stanfordnlp</string>
+        </entry>
+      </localMap>
+    </features>
+  </application>
+</gate.util.persistence.GateApplication>
