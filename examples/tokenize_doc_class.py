@@ -19,7 +19,7 @@ class MyProcessor:
   def __call__(self, doc, **kwargs):
     set1 = doc.get_annotations("PythonTokenizeClass")  
     set1.clear()   
-    text = doc.text  
+    text = doc.text
     whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$",text)]
     nrtokens = len(whitespaces)-1
     for k in range(nrtokens):  

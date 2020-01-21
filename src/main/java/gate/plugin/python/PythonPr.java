@@ -899,6 +899,8 @@ public class PythonPr
     }
   }
   
+  
+  
   protected void whenFinishing() {
     runningDuplicates.getAndDecrement();
     logger.debug("Finishing duplicate " + duplicateId + " running: " + runningDuplicates.get());
@@ -908,7 +910,7 @@ public class PythonPr
       FinishResponse response = JSON.std.beanFrom(FinishResponse.class, responseJson);
       if (!"ok".equals(response.status)) {
         throw new GateRuntimeException("Error Finishing Processing: " + response.error
-                + ", additional info: " + response.info);
+                + "\nAdditional info from Python:\n" + response.info);
       }
       Map<String, Object> data = response.data;
       // if the number of duplicates is 1, then data already is the final result
@@ -934,7 +936,7 @@ public class PythonPr
           FinishResponse response = JSON.std.beanFrom(FinishResponse.class, responseJson);
           if (!"ok".equals(response.status)) {
             throw new GateRuntimeException("Error calling Reduce: " + response.error
-                    + ", additional info: " + response.info);
+                    + "\nAdditional info from Python:\n" + response.info);
           }
           result = response.data;
         } catch (IOException ex) {
@@ -1015,7 +1017,7 @@ public class PythonPr
       ExecuteResponse response = JSON.std.beanFrom(ExecuteResponse.class, responseJson);
       if (!"ok".equals(response.status)) {
         throw new GateRuntimeException("Error processing document: " + response.error
-                + ", additional info: " + response.info);
+                + "\nAdditional info from Python:\n" + response.info);
       }
       ChangeLog chlog = response.data;
       if (chlog == null) {
@@ -1085,6 +1087,7 @@ public class PythonPr
     return error;
   }
   
+  /*
   protected String getResponseInfo(Map<String, Object> response) {
     String info = (String) response.get("info");
     if (info == null) {
@@ -1092,6 +1095,7 @@ public class PythonPr
     }
     return info;
   }
+  */
 
   /**
    * Create and return the JSON String representing an execute request.
