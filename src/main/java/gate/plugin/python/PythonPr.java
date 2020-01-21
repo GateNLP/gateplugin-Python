@@ -45,13 +45,16 @@ import gate.lib.basicdocument.ChangeLog;
 import gate.lib.basicdocument.GateDocumentUpdater;
 import gate.lib.interaction.process.pipes.Process4StringStream;
 import gate.util.GateRuntimeException;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -62,6 +65,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -122,6 +126,7 @@ public class PythonPr
   protected File pythonProgramFile;  // if not jar, the file on the disk
   protected String pythonProgramPathInJar;  // if jar, the parent dir of the file
   protected String pythonProgramModuleInJar; // if jar the module name 
+  protected URL pythonProgramUrl;  // the python source as URL
 
   /**
    * Set parameters to send to the python program. The given parameters are
@@ -457,6 +462,46 @@ public class PythonPr
   }
 
   /**
+   * Return URL of the python program we determined.
+   * 
+   * @return python program URL
+   */
+  public URL getPythonProgramUrl() {
+    return pythonProgramUrl;
+  }
+  
+  /**
+   * Return the python program as String.
+   * 
+   * @return python program as String
+   */
+  public String getPythonProgramString() {
+    try {
+      if (pythonProgramIsJar) {
+        StringBuilder sb;
+        try (
+                InputStream is = pythonProgramUrl.openStream();
+                BufferedReader rdr = new BufferedReader(new InputStreamReader(is));
+            ) {
+          sb = new StringBuilder();
+          String line;
+          while((line = rdr.readLine()) != null) {
+            sb.append(line);
+            sb.append("\n");
+          } 
+          return sb.toString();
+        }
+      } else {
+        return new String(Files.readAllBytes(Paths.get(pythonProgramUrl.toURI())));
+
+      }
+    } catch (URISyntaxException | IOException ex) {
+      ex.printStackTrace(System.err);
+      return "[Could not read content of file, see stack trace in message pane!]";
+    }
+  }
+
+  /**
    * Return the python file or null if in JAR.
    *
    * @return file or null
@@ -765,7 +810,7 @@ public class PythonPr
               + getPythonProgram());      
     }
     usePythonPackagePath = getPythonpathInZip();
-    URL pythonProgramUrl = null;
+    pythonProgramUrl = null;
     try {
       pythonProgramUrl = pythonProgram.toURL();
     } catch (IOException ex) {

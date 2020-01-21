@@ -97,7 +97,7 @@ public class PythonEditorPanel extends javax.swing.JPanel {
     initEditor();
   }
   
-  protected TextEditorPane textArea;
+  TextEditorPane textArea;
   
   /**
    * Set/update which file to edit.
@@ -245,6 +245,14 @@ public class PythonEditorPanel extends javax.swing.JPanel {
     pr.tryCompileProgram();
   }//GEN-LAST:event_jButton2ActionPerformed
 
+  void disableButtons() {
+    jButton1.setEnabled(false);
+    jButton2.setEnabled(false);
+  }
+  void setFileLocation(String loc) {
+    jTextField1.setText(loc);
+  }
+  
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton jButton1;
   private javax.swing.JButton jButton2;

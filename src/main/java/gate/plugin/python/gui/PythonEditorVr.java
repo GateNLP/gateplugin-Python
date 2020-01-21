@@ -56,22 +56,28 @@ public class PythonEditorVr extends AbstractVisualResource
     if(target instanceof PythonCodeDriven) {
       theTarget = (PythonCodeDriven)target; 
       pr = (PythonPr)target;      
-      if(!pr.pythonFileCanBeEdited()) {
-        return;
-      }
       panel = new PythonEditorPanel();
       this.add(panel);
       this.setLayout(new GridLayout(1,1));
       // register ourselves as the EditorVR
-      
+
       pr.registerEditorVR(this);
       panel.setPR(pr);
-      pr.tryCompileProgram();
-      panel.setFile(pr.getPythonProgramFile());
-      if(!pr.isCompileOk) {
-        panel.setCompilationError();
+      if(pr.pythonFileCanBeEdited()) {
+        // editable file
+        pr.tryCompileProgram();
+        panel.setFile(pr.getPythonProgramFile());
+        if(!pr.isCompileOk) {
+          panel.setCompilationError();
+        } else {
+          panel.setCompilationOk();
+        }
       } else {
-        panel.setCompilationOk();
+        // Read-only file
+        panel.textArea.setText(pr.getPythonProgramString());
+        panel.disableButtons();
+        panel.setFileLocation(pr.getPythonProgramUrl().toString()+" (Read-Only!)");
+        panel.textArea.setEditable(false);
       }
     } else {
       //System.out.println("Not a JavaCodeDriven: "+((Resource)target).getName());
