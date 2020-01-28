@@ -1016,6 +1016,7 @@ public class PythonPr
     try {
       ExecuteResponse response = JSON.std.beanFrom(ExecuteResponse.class, responseJson);
       if (!"ok".equals(response.status)) {
+        logger.debug("Python exception, stacktrace we got: "+response.stacktrace);
         throw new GateRuntimeException("Error processing document: " + response.error
                 + "\nAdditional info from Python:\n" + response.info);
       }
@@ -1068,6 +1069,7 @@ public class PythonPr
     public String status;
     public String error;
     public String info;
+    public List<List<String>> stacktrace;
     public ChangeLog data;
   }
   
@@ -1076,6 +1078,7 @@ public class PythonPr
     public String status;
     public String error;
     public String info;
+    public List<List<String>> stacktrace;
     public Map<String, Object> data;
   }
   
