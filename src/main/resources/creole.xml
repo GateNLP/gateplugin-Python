@@ -1,4 +1,4 @@
 <?xml version="1.0"?>  
 <CREOLE-DIRECTORY>
-  <REQUIRES GROUP="uk.ac.gate.plugins" ARTIFACT="format-bdoc" VERSION="1.1-SNAPSHOT"/>
+  <REQUIRES GROUP="uk.ac.gate.plugins" ARTIFACT="format-bdoc" VERSION="1.0-SNAPSHOT"/>
 </CREOLE-DIRECTORY>
