@@ -48,7 +48,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <gate-core.version>9.0-SNAPSHOT</gate-core.version>
+    <gate-core.version>8.6.1</gate-core.version>
   </properties>
   <packaging>jar</packaging>
   <dependencies>
