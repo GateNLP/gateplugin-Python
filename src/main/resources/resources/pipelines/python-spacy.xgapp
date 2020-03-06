@@ -4,7 +4,7 @@
       <gate.creole.Plugin-Maven>
         <group>uk.ac.gate.plugins</group>
         <artifact>python</artifact>
-        <version>2.0-SNAPSHOT</version>
+        <version>2.1-SNAPSHOT</version>
       </gate.creole.Plugin-Maven>
     </localList>
     <collectionType>java.util.ArrayList</collectionType>
