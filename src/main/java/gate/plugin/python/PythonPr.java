@@ -523,13 +523,17 @@ public class PythonPr
    */
   public boolean tryCompileProgram() {
     ensurePythonProgramCommand();
+    // TODO: need to figure out if quoting should be disabled based on OS
+    // For Linux, disabling seems to be necessary
+    boolean doQuoting = false;
     CommandLine cmdLine = new CommandLine(pythonBinaryCommand);
     String pythonPath = "";
     if (getUsePluginGatenlpPackage()) {
       pythonPath = usePythonPackagePath;
     }
     if (!pythonProgramIsJar) {
-      cmdLine.addArgument(pythonProgramFile.getAbsolutePath());
+      // System.err.println("!!!!!!!!!!!!! ######### DEBUG: adding file name: >"+pythonProgramFile.getAbsolutePath()+"<");      
+      cmdLine.addArgument(pythonProgramFile.getAbsolutePath(), doQuoting);
     } else {
       // to load as library, we need the RELATIVE path in the jar, relative
       // to what we have set as PYTHONPATH (which is the /resources dir).
@@ -542,7 +546,7 @@ public class PythonPr
                 + pythonProgramPathInJar;
       }
       cmdLine.addArgument("-m");
-      cmdLine.addArgument(pythonProgramModuleInJar);
+      cmdLine.addArgument(pythonProgramModuleInJar, doQuoting);
     }
     cmdLine.addArgument("--mode");
     cmdLine.addArgument("check");
@@ -563,8 +567,9 @@ public class PythonPr
       if (loggingLevel == LoggingLevel.DEBUG) {        
         logger.info("Trying to compile program:");
         logger.info("Python path is " + pythonPath);
-        logger.info("Running: " + cmdLine);
+        logger.info("Running: " + cmdLine);        
       }
+      // System.err.println("!!!!!!!!!!!!! ######### DEBUG: running: "+cmdLine);      
       executor.execute(cmdLine, env, resultHandler);
     } catch (IOException ex) {
       throw new GateRuntimeException("Could not check the python file", ex);
@@ -575,6 +580,7 @@ public class PythonPr
       throw new GateRuntimeException("Something went wrong when checking the python file", ex);
     }
     int exitCode = resultHandler.getExitValue();
+    // System.err.println("!!!!DEBUG: got exit code "+exitCode);
     ExecuteException exc = resultHandler.getException();    
     if (exc != null) {
       logger.error("Got exception running the compile command: " + exc);
