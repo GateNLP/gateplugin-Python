@@ -61,6 +61,13 @@ public class PythonSlave {
   protected GatewayServer server;
   
   /**
+   * True if this PythonSlave was started via the PythonSlaveRunner.
+   * This is relevant because we only allow to shut the server down if
+   * it was started from the slave runner.
+   */
+  protected boolean parentIsRunner = false;
+  
+  /**
    * Our logger instance.
    */
   public static final org.apache.log4j.Logger LOGGER
@@ -232,5 +239,6 @@ public class PythonSlave {
   public void print2err(String txt) {
     System.err.print(txt);
   }
+  
   
 }

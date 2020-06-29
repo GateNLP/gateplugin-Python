@@ -119,8 +119,7 @@ public class PythonSlaveRunner extends ResourceHelper  {
         slave = new PythonSlave();
         slave.port = port;
         startServer(slave);
-      case "stop":
-        stopServer(slave);
+        break;
       default:
         throw new GateRuntimeException("Not a known action: "+action);
     }
@@ -140,38 +139,17 @@ public class PythonSlaveRunner extends ResourceHelper  {
     Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
     GatewayServer server = new GatewayServer(pslave, port);
     pslave.server = server;
+    pslave.parentIsRunner = true;
     try {
       server.start();
-      System.out.println("PYTHON SLAVE SERVER OK");
+      System.err.println("PYTHON SLAVE SERVER OK");
     } catch(Exception ex) {
       pslave.server = null;
-      System.out.println("PYTHON SLAVE SERVER NOT OK");
+      System.err.println("PYTHON SLAVE SERVER NOT OK");
       throw new GateRuntimeException("Could not start GatewayServer",ex);
     }
   }
   
-  /**
-   * Stop the server.
-   * 
-   * This will delay shutting down by one second in order to allow the 
-   * python process to still get the response from the java process when
-   * sending the stopServer request. 
-   * 
-   * @param pslave the PythonSlave instance that owns the server.
-   */
-  public void stopServer(PythonSlave pslave) {
-    if(pslave.server != null) {
-      Thread runner = new Thread() {
-        @Override
-        public void run() {
-          try {Thread.sleep(1000); } catch(InterruptedException ex) {}
-          pslave.server.shutdown();
-        }
-      };
-      runner.start();
-    }
-  }
-
   @Override
   protected List<Action> buildActions(NameBearerHandle nbh) {
     return new ArrayList<>();
