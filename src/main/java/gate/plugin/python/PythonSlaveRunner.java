@@ -103,7 +103,7 @@ public class PythonSlaveRunner extends ResourceHelper  {
   }
   protected String host = "127.0.0.1";
   
-  public PythonSlave slave = null;
+  private transient PythonSlave slave = null;
   
   @Override
   @SuppressWarnings("unchecked") 
