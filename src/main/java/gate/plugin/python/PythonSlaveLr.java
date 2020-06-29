@@ -23,10 +23,13 @@ package gate.plugin.python;
 import gate.Gate;
 import gate.Resource;
 import gate.creole.AbstractLanguageResource;
+import gate.creole.ResourceInstantiationException;
 import gate.creole.metadata.CreoleParameter;
 import gate.creole.metadata.CreoleResource;
 import gate.creole.metadata.Optional;
 import gate.util.GateRuntimeException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import py4j.GatewayServer;
 
 /**
@@ -75,9 +78,13 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   protected transient PythonSlave pythonSlave;
   
   @Override
-  public Resource init() {
+  public Resource init() throws ResourceInstantiationException {
     logger.info("Creating PythonSlave instance");
-    pythonSlave = new PythonSlave();
+    try {
+      pythonSlave = new PythonSlave();
+    } catch (ResourceInstantiationException ex) {
+      throw new ResourceInstantiationException("Could not create PythonSlave", ex);
+    }
     pythonSlave.port = port;
     startServer(pythonSlave);
     logger.info("Python slave started at port "+port);

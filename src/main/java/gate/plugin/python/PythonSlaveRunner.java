@@ -22,6 +22,7 @@ package gate.plugin.python;
 
 import gate.Gate;
 import gate.Resource;
+import gate.creole.ResourceInstantiationException;
 import gate.creole.metadata.CreoleParameter;
 import gate.creole.metadata.CreoleResource;
 import gate.creole.metadata.Optional;
@@ -116,10 +117,15 @@ public class PythonSlaveRunner extends ResourceHelper  {
         host = (String)params[0];
         break;
       case "start":
-        slave = new PythonSlave();
+        try {
+          slave = new PythonSlave();
+        } catch(ResourceInstantiationException ex) {
+          throw new GateRuntimeException("Could not create PythonSlave", ex);
+        }
         slave.port = port;
         startServer(slave);
         break;
+
       default:
         throw new GateRuntimeException("Not a known action: "+action);
     }

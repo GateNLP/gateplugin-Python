@@ -20,16 +20,23 @@
 
 package gate.plugin.python;
 
+import gate.Corpus;
 import gate.CorpusController;
 import gate.Document;
 import gate.DocumentExporter;
 import gate.Factory;
 import gate.FeatureMap;
 import gate.Gate;
+import gate.Resource;
 import gate.corpora.DocumentStaxUtils;
+import gate.creole.AbstractController;
+import gate.creole.ExecutionException;
 import gate.creole.Plugin;
 import gate.creole.ResourceInstantiationException;
+import gate.creole.ResourceReference;
+import gate.creole.SerialAnalyserController;
 import gate.gui.ResourceHelper;
+import gate.gui.creole.manager.PluginUpdateManager;
 import gate.lib.basicdocument.BdocDocument;
 import gate.lib.basicdocument.BdocDocumentBuilder;
 import gate.lib.basicdocument.docformats.SimpleJson;
@@ -41,6 +48,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import py4j.GatewayServer;
 
@@ -74,6 +86,15 @@ public class PythonSlave {
           = org.apache.log4j.Logger.getLogger(PythonSlave.class);
   
   
+  private Corpus tmpCorpus;
+  
+  /**
+   * Create an instance.
+   * @throws ResourceInstantiationException error
+   */
+  public PythonSlave() throws ResourceInstantiationException {   
+    tmpCorpus = Factory.newCorpus("tmpCorpus");
+  }
   
   /**
    * Load a maven plugin.
@@ -96,10 +117,64 @@ public class PythonSlave {
    * @param path gapp/xgapp file
    * @return the corpus controller
    */
-  public CorpusController loadPipeline(String path) {
+  public CorpusController loadPipelineFromFile(String path) {
     LOGGER.info("Loading pipeline (CorpusController) from "+path);
     try {
       return (CorpusController)PersistenceManager.loadObjectFromFile(new File(path));
+    } catch (PersistenceException | IOException | ResourceInstantiationException ex) {
+      throw new GateRuntimeException("Could not load pipeline from "+path, ex);
+    } 
+  }
+  
+  /**
+   * Find and return a loaded Maven plugin instance. 
+   * 
+   * @param group plugin group
+   * @param artifact plugin artifact
+   * @return the plugin instance or null of nothing found
+   */
+  public Plugin.Maven findMavenPlugin(String group, String artifact) {
+    Set<Plugin> allPlugins = new LinkedHashSet<>(Gate.getCreoleRegister().getPlugins());
+    allPlugins.addAll(PluginUpdateManager.getDefaultPlugins());
+    for (Plugin plugin : allPlugins) {
+      if (plugin instanceof Plugin.Maven) {
+        Plugin.Maven mp = (Plugin.Maven)plugin;
+        if (mp.getGroup().equals(group) && mp.getArtifact().equals(artifact)) {
+          return mp;
+        }
+      }
+    }
+    return null;
+  }
+  
+  
+  /**
+   * Load a pipeline from the maven plugin resources.
+   * 
+   * Example: "uk.ac.gate.plugins", "annie", "/resources/ANNIE_with_defaults.gapp"
+   * 
+   * @param group the plugin group
+   * @param artifact the plugin artifact
+   * @param path the path in the plugin resources
+   * @return controller
+   * @throws java.net.URISyntaxException  exception
+   */
+  public CorpusController loadPipelineFromPlugin(String group, String artifact, String path) throws URISyntaxException {
+    Plugin.Maven mp = findMavenPlugin(group, artifact);
+    if(mp == null) {
+      throw new GateRuntimeException("Could not find plugin, please load it first!");
+    }
+    ResourceReference rr;
+    try {
+      rr = new ResourceReference(mp, path);
+    } catch (URISyntaxException ex) {
+      throw new GateRuntimeException("Could not create ResourceReference for the pipeline");
+    }
+    if(rr == null) {
+      throw new GateRuntimeException("Could not create ResourceReference for the pipeline");
+    }
+    try {
+      return (CorpusController)PersistenceManager.loadObjectFromUri(rr.toURI());
     } catch (PersistenceException | IOException | ResourceInstantiationException ex) {
       throw new GateRuntimeException("Could not load pipeline from "+path, ex);
     } 
@@ -115,8 +190,118 @@ public class PythonSlave {
    * @param path file path of the document to load
    * @return document
    */
-  public Document loadDocument(String path) {
-    return loadDocument(path, null);
+  public Document loadDocumentFromFile(String path) {
+    return loadDocumentFromFile(path, null);
+  }
+  
+  /**
+   * Create a new document from the text.
+   * 
+   * @param content the document content
+   * @return the document
+   */
+  public Document createDocument(String content) {
+    try {
+      return (Document)Factory.newDocument(content);
+    } catch (ResourceInstantiationException ex) {
+      throw new GateRuntimeException("Could not create document", ex);
+    }
+  }
+  
+  /**
+   * Create a new corpus.
+   * 
+   * @return  corpus
+   */
+  public Corpus newCorpus() {
+    try {
+      return (Corpus)Factory.newCorpus("Corpus_"+Gate.genSym());
+    } catch (ResourceInstantiationException ex) {
+      throw new GateRuntimeException("Could not create document", ex);
+    }    
+  }
+  
+  /**
+   * Delete a GATE resource and release memory.
+   * 
+   * @param res the resource to remove
+   */
+  public void deleteResource(Resource res) {
+    Factory.deleteResource(res);
+  }
+  
+  /**
+   * Run a pipeline for a single document.
+   * 
+   * @param pipeline the pipeline to run
+   * @param doc  the document to process
+   */
+  public void run4Document(CorpusController pipeline, Document doc) {
+    tmpCorpus.clear();
+    tmpCorpus.add(doc);
+    if(pipeline instanceof AbstractController) {
+      ((AbstractController)pipeline).setControllerCallbacksEnabled(false);
+    }
+    pipeline.setCorpus(tmpCorpus);
+    try {
+      pipeline.execute();
+    } catch (ExecutionException ex) {
+      throw new GateRuntimeException("Exception when running the pipeline", ex);
+    }
+  }
+  
+  /**
+   * Invoke the controller execution started code.
+   * 
+   * This should be run before documents are run individually using the run4doc
+   * method.
+   * 
+   * @param pipeline pipeline
+   */
+  public void runExecutionStarted(CorpusController pipeline) {
+    if(pipeline instanceof AbstractController) {
+      try {
+        ((AbstractController)pipeline).invokeControllerExecutionStarted();
+      } catch (ExecutionException ex) {
+        throw new GateRuntimeException("Problem running ExecutionStarted", ex);
+      }
+    }    
+  }
+
+  /**
+   * Invoke the controller execution finished code.
+   * 
+   * This should be run after all documents are run individually using the run4doc
+   * method.
+   * 
+   * @param pipeline pipeline
+   */
+  public void runExecutionFinished(CorpusController pipeline) {
+    if(pipeline instanceof AbstractController) {
+      try {
+        ((AbstractController)pipeline).invokeControllerExecutionFinished();
+      } catch (ExecutionException ex) {
+        throw new GateRuntimeException("Problem running ExecutionFinished", ex);
+      }
+    }    
+  }
+  
+  /**
+   * Run the pipeline on the given corpus.
+   * 
+   * @param pipeline the pipeline
+   * @param corpus  the corpus
+   */
+  public void run4Corpus(CorpusController pipeline, Corpus corpus) {
+    if(pipeline instanceof AbstractController) {
+      ((AbstractController)pipeline).setControllerCallbacksEnabled(true);
+    }
+    pipeline.setCorpus(corpus);
+    try {
+      pipeline.execute();
+    } catch (ExecutionException ex) {
+      throw new GateRuntimeException("Exception when running the pipeline", ex);
+    }  
   }
   
   /**
@@ -125,7 +310,7 @@ public class PythonSlave {
    * @param mimeType mime type
    * @return document
    */
-  public Document loadDocument(String path, String mimeType) {
+  public Document loadDocumentFromFile(String path, String mimeType) {
     LOGGER.info("Loading document from "+path);
     FeatureMap params = Factory.newFeatureMap();
     try {
@@ -142,13 +327,15 @@ public class PythonSlave {
   }
   
   /**
-   * Save document to a file.NOTE: currently there is no way in GATE to register a document format
- for saving a document with a specific mime type.So this function currently
- only recognizes a few hard-coded mime types and rejects all others.
+   * Save document to a file.
+   * 
+   * NOTE: currently there is no way in GATE to register a document format
+   * for saving a document with a specific mime type.So this function currently
+   * only recognizes a few hard-coded mime types and rejects all others.
    * 
    * The mime types are: "" (empty string) for the default GATE xml serialization;
- all mime types supported by the Format_Bdoc plugin and all mime types 
- supported by the Format_FastInfoset plugin.
+   * all mime types supported by the Format_Bdoc plugin and all mime types 
+   * supported by the Format_FastInfoset plugin.
    * 
    * NOTE: for fastinfoset the plugin must first have been loaded with 
    * loadMavenPlugin("uk.ac.gate.plugins","format-fastinfoset","8.5") or 
@@ -159,7 +346,7 @@ public class PythonSlave {
    * @throws java.io.IOException if something goes wrong saving
    * @throws javax.xml.stream.XMLStreamException if something goes wrong when saving
    */
-  public void saveDocument(Document doc, String path, String mimetype)
+  public void saveDocumentToFile(Document doc, String path, String mimetype)
           throws IOException, XMLStreamException {
     if(mimetype==null || mimetype.isEmpty()) {
       DocumentStaxUtils.writeDocument(doc, new File(path));
