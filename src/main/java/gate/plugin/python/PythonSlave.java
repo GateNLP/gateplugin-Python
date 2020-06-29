@@ -202,7 +202,7 @@ public class PythonSlave {
    */
   public Document createDocument(String content) {
     try {
-      return (Document)Factory.newDocument(content);
+      return Factory.newDocument(content);
     } catch (ResourceInstantiationException ex) {
       throw new GateRuntimeException("Could not create document", ex);
     }
@@ -215,7 +215,7 @@ public class PythonSlave {
    */
   public Corpus newCorpus() {
     try {
-      return (Corpus)Factory.newCorpus("Corpus_"+Gate.genSym());
+      return Factory.newCorpus("Corpus_"+Gate.genSym());
     } catch (ResourceInstantiationException ex) {
       throw new GateRuntimeException("Could not create document", ex);
     }    
