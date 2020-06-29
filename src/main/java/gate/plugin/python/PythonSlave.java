@@ -77,7 +77,7 @@ public class PythonSlave {
    * @throws gate.util.GateException if error
    * 
    */
-  public static void loadMavenPlugin(
+  public void loadMavenPlugin(
           String group, String artifact, String version) throws GateException {
     Gate.getCreoleRegister().registerPlugin(new Plugin.Maven(
             group, artifact, version));
@@ -89,7 +89,7 @@ public class PythonSlave {
    * @param path gapp/xgapp file
    * @return the corpus controller
    */
-  public static CorpusController loadPipeline(String path) {
+  public CorpusController loadPipeline(String path) {
     LOGGER.info("Loading pipeline (CorpusController) from "+path);
     try {
       return (CorpusController)PersistenceManager.loadObjectFromFile(new File(path));
@@ -108,7 +108,7 @@ public class PythonSlave {
    * @param path file path of the document to load
    * @return document
    */
-  public static Document loadDocument(String path) {
+  public Document loadDocument(String path) {
     return loadDocument(path, null);
   }
   
@@ -118,7 +118,7 @@ public class PythonSlave {
    * @param mimeType mime type
    * @return document
    */
-  public static Document loadDocument(String path, String mimeType) {
+  public Document loadDocument(String path, String mimeType) {
     LOGGER.info("Loading document from "+path);
     FeatureMap params = Factory.newFeatureMap();
     try {
@@ -152,7 +152,7 @@ public class PythonSlave {
    * @throws java.io.IOException if something goes wrong saving
    * @throws javax.xml.stream.XMLStreamException if something goes wrong when saving
    */
-  public static void saveDocument(Document doc, String path, String mimetype)
+  public void saveDocument(Document doc, String path, String mimetype)
           throws IOException, XMLStreamException {
     if(mimetype==null || mimetype.isEmpty()) {
       DocumentStaxUtils.writeDocument(doc, new File(path));
@@ -199,7 +199,7 @@ public class PythonSlave {
    * @param doc document
    * @return json
    */
-  public static String getBdocJson(Document doc) {
+  public String getBdocJson(Document doc) {
     BdocDocument bdoc = new BdocDocumentBuilder().fromGate(doc).buildBdoc();
     return new SimpleJson().dumps(bdoc);
   }
@@ -211,7 +211,7 @@ public class PythonSlave {
    * @return a new GATE document built from the bdoc json
    * @throws gate.creole.ResourceInstantiationException should never occur
    */
-  public static Document getDocument4BdocJson(String bdocjson) 
+  public Document getDocument4BdocJson(String bdocjson) 
           throws ResourceInstantiationException {
     Document theDoc = Factory.newDocument("");
     ResourceHelper rh = (ResourceHelper)Gate.getCreoleRegister()
@@ -226,23 +226,11 @@ public class PythonSlave {
     return theDoc;
   }
 
-  /**
-   * Start the server.
-   * Uses whatever has been set before for port number.
-   * 
-   */
-  public void startServer() {
-    Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
-    server = new GatewayServer(this, port);
-    server.start();
+  public void print2out(String txt) {
+    System.out.print(txt);
   }
-  
-  /**
-   * Stop the server.
-   */
-  public void stopServer() {
-    server.shutdown();
+  public void print2err(String txt) {
+    System.err.print(txt);
   }
-  
   
 }

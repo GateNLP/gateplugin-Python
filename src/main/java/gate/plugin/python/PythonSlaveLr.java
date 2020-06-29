@@ -20,11 +20,14 @@
 
 package gate.plugin.python;
 
+import gate.Gate;
 import gate.Resource;
 import gate.creole.AbstractLanguageResource;
 import gate.creole.metadata.CreoleParameter;
 import gate.creole.metadata.CreoleResource;
 import gate.creole.metadata.Optional;
+import gate.util.GateRuntimeException;
+import py4j.GatewayServer;
 
 /**
  * Language Resource for running the Python slave process.
@@ -43,6 +46,7 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
    */
   public transient org.apache.log4j.Logger logger
           = org.apache.log4j.Logger.getLogger(this.getClass());
+  
   
   
   /**
@@ -72,17 +76,50 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   
   @Override
   public Resource init() {
+    logger.info("Creating PythonSlave instance");
     pythonSlave = new PythonSlave();
     pythonSlave.port = port;
-    pythonSlave.startServer();
+    startServer(pythonSlave);
     logger.info("Python slave started at port "+port);
     return this;
   }
   
   @Override
   public void cleanup() {
-    pythonSlave.stopServer();
+    logger.info("Trying to stop server");
+    stopServer(pythonSlave);
+    logger.info("After stopping server");
     super.cleanup();
   }
+  
+  /**
+   * Start the server.
+   * 
+   * @param pslave the python slave instance that owns the server
+   */
+  public void startServer(PythonSlave pslave) {
+    Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
+    GatewayServer server = new GatewayServer(pslave, port);
+    pslave.server = server;
+    try {
+      server.start();
+    } catch(Exception ex) {
+      pslave.server = null;
+      throw new GateRuntimeException("Could not start GatewayServer",ex);
+    }
+  }
+  
+  /**
+   * Stop the server.
+   * 
+   * @param pslave the PythonSlave instance that owns the server.
+   */
+  public void stopServer(PythonSlave pslave) {
+    if(pslave.server != null)
+      pslave.server.shutdown();
+  }
+  
+  
+  
   
 }
