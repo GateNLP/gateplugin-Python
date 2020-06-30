@@ -732,7 +732,7 @@ public class PythonPr
    */
   public String usePythonPackagePath;
   
-  protected static boolean versionInfoShown = false;
+  static boolean versionInfoShown = false;
 
   protected ResourceHelper rhBdocApi;
   
@@ -1119,6 +1119,7 @@ public class PythonPr
    * @param doc the document to send over
    * @return JSON string
    */
+  @SuppressWarnings("unchecked")
   protected String makeExecuteRequest(Document doc) {
     Map<String, Object> request = new HashMap<>();
     request.put("command", "execute");
@@ -1140,6 +1141,7 @@ public class PythonPr
     }
   }
   
+  @SuppressWarnings("unchecked")
   protected String makeStartRequest() {
     Map<String, Object> request = new HashMap<>();
     request.put("command", "start");
