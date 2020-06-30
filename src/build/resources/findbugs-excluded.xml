@@ -11,5 +11,9 @@
      <Field name="panel"/>
      <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
    </Match>
+   <Match>
+     <Field name="panel"/>
+     <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON" />
+   </Match>
 </FindBugsFilter>
 
