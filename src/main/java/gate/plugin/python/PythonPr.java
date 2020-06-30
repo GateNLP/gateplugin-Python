@@ -27,6 +27,7 @@ import gate.Resource;
 import gate.Controller;
 import gate.Document;
 import gate.FeatureMap;
+import gate.Gate;
 
 import gate.creole.AbstractLanguageAnalyser;
 import gate.creole.ControllerAwarePR;
@@ -38,11 +39,7 @@ import gate.creole.metadata.Optional;
 import gate.creole.metadata.RunTime;
 import gate.creole.metadata.Sharable;
 import gate.creole.ExecutionException;
-import gate.lib.basicdocument.BdocDocument;
-import gate.lib.basicdocument.BdocDocumentBuilder;
-import gate.lib.basicdocument.BdocUtils;
-import gate.lib.basicdocument.ChangeLog;
-import gate.lib.basicdocument.GateDocumentUpdater;
+import gate.gui.ResourceHelper;
 import gate.lib.interaction.process.pipes.Process4StringStream;
 import gate.util.GateRuntimeException;
 import java.io.BufferedReader;
@@ -50,6 +47,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
@@ -65,6 +63,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -733,8 +732,11 @@ public class PythonPr
    */
   public String usePythonPackagePath;
   
-  static boolean versionInfoShown = false;
+  protected static boolean versionInfoShown = false;
 
+  protected ResourceHelper rhBdocApi;
+  
+  
   //public boolean isJarUrl(URL url) {
   //  String scheme = url.toURI().getScheme();
   //  if()
@@ -768,8 +770,10 @@ public class PythonPr
       } catch (IOException ex) {
         logger.error("Could not obtain plugin Python version info: " + ex.getMessage(), ex);
       }
+      /*
       try {
         Properties properties = new Properties();        
+        
         InputStream is = BdocDocument.class.getClassLoader().getResourceAsStream("gatelib-basicdocument.git.properties");
         if (is != null) {
           properties.load(is);
@@ -785,6 +789,7 @@ public class PythonPr
       } catch (IOException ex) {
         logger.error("Could not obtain lib basicdocument version info: " + ex.getMessage(), ex);
       }
+      */
       try {
         Properties properties = new Properties();        
         InputStream is = Process4StringStream.class.getClassLoader().getResourceAsStream("gatelib-interaction.git.properties");
@@ -833,6 +838,9 @@ public class PythonPr
     } else {
       duplicateId = nrDuplicates.getAndAdd(1);
     }
+    rhBdocApi = (ResourceHelper)Gate.getCreoleRegister()
+                     .get("gate.plugin.format.bdoc.API")
+                     .getInstantiations().iterator().next();    
     return this;
   } // end init()
 
@@ -1024,15 +1032,14 @@ public class PythonPr
         logger.debug("Python exception, stacktrace we got: "+response.stacktrace);
         throw new GateRuntimeException("Error processing document: " + response.error
                 + "\nAdditional info from Python:\n" + response.info);
-      }
-      ChangeLog chlog = response.data;
-      if (chlog == null) {
+      }      
+      //ChangeLog chlog = response.data;
+      if (response.data == null) {
         throw new GateRuntimeException("Got null changelog back from process");
       }
-      new GateDocumentUpdater(document).
-              handleNewAnnotation(GateDocumentUpdater.HandleNewAnns.ADD_WITH_BDOC_ID).
-              fromChangeLog(chlog);
-    } catch (IOException ex) {
+      rhBdocApi.call("update_document_from_logmap", document, response.data);
+    } catch (IOException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | 
+            InvocationTargetException ex) {
       throw new GateRuntimeException("Could not convert execute response JSON: " + responseJson, ex);
     }
   }
@@ -1075,7 +1082,8 @@ public class PythonPr
     public String error;
     public String info;
     public List<List<String>> stacktrace;
-    public ChangeLog data;
+    // public ChangeLog data;
+    public Map<String, Object> data;
   }
   
   static protected class FinishResponse {
@@ -1114,10 +1122,17 @@ public class PythonPr
   protected String makeExecuteRequest(Document doc) {
     Map<String, Object> request = new HashMap<>();
     request.put("command", "execute");
-    // create the BdocDocument from our document    
-    BdocDocument bdoc = new BdocDocumentBuilder().fromGate(document).buildBdoc();
-    bdoc.features.put("gate.plugin.python.docName", document.getName());
-    request.put("data", bdoc);
+    // create the BdocDocument from our document   
+    Map<String,Object> mdoc;
+    try {
+      mdoc = (Map<String,Object>)rhBdocApi.call("bdocmap_from_doc", document);
+    } catch (NoSuchMethodException | IllegalArgumentException |
+            IllegalAccessException | InvocationTargetException ex) {
+      throw new GateRuntimeException("Error when trying to convert document to map", ex);
+    }
+    //BdocDocument bdoc = new BdocDocumentBuilder().fromGate(document).buildBdoc();
+    //bdoc.features.put("gate.plugin.python.docName", document.getName());
+    request.put("data", mdoc);
     try {
       return JSON.std.asString(request);
     } catch (IOException ex) {
@@ -1128,7 +1143,14 @@ public class PythonPr
   protected String makeStartRequest() {
     Map<String, Object> request = new HashMap<>();
     request.put("command", "start");
-    Map<String, Object> params = BdocUtils.featureMap2Map(programParams, null);
+    Map<String, Object> params;
+    try {
+      params = (Map<String, Object>)rhBdocApi.call("fmap_to_map", null, programParams);
+    } catch (NoSuchMethodException | IllegalArgumentException | 
+            IllegalAccessException | InvocationTargetException ex) {
+      throw new GateRuntimeException("Could not create start request map", ex);
+    }
+    //Map<String, Object> params = BdocUtils.featureMap2Map(programParams, null);
     params.put("gate_plugin_python_duplicateId", duplicateId);
     params.put("gate_plugin_python_nrDuplicates", nrDuplicates.get());    
     if (pythonProgramIsJar) {

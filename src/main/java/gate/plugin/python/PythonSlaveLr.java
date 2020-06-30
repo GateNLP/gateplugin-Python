@@ -28,8 +28,6 @@ import gate.creole.metadata.CreoleParameter;
 import gate.creole.metadata.CreoleResource;
 import gate.creole.metadata.Optional;
 import gate.util.GateRuntimeException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import py4j.GatewayServer;
 
 /**

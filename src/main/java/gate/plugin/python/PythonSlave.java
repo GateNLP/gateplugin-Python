@@ -35,12 +35,8 @@ import gate.creole.ExecutionException;
 import gate.creole.Plugin;
 import gate.creole.ResourceInstantiationException;
 import gate.creole.ResourceReference;
-import gate.creole.SerialAnalyserController;
 import gate.gui.ResourceHelper;
 import gate.gui.creole.manager.PluginUpdateManager;
-import gate.lib.basicdocument.BdocDocument;
-import gate.lib.basicdocument.BdocDocumentBuilder;
-import gate.lib.basicdocument.docformats.SimpleJson;
 import gate.persist.PersistenceException;
 import gate.util.GateException;
 import gate.util.GateRuntimeException;
@@ -54,11 +50,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import py4j.GatewayServer;
-
 
 /**
  * Run Java/GATE from python through this class.
@@ -397,8 +390,16 @@ public class PythonSlave {
    * @return json
    */
   public String getBdocJson(Document doc) {
-    BdocDocument bdoc = new BdocDocumentBuilder().fromGate(doc).buildBdoc();
-    return new SimpleJson().dumps(bdoc);
+    ResourceHelper rh = (ResourceHelper)Gate.getCreoleRegister()
+                     .get("gate.plugin.format.bdoc.API")
+                     .getInstantiations().iterator().next();
+    try {
+      String json = (String)rh.call("json_from_doc", null, doc);
+      return json;
+    } catch (NoSuchMethodException | IllegalArgumentException | 
+            IllegalAccessException | InvocationTargetException ex) {
+      throw new GateRuntimeException("Could not convert GATE document to json", ex);
+    }
   }
   
   /**
@@ -415,8 +416,7 @@ public class PythonSlave {
                      .get("gate.plugin.format.bdoc.API")
                      .getInstantiations().iterator().next();
     try {
-      BdocDocument bdoc = (BdocDocument)rh.call("bdoc_from_string", null, bdocjson);
-      rh.call("update_document", theDoc, bdoc);
+      rh.call("update_document_from_bdocjson", theDoc, bdocjson);
     } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException | InvocationTargetException ex) {
       throw new GateRuntimeException("Could not invoke bdoc_from_string", ex);
     } 
