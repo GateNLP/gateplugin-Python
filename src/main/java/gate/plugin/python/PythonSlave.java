@@ -27,6 +27,7 @@ import gate.DocumentExporter;
 import gate.Factory;
 import gate.FeatureMap;
 import gate.Gate;
+import gate.ProcessingResource;
 import gate.Resource;
 import gate.corpora.DocumentStaxUtils;
 import gate.creole.AbstractController;
@@ -49,7 +50,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -420,12 +423,199 @@ public class PythonSlave {
     return theDoc;
   }
 
+  /**
+   * Copy string to standard output.
+   * 
+   * Note: no new line character is appended.
+   * 
+   * @param txt the string to copy
+   */
   public void print2out(String txt) {
     System.out.print(txt);
   }
+
+  /**
+   * Copy string to standard error.
+   * 
+   * Note: no new line character is appended.
+   * 
+   * @param txt the string to copy
+   */
   public void print2err(String txt) {
     System.err.print(txt);
   }
   
+  /**
+   * Activate the GUI.
+   * 
+   * Caution: experimental!
+   * 
+   */
+  public void showGui() {
+    if (gate.gui.MainFrame.getInstance().isVisible()) {
+      return;
+    }
+    Runnable r = new Runnable() {
+      @Override
+      public void run() {
+        gate.Main.applyUserPreferences();
+        gate.gui.MainFrame.getInstance().setVisible(true);
+      }      
+    };
+    javax.swing.SwingUtilities.invokeLater(r);
+  }
+  
+  /**
+   * Return a list of all resources with the given name.
+   * @param name resource name
+   * @return list of matching resources
+   * @throws GateException 
+   */
+  public List<Resource> getResources4Name(String name) throws GateException {
+    return gate.Gate.getCreoleRegister().getAllInstances("gate.Resource");
+  }
+  
+  /**
+   * Return a list of all resources with the given name and class.
+   * @param name resource name
+   * @param clazz resource class name
+   * @return list of matching resources
+   * @throws GateException 
+   */
+  public List<Resource> getResources4Name(String name, String clazz) throws GateException {
+    return gate.Gate.getCreoleRegister().getAllInstances(clazz);
+  }
+  
+  /**
+   * Return the document with the given name.
+   * 
+   * If there are more than one, return an arbitrary one of those.
+   * 
+   * @param name the document name
+   * @return document matching the name
+   * @throws GateException 
+   */
+  public Document getDocument4Name(String name) throws GateException {
+    List<Resource> matching = getResources4Name(name, "gate.Document");
+    if(matching.size() > 0) {
+      return (Document)matching.get(0);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Return the corpus with the given name.
+   * 
+   * If there are more than one, return an arbitrary one of those.
+   * 
+   * @param name the corpus name
+   * @return corpus matching the name
+   * @throws GateException 
+   */
+  public Corpus getCorpus4Name(String name) throws GateException {
+    List<Resource> matching = getResources4Name(name, "gate.Corpus");
+    if(matching.size() > 0) {
+      return (Corpus)matching.get(0);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Return the pipeline with the given name.
+   * 
+   * If there are more than one, return an arbitrary one of those.
+   * 
+   * @param name the pipeline name
+   * @return pipeline matching the name
+   * @throws GateException 
+   */
+  public CorpusController getPipeline4Name(String name) throws GateException {
+    List<Resource> matching = getResources4Name(name, "gate.CorpusController");
+    if(matching.size() > 0) {
+      return (CorpusController)matching.get(0);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Return the processing resource with the given name.
+   * 
+   * If there are more than one, return an arbitrary one of those.
+   * 
+   * @param name the pr name
+   * @return pr matching the name
+   * @throws GateException 
+   */
+  public ProcessingResource getPr4Name(String name) throws GateException {
+    List<Resource> matching = getResources4Name(name, "gate.ProcessingResource");
+    if(matching.size() > 0) {
+      return (ProcessingResource)matching.get(0);
+    } else {
+      return null;
+    }
+  }
+  
+  /**
+   * Return list of all known document names.
+   * 
+   * @return list of names
+   * @throws GateException 
+   */
+  public List<String> getDocumentNames() throws GateException {
+    List<Resource> tmp = gate.Gate.getCreoleRegister().getAllInstances("gate.Document");
+    List<String> names = new ArrayList<>();
+    for(Resource r : tmp) {
+      names.add(r.getName());
+    }
+    return names;
+  }
+
+  /**
+   * Return list of all known corpus names.
+   * 
+   * @return list of names
+   * @throws GateException 
+   */
+  public List<String> getCorpusNames() throws GateException {
+    List<Resource> tmp = gate.Gate.getCreoleRegister().getAllInstances("gate.Corpus");
+    List<String> names = new ArrayList<>();
+    for(Resource r : tmp) {
+      names.add(r.getName());
+    }
+    return names;
+  }
+  
+  /**
+   * Return list of all known pipeline names.
+   * 
+   * @return list of names
+   * @throws GateException 
+   */
+  public List<String> getPipelineNames() throws GateException {
+    List<Resource> tmp = gate.Gate.getCreoleRegister().getAllInstances("gate.CorpusController");
+    List<String> names = new ArrayList<>();
+    for(Resource r : tmp) {
+      names.add(r.getName());
+    }
+    return names;
+  }
+
+  /**
+   * Return list of all known processing resource names.
+   * 
+   * @return list of names
+   * @throws GateException 
+   */
+  public List<String> getPrNames() throws GateException {
+    List<Resource> tmp = gate.Gate.getCreoleRegister().getAllInstances("gate.ProcessingResource");
+    List<String> names = new ArrayList<>();
+    for(Resource r : tmp) {
+      names.add(r.getName());
+    }
+    return names;
+  }
   
 }
