@@ -49,7 +49,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <gate-core.version>8.6</gate-core.version>
+    <gate-core.version>9.0-SNAPSHOT</gate-core.version>
   </properties>
   <packaging>jar</packaging>
   <dependencies>
@@ -81,12 +81,6 @@
           <artifactId>commons-io</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>uk.ac.gate.plugins</groupId>
-      <artifactId>format-bdoc</artifactId>
-      <version>1.1-SNAPSHOT</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.jr</groupId>
