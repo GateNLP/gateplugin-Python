@@ -11,7 +11,7 @@ class MyProcessor:
     set2.clear()
     set_def = list(doc.get_annotations())
     doc_ann = set_def[0]
-    print("!!!DEBUG ANN FROM/TO/TYPE = {}/{}/{}".format(doc_ann.start, doc_ann.end, doc_ann.type))
+    print("!!!DEBUG ANN FROM/TO/TYPE/FEATURES = {}/{}/{}/{}".format(doc_ann.start, doc_ann.end, doc_ann.type,doc_ann.features))
     annid = set2.add(doc_ann.start, doc_ann.end, doc_ann.type, doc_ann.features)
     ann = set2.get(annid)
     ann.set_feature("python_start", ann.start)
