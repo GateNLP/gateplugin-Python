@@ -394,7 +394,7 @@ public class PythonSlave {
                      .get("gate.plugin.format.bdoc.API")
                      .getInstantiations().iterator().next();
     try {
-      String json = (String)rh.call("json_from_doc", null, doc);
+      String json = (String)rh.call("json_from_doc", doc);
       return json;
     } catch (NoSuchMethodException | IllegalArgumentException | 
             IllegalAccessException | InvocationTargetException ex) {
