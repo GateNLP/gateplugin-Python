@@ -48,7 +48,7 @@ public class PythonPrTest extends GATEPluginTestCase {
    */
   public void testPython() throws IOException {
     Executor executor = new DefaultExecutor();
-    System.err.println("Python path:");
+    //System.err.println("Python path:");
     CommandLine cmdLine1;
     if(PythonPr.isOsWindows()) {
       cmdLine1 = CommandLine.parse("cmd.exe /C where python");  
@@ -95,7 +95,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     controller.execute();
     
     AnnotationSet anns = doc1.getAnnotations("Copy");
-    // System.err.println("Got anns: "+anns);
+    System.err.println("Got anns: "+anns);
     assertEquals(1, anns.size());
     Annotation ann = anns.iterator().next();
     //System.err.println("Got ann: "+ann);
@@ -114,6 +114,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     // add a document a null document feature and a null annotation feature
     // to check if this works correctly. The python code copies those 
     // values back into new document featrues
+    //System.err.println("######## TEST Pr01");
     doc1.getFeatures().put("docfeature_null", null);
     doc1.getFeatures().put("docfeature_str", "asdf");
     doc1.getAnnotations().add(0L, 2L, "DEBUG", 
@@ -136,7 +137,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     assertEquals("asdf", docfm.get("copy_docfeature_str"));
     assertEquals("asdf", docfm.get("copy_annfeature_str"));
     AnnotationSet anns = doc1.getAnnotations("Set1");
-    // System.err.println("Got anns: "+anns);
+    //System.err.println("Got anns: "+anns);
     assertEquals(1, anns.size());
     Annotation ann = anns.iterator().next();
     // System.err.println("Got ann: "+ann);
@@ -169,6 +170,7 @@ public class PythonPrTest extends GATEPluginTestCase {
    * @throws Exception  exception
    */
   public void testPythonPr01b() throws Exception {
+    //System.err.println("######## TEST Pr01b");
     Document doc1 = Factory.newDocument("This is a small document");
     // add a document a null document feature and a null annotation feature
     // to check if this works correctly. The python code copies those 
@@ -196,7 +198,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     assertEquals("asdf", docfm.get("copy_docfeature_str"));
     assertEquals("asdf", docfm.get("copy_annfeature_str"));
     AnnotationSet anns = doc1.getAnnotations("Set1");
-    // System.err.println("Got anns: "+anns);
+    //System.err.println("Got anns: "+anns);
     assertEquals(1, anns.size());
     Annotation ann = anns.iterator().next();
     // System.err.println("Got ann: "+ann);
@@ -228,6 +230,7 @@ public class PythonPrTest extends GATEPluginTestCase {
    * @throws Exception  exception
    */  
   public void testPythonPr02() throws Exception {
+    //System.err.println("######## TEST Pr02");
     Document doc1 = Factory.newDocument("This is a small document");
     ProcessingResource pr;
     FeatureMap params = Factory.newFeatureMap();
@@ -242,7 +245,7 @@ public class PythonPrTest extends GATEPluginTestCase {
     controller.setCorpus(corpus);
     controller.execute();
     AnnotationSet anns = doc1.getAnnotations("Set1");
-    // System.err.println("Got anns: "+anns);
+    //System.err.println("!!!!!!!!!!!!!1Got anns: "+anns);
     assertEquals(1, anns.size());
     Annotation ann = anns.iterator().next();
     //   System.err.println("Got ann: "+ann);
