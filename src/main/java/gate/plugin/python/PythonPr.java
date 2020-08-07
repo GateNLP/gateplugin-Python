@@ -1132,7 +1132,6 @@ public class PythonPr
       throw new GateRuntimeException("Error when trying to convert document to map", ex);
     }
     //BdocDocument bdoc = new BdocDocumentBuilder().fromGate(document).buildBdoc();
-    //bdoc.features.put("gate.plugin.python.docName", document.getName());
     request.put("data", mdoc);
     try {
       return JSON.std.asString(request);
