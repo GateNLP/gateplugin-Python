@@ -25,7 +25,7 @@ from gatenlp import GateNlpPr, interact
 
 @GateNlpPr
 def run(doc, **kwargs):
-    set1 = doc.get_annotations()
+    set1 = doc.annset()
     set1.clear()
     text = doc.text
     whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$", text)]
@@ -65,7 +65,7 @@ class MyProcessor:
         logger.info("Total number of tokens: {}".format(self.tokens_total))
 
     def __call__(self, doc, **kwargs):
-        set1 = doc.get_annotations()
+        set1 = doc.annset()
         set1.clear()
         text = doc.text
         whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$", text)]

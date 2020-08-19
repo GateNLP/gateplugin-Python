@@ -5,7 +5,7 @@ from gatenlp import interact, GateNlpPr
 
 @GateNlpPr
 def run(doc, **kwargs):
-    set1 = doc.get_annotations("PythonTokenizeFunc")  
+    set1 = doc.annset("PythonTokenizeFunc")  
     set1.clear()   
     text = doc.text  
     whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$",text)] 

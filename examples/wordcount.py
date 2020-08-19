@@ -14,12 +14,12 @@ class MyProcessor:
   def finish(self, **kwargs):
     return self.counter  
   def __call__(self, doc, **kwargs):
-    anns = doc.get_annotations()  
+    anns = doc.annset()  
     for ann in anns:
-        cat = ann.get_feature("category")
+        cat = ann.features.get("category")
         if cat is None:
             cat = "(None)"
-        kind = ann.get_feature("kind")
+        kind = ann.features.get("kind")
         if kind is None:
             kind = "(None)"
         self.counter["cat_"+cat] += 1

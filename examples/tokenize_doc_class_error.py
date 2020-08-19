@@ -17,7 +17,7 @@ class MyProcessor:
     print("Total number of tokens:", self.tokens_total)
     print("Number of documents:", self.nr_docs)
   def __call__(self, doc, **kwargs):
-    set1 = doc.get_annotations("PythonTokenizeClass")  
+    set1 = doc.annset("PythonTokenizeClass")  
     set1.clear()   
     text = doc.text
     whitespaces = [m for m in re.finditer(r"[\s,.!?]+|^[\s,.!?]*|[\s,.!?]*$",text)]
