@@ -13,6 +13,6 @@ def run(doc, **kwargs):
         fromoff=whitespaces[k].end()  
         tooff=whitespaces[k+1].start()  
         set1.add(fromoff, tooff, "Token", {"tokennr": k})
-    doc.set_feature("nr_tokens", len(whitespaces)-1)
+    doc.features["nr_tokens"] = len(whitespaces)-1
 
 interact()

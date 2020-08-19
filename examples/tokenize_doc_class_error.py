@@ -28,7 +28,7 @@ class MyProcessor:
         # cause an exception 
         weird = fromoff/(k-2)   # this wil raise divide by zero for the 3rd token
         set1.add(fromoff, tooff, "Token", {"tokennr": k, "python_start": fromoff, "python_end": tooff})
-    doc.set_feature("nr_tokens", nrtokens)
+    doc.features["nr_tokens"] = nrtokens
     self.tokens_total += nrtokens
     self.nr_docs += 1
 

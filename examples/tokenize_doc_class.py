@@ -26,7 +26,7 @@ class MyProcessor:
         fromoff=whitespaces[k].end()   
         tooff=whitespaces[k+1].start() 
         set1.add(fromoff, tooff, "Token", {"tokennr": k, "python_start": fromoff, "python_end": tooff})
-    doc.set_feature("nr_tokens", nrtokens)
+    doc.features["nr_tokens"] = nrtokens
     self.tokens_total += nrtokens
     self.nr_docs += 1
 

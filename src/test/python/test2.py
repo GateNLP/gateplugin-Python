@@ -10,10 +10,10 @@ class MyProcessor:
     set1 = doc.get_annotations("Set1")
     set1.clear()
     set1.add(1,4,"Type1",{"f1":12, "f2": "val2"})
-    doc.set_feature("FEAT", "VAL")
-    doc.clear_features()
-    doc.set_feature("feat1", 12)
-    doc.set_feature("feat2", "asdf")
-    doc.set_feature("feat1", 13)
+    doc.features["FEAT"] = "VAL"
+    doc.features.clear()
+    doc.features["feat1"] = 12
+    doc.features["feat2"] = "asdf"
+    doc.features["feat1"] = 13
 
 interact()

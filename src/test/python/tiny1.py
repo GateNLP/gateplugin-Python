@@ -14,7 +14,7 @@ class MyProcessor:
     print("!!!DEBUG ANN FROM/TO/TYPE/FEATURES = {}/{}/{}/{}".format(doc_ann.start, doc_ann.end, doc_ann.type,doc_ann.features))
     annid = set2.add(doc_ann.start, doc_ann.end, doc_ann.type, doc_ann.features)
     ann = set2.get(annid)
-    ann.set_feature("python_start", ann.start)
-    ann.set_feature("python_end", ann.end)
+    ann.features["python_start"] = ann.start
+    ann.features["python_end"] = ann.end
 
 interact()

@@ -17,11 +17,11 @@ class MyProcessor:
     set1 = doc.get_annotations("PythonModifyClass")
     set1.clear()
     set1.add(1,4,"Type1",{"f1":12, "f2": "val2"})
-    doc.set_feature("FEAT", "VAL")
-    doc.clear_features()
-    doc.set_feature("feat1", 12)
-    doc.set_feature("feat2", "asdf")
-    doc.set_feature("feat1", 13)
+    doc.features["FEAT" =] "VAL"
+    doc.features.clear()
+    doc.features["feat1"] = 12
+    doc.features["feat2"] =  "asdf"
+    doc.features["feat1"] = 13
     # doc.name = "MyTestDocument"
     set2 = doc.get_annotations("PythonModifClass_Copy")
     set2.clear()
@@ -29,8 +29,8 @@ class MyProcessor:
     for ann in set_def:
         annid = set2.add(ann.start, ann.end, ann.type, ann.features)
         ann = set2.get(annid)
-        ann.set_feature("python_start", ann.start)
-        ann.set_feature("python_end", ann.end)
+        ann.features["python_start"] = ann.start
+        ann.features["python_end"] = ann.end
     #print("!!!!!!!! CHANGELOG:")
     #for ch in doc.changelog.changes:
     #    print(ch)

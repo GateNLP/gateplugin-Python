@@ -12,7 +12,7 @@ class MyProcessor:
     for ann in set_def:
         annid = set2.add(ann.start, ann.end, ann.type, ann.features)
         ann = set2.get(annid)
-        ann.set_feature("python_start", ann.start)
-        ann.set_feature("python_end", ann.end)
+        ann.features["python_start"] = ann.start
+        ann.features["python_end"] = ann.end
 
 interact()
