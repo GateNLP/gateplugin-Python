@@ -11,7 +11,7 @@ def run(doc, **kwargs):
     set1 = doc.annset("PythonModifyFunc")
     set1.clear()
     set1.add(1,4,"Type1",{"f1":12, "f2": "val2"})
-    doc.featuresr["FEAT"] = "VAL"
+    doc.features["FEAT"] = "VAL"
     doc.features.clear()
     doc.features["feat1"] = 12
     doc.features["feat2"] = "asdf"

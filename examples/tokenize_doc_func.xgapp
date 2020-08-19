@@ -58,12 +58,6 @@
               <mapType>gate.util.SimpleFeatureMapImpl</mapType>
               <localMap>
                 <entry>
-                  <string>workingDirUrl</string>
-                  <gate.util.persistence.PersistenceManager-URLHolder>
-                    <urlString>$relpath$</urlString>
-                  </gate.util.persistence.PersistenceManager-URLHolder>
-                </entry>
-                <entry>
                   <string>pythonProgram</string>
                   <gate.util.persistence.PersistenceManager-RRPersistence>
                     <uriString>$relpath$tokenize_doc_func.py</uriString>

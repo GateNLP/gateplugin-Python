@@ -2,7 +2,7 @@
 
 from gatenlp import interact, GateNlpPr, Document
 import stanfordnlp
-from gatenlp.stanfordnlp import apply_stanfordnlp
+from gatenlp.lib_stanfordnlp import apply_stanfordnlp
 import sys
 import re
 

@@ -1,7 +1,7 @@
 """Run spacy"""
 
 from gatenlp import interact, GateNlpPr, Document
-from gatenlp.spacy import apply_spacy
+from gatenlp.lib_spacy import apply_spacy
 import sys
 import re
 import spacy

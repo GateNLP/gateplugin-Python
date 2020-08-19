@@ -89,12 +89,14 @@
                     <initParams class="gate.util.persistence.MapPersistence">
                       <mapType>gate.util.SimpleFeatureMapImpl</mapType>
                       <localMap>
+<!--
                         <entry>
                           <string>fileUrl</string>
                           <gate.util.persistence.PersistenceManager-URLHolder>
                             <urlString>$relpath$wordcount.data</urlString>
                           </gate.util.persistence.PersistenceManager-URLHolder>
                         </entry>
+-->
                       </localMap>
                     </initParams>
                   </gate.util.persistence.LRPersistence>
