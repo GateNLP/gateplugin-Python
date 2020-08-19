@@ -24,7 +24,7 @@ class MyProcessor:
     outset = ""
     if "outputAnnotationSet" in kwargs:
         outset =  kwargs.get("outputAnnotationSet")
-    annset = doc.get_annotations(outset)
+    annset = doc.annset(outset)
     annset.clear()
     apply_stanfordnlp(self.nlp, doc, setname=outset) 
     

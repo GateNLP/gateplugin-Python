@@ -24,11 +24,10 @@ class MyProcessor:
     print("Total number of tokens:", self.tokens_total)
     print("Number of documents:", self.nr_docs)
   def __call__(self, doc, **kwargs):
-    # print("PROCESSING: ",doc.get_feature("gate.plugin.python.docName"))
     outset = ""
     if "outputAnnotationSet" in kwargs:
         outset =  kwargs.get("outputAnnotationSet")
-    annset = doc.get_annotations(outset)
+    annset = doc.annset(outset)
     annset.clear()
     apply_spacy(self.nlp, doc, setname=outset) 
     
