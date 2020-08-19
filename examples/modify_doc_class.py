@@ -27,7 +27,7 @@ class MyProcessor:
     set2.clear()
     set_def = doc.annset()
     for ann in set_def:
-        annid = set2.add(ann.start, ann.end, ann.type, ann.features)
+        annid = set2.add(ann.start, ann.end, ann.type, ann.features).id
         ann = set2.get(annid)
         ann.features["python_start"] = ann.start
         ann.features["python_end"] = ann.end

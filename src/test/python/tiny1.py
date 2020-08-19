@@ -12,7 +12,7 @@ class MyProcessor:
     set_def = list(doc.annset())
     doc_ann = set_def[0]
     print("!!!DEBUG ANN FROM/TO/TYPE/FEATURES = {}/{}/{}/{}".format(doc_ann.start, doc_ann.end, doc_ann.type,doc_ann.features))
-    annid = set2.add(doc_ann.start, doc_ann.end, doc_ann.type, doc_ann.features)
+    annid = set2.add(doc_ann.start, doc_ann.end, doc_ann.type, doc_ann.features).id
     ann = set2.get(annid)
     ann.features["python_start"] = ann.start
     ann.features["python_end"] = ann.end
