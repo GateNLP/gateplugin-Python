@@ -11,15 +11,15 @@ class MyProcessor:
 
   def __init__(self):
     self.nlp = None
-    self.tokens_total = 0
-    self.nr_docs = 0
   def start(self, **kwargs):
-    self.nlp = stanfordnlp.Pipeline()
-    self.tokens_total = 0
-    self.nr_docs = 0
+    lang = kwargs.get("lang", "en")
+    args = dict()
+    for k in ["models_dir", "processors", "treebank", "use_gpu"]:
+        if k in kwargs:
+            args[k] = kwargs[k]
+    self.nlp = stanfordnlp.Pipeline(**args)
   def finish(self, **kwargs):
-    print("Total number of tokens:", self.tokens_total)
-    print("Number of documents:", self.nr_docs)
+    pass
   def __call__(self, doc, **kwargs):
     outset = ""
     if "outputAnnotationSet" in kwargs:
@@ -27,9 +27,6 @@ class MyProcessor:
     annset = doc.annset(outset)
     annset.clear()
     apply_stanfordnlp(self.nlp, doc, setname=outset) 
-    
-    self.tokens_total += len(doc)    
-    self.nr_docs += 1
     return doc
     
     

@@ -29,12 +29,12 @@ import gate.creole.metadata.CreoleResource;
  * @author Johann Petrak, johann.petrak@gmail.com
  */
 @CreoleResource(
-        name = "python-stanfordnlp", 
-        comment = "Example pipeline to run Python StanfordNLP on documents",
+        name = "python-spacy", 
+        comment = "Example pipeline to run Python Spacy on documents",
         icon = "gateplugin-Python", 
         autoinstances = @AutoInstance(parameters = {
-          @AutoInstanceParam(name="pipelineURL", value="resources/pipelines/python-stanfordnlp.xgapp"), 
+          @AutoInstanceParam(name="pipelineURL", value="resources/pipelines/python-spacy.xgapp"), 
           @AutoInstanceParam(name="menu", value="Python")})) 
-public class Pipeline_python_stanfordnlp  extends PackagedController {
-  private static final long serialVersionUID = -1892176551555424276L;
+public class PipelinePythonSpacy  extends PackagedController {
+  private static final long serialVersionUID = -1892123999555424276L;
 }
