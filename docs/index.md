@@ -40,3 +40,8 @@ GATE version, Java version, Python version and whatever else might be relevant.
 * [Pipeline python-spacy](pipeline-python-spacy) a ready made application that creates
   annotations for a document from the result of running Python
   [spaCy](https://spacy.io/) on the text.
+* [Pipeline python-stanfordnlp](pipeline-python-stanfordnlp) a ready made application that 
+  runs StanfordNLP and creates annotations from the result. NOTE: StanfordNLP has been
+  deprecated and has been superseded by Stanford Stanza (see below)
+* [Pipeline python-stanford-stanza](pipeline-python-stanza) a ready made application that
+  rauns Stanford Stanza and creates annotations from the result.
