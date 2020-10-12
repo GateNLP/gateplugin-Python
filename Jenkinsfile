@@ -21,7 +21,7 @@ pipeline {
                 rm -rf \$envfile
                 python -m venv \$envfile
                 export PATH=\$envfile/bin:\$PATH
-                pip install -r \$WORKSPACE/submodules/python-gatenlp/requirements.txt
+                pip install -r \$WORKSPACE/python-requirements.txt
                 mvn -e clean install
                 """
             }
