@@ -29,6 +29,9 @@ import gate.creole.metadata.Optional;
 import gate.gui.NameBearerHandle;
 import gate.gui.ResourceHelper;
 import gate.util.GateRuntimeException;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Action;
@@ -55,7 +58,7 @@ public class PythonSlaveRunner extends ResourceHelper  {
   /**
    * Our logger instance.
    */
-  public transient org.apache.log4j.Logger logger
+  public transient org.apache.log4j.Logger LOGGER
           = org.apache.log4j.Logger.getLogger(this.getClass());
   
   
@@ -123,6 +126,24 @@ public class PythonSlaveRunner extends ResourceHelper  {
   public String getAuthToken() { return authToken; }
   protected String authToken = "";
 
+  /**
+   * Set whether or not to log actions.
+   *
+   * @param val flag
+   */
+  @CreoleParameter(comment="If actions should get logged", defaultValue="false")
+  public void setLogActions(Boolean val) { logActions = val; }
+
+  /**
+   * Get if actions get logged.
+   * @return flag
+   */
+  public Boolean getLogActions() { return logActions; }
+  protected Boolean logActions = false;
+
+
+
+
   @Override
   @SuppressWarnings("unchecked") 
   public Object call(String action, Resource resource, Object... params) {
@@ -150,6 +171,16 @@ public class PythonSlaveRunner extends ResourceHelper  {
   }
 
   /**
+   * Initialize the resource
+   *
+   * @return the resource
+   */
+  public Resource init() {
+
+    return this;
+  }
+
+  /**
    * Start the server. 
    * 
    * This writes a special string to stdout indicating if the server has been
@@ -158,19 +189,35 @@ public class PythonSlaveRunner extends ResourceHelper  {
    * 
    * @param pslave the python slave instance that owns the server
    */
-  public void startServer(PythonSlave pslave) {
+  public void startServer(PythonSlave pslave){
+    InetAddress hostAddress;
+    try {
+      hostAddress = InetAddress.getByName(host);
+    } catch (UnknownHostException ex) {
+      throw new RuntimeException("Cannot resolve host address "+host, ex);
+    }
     Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
     // Try to find the auth token from the environment variable
     if (this.authToken == null || this.authToken.trim().isEmpty()) {
       this.authToken = System.getenv("GATENLP_SLAVE_TOKEN_"+port);
     }
+    System.err.println("RUNNING startServer with "+port+"/"+host+"/"+authToken+"/"+logActions);
+    pslave.logCommands = logActions;
     GatewayServer  server;
     if (this.authToken == null || this.authToken.trim().isEmpty()) {
-      server = new GatewayServer(pslave, port);
+      server = new GatewayServer.GatewayServerBuilder()
+              .entryPoint(pslave)
+              .javaPort(port)
+              .javaAddress(hostAddress)
+              .build();
     } else {
       //System.err.println("Using auth token: "+auth_token);
       server = new GatewayServer.GatewayServerBuilder()
-              .entryPoint(pslave).authToken(this.authToken).build();
+              .entryPoint(pslave)
+              .authToken(this.authToken)
+              .javaPort(port)
+              .javaAddress(hostAddress)
+              .build();
     }
     pslave.server = server;
     pslave.parentIsRunner = true;

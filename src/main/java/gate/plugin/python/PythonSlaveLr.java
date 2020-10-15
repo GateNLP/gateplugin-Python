@@ -30,6 +30,8 @@ import gate.creole.metadata.Optional;
 import gate.util.GateRuntimeException;
 import py4j.GatewayServer;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.UUID;
 
 /**
@@ -75,6 +77,29 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   protected Integer port = 25333;
 
   /**
+   * Set binding host name or address
+   *
+   * @param value host
+   */
+  @Optional
+  @CreoleParameter(
+          comment = "Binding host name or address",
+          defaultValue = "127.0.0.1"
+  )
+  public void setHost(String value) {
+    host = value;
+  }
+  /**
+   * Get the host
+   *
+   * @return host
+   */
+  public String getHost() {
+    return host;
+  }
+  protected String host = "127.0.0.1";
+
+  /**
    * Set auth token
    *
    * @param value auth token
@@ -96,6 +121,23 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
     return authToken;
   }
   protected String authToken = "";
+
+  /**
+   * Set whether or not to log actions.
+   *
+   * @param val flag
+   */
+  @CreoleParameter(comment="If actions should get logged", defaultValue="false")
+  public void setLogActions(Boolean val) { logActions = val; }
+
+  /**
+   * Get if actions get logged.
+   * @return flag
+   */
+  public Boolean getLogActions() { return logActions; }
+  protected Boolean logActions = false;
+
+
 
   /**
    * Set if we want to use an auth token.
@@ -121,6 +163,7 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
     logger.info("Creating PythonSlave instance");
     try {
       pythonSlave = new PythonSlave();
+      pythonSlave.logCommands = logActions;
     } catch (ResourceInstantiationException ex) {
       throw new ResourceInstantiationException("Could not create PythonSlave", ex);
     }
@@ -144,6 +187,12 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
    * @param pslave the python slave instance that owns the server
    */
   public void startServer(PythonSlave pslave) {
+    InetAddress hostAddress;
+    try {
+      hostAddress = InetAddress.getByName(host);
+    } catch (UnknownHostException ex) {
+      throw new RuntimeException("Cannot resolve host address "+host, ex);
+    }
     Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
     GatewayServer server;
     if (useAuthToken) {
@@ -153,9 +202,17 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
         System.out.println("Using auth token: "+authToken);
       }
       server = new GatewayServer.GatewayServerBuilder()
-              .entryPoint(pslave).authToken(this.authToken).build();
+              .entryPoint(pslave)
+              .javaPort(port)
+              .javaAddress(hostAddress)
+              .authToken(this.authToken)
+              .build();
     } else {
-      server = new GatewayServer(pslave, port);
+      server = new GatewayServer.GatewayServerBuilder()
+              .entryPoint(pslave)
+              .javaPort(port)
+              .javaAddress(hostAddress)
+              .build();
     }
     pslave.server = server;
     try {
