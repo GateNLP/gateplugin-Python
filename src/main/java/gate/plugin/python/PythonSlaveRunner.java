@@ -105,7 +105,24 @@ public class PythonSlaveRunner extends ResourceHelper  {
   protected String host = "127.0.0.1";
   
   private transient PythonSlave slave = null;
-  
+
+  /**
+   * Set auth token to use.
+   *
+   * @param value: the auth token to use or an empty String to use none.
+   */
+  @Optional
+  @CreoleParameter(comment="Auth Token", defaultValue="")
+  public void setAuthToken(String value) { authToken = value;}
+
+  /**
+   * Get auth Token.
+   *
+   * @return the auth token
+   */
+  public String getAuthToken() { return authToken; }
+  protected String authToken = "";
+
   @Override
   @SuppressWarnings("unchecked") 
   public Object call(String action, Resource resource, Object... params) {
@@ -143,15 +160,26 @@ public class PythonSlaveRunner extends ResourceHelper  {
    */
   public void startServer(PythonSlave pslave) {
     Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
-    GatewayServer server = new GatewayServer(pslave, port);
+    // Try to find the auth token from the environment variable
+    if (this.authToken == null || this.authToken.trim().isEmpty()) {
+      this.authToken = System.getenv("GATENLP_SLAVE_TOKEN_"+port);
+    }
+    GatewayServer  server;
+    if (this.authToken == null || this.authToken.trim().isEmpty()) {
+      server = new GatewayServer(pslave, port);
+    } else {
+      //System.err.println("Using auth token: "+auth_token);
+      server = new GatewayServer.GatewayServerBuilder()
+              .entryPoint(pslave).authToken(this.authToken).build();
+    }
     pslave.server = server;
     pslave.parentIsRunner = true;
     try {
       server.start();
-      System.err.println("PYTHON SLAVE SERVER OK");
+      System.err.println("PythonSlaveRunner.java: server start OK");
     } catch(Exception ex) {
       pslave.server = null;
-      System.err.println("PYTHON SLAVE SERVER NOT OK");
+      System.err.println("PythonSlaveRunner.java: server start NOT OK");
       throw new GateRuntimeException("Could not start GatewayServer",ex);
     }
   }

@@ -30,6 +30,8 @@ import gate.creole.metadata.Optional;
 import gate.util.GateRuntimeException;
 import py4j.GatewayServer;
 
+import java.util.UUID;
+
 /**
  * Language Resource for running the Python slave process.
  * This is a language resource so we can interact with the initialized resource
@@ -71,8 +73,47 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
     return port;
   }
   protected Integer port = 25333;
-  
-  
+
+  /**
+   * Set auth token
+   *
+   * @param value auth token
+   */
+  @Optional
+  @CreoleParameter(
+          comment = "Auth token to use",
+          defaultValue = ""
+  )
+  public void setAuthToken(String value) {
+    authToken = value;
+  }
+  /**
+   * Get the auth token.
+   *
+   * @return auth token
+   */
+  public String getAuthToken() {
+    return authToken;
+  }
+  protected String authToken = "";
+
+  /**
+   * Set if we want to use an auth token.
+   *
+   * @param value flag
+   */
+  @CreoleParameter(comment = "Whether to use an auth token", defaultValue="true")
+  public void setUseAuthToken(Boolean value) { useAuthToken = value; }
+
+  /**
+   * Should we use an auth token.
+   *
+   * @return flag
+   */
+  public Boolean getUseAuthToken() { return useAuthToken; }
+  protected Boolean useAuthToken = true;
+
+
   protected transient PythonSlave pythonSlave;
   
   @Override
@@ -104,7 +145,18 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
    */
   public void startServer(PythonSlave pslave) {
     Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
-    GatewayServer server = new GatewayServer(pslave, port);
+    GatewayServer server;
+    if (useAuthToken) {
+      if (authToken == null || authToken.trim().isEmpty()) {
+        // generate a new random auth token and write it out
+        authToken = UUID.randomUUID().toString();
+        System.out.println("Using auth token: "+authToken);
+      }
+      server = new GatewayServer.GatewayServerBuilder()
+              .entryPoint(pslave).authToken(this.authToken).build();
+    } else {
+      server = new GatewayServer(pslave, port);
+    }
     pslave.server = server;
     try {
       server.start();
