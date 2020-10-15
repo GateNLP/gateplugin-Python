@@ -142,7 +142,11 @@ public class PythonSlaveRunner extends ResourceHelper  {
   protected Boolean logActions = false;
 
 
-
+  @Optional
+  @CreoleParameter(comment="Keep running", defaultValue="false")
+  public void setKeep(Boolean val) { keep = val; }
+  public Boolean getKeep() { return keep; }
+  protected Boolean keep = false;
 
   @Override
   @SuppressWarnings("unchecked") 
@@ -202,6 +206,7 @@ public class PythonSlaveRunner extends ResourceHelper  {
     }
     System.err.println("PythonSlaveRunning: starting server with "+port+"/"+host+"/"+authToken+"/"+logActions);
     pslave.logActions = logActions;
+    pslave.keepRunning = keep;
     GatewayServer  server;
     if (this.authToken == null || this.authToken.trim().isEmpty()) {
       server = new GatewayServer.GatewayServerBuilder()

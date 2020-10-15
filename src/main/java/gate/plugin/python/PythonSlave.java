@@ -75,6 +75,12 @@ public class PythonSlave {
    */
   public boolean logActions = true;
 
+  /**
+   * Indicate if the slave should be kept running. This is the case if it was started by the PythonSlaveLr
+   * or if the slave running does not clear this.
+   */
+  public boolean keepRunning = true;
+
   private Corpus tmpCorpus;
   
   /**
@@ -653,6 +659,16 @@ public class PythonSlave {
    */
   public void kill() {
     server.shutdown();
+  }
+
+  /**
+   * Check if the slave is closable.
+   * It is closable if not started by the Lr.
+   *
+   * @return flag
+   */
+  public boolean isClosable() {
+    return !keepRunning;
   }
 
 }
