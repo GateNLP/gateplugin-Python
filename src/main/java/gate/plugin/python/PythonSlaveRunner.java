@@ -160,7 +160,6 @@ public class PythonSlaveRunner extends ResourceHelper  {
         } catch(ResourceInstantiationException ex) {
           throw new GateRuntimeException("Could not create PythonSlave", ex);
         }
-        slave.port = port;
         startServer(slave);
         break;
 
@@ -201,8 +200,8 @@ public class PythonSlaveRunner extends ResourceHelper  {
     if (this.authToken == null || this.authToken.trim().isEmpty()) {
       this.authToken = System.getenv("GATENLP_SLAVE_TOKEN_"+port);
     }
-    System.err.println("RUNNING startServer with "+port+"/"+host+"/"+authToken+"/"+logActions);
-    pslave.logCommands = logActions;
+    System.err.println("PythonSlaveRunning: starting server with "+port+"/"+host+"/"+authToken+"/"+logActions);
+    pslave.logActions = logActions;
     GatewayServer  server;
     if (this.authToken == null || this.authToken.trim().isEmpty()) {
       server = new GatewayServer.GatewayServerBuilder()
@@ -220,7 +219,6 @@ public class PythonSlaveRunner extends ResourceHelper  {
               .build();
     }
     pslave.server = server;
-    pslave.parentIsRunner = true;
     try {
       server.start();
       System.err.println("PythonSlaveRunner.java: server start OK");

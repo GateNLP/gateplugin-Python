@@ -163,11 +163,10 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
     logger.info("Creating PythonSlave instance");
     try {
       pythonSlave = new PythonSlave();
-      pythonSlave.logCommands = logActions;
+      pythonSlave.logActions = logActions;
     } catch (ResourceInstantiationException ex) {
       throw new ResourceInstantiationException("Could not create PythonSlave", ex);
     }
-    pythonSlave.port = port;
     startServer(pythonSlave);
     logger.info("Python slave started at port "+port);
     return this;
@@ -175,9 +174,9 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   
   @Override
   public void cleanup() {
-    logger.info("Trying to stop server");
+    // logger.info("Trying to stop server");
     stopServer(pythonSlave);
-    logger.info("After stopping server");
+    // logger.info("After stopping server");
     super.cleanup();
   }
   
