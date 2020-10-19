@@ -61,9 +61,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -308,7 +309,33 @@ public class PythonPr
   }
   protected PythonPrResult outputResultResource;
 
-  
+  /**
+   * Set the annotation set names to use.
+   *
+   * If the special name "*" is included in the set, all sets are used.
+   * Otherwise only sets with the given names are included. To include the default annotation set
+   * add a null value or a value that only consists of spaces.
+   *
+   * @param val the set of set names to use.
+   */
+  @Optional
+  @RunTime
+  @CreoleParameter(
+          comment = "Annotation set names to send and use in Python, *=all, null/space=default set",
+          defaultValue = "*")
+  public void setSetsToUse(Set<String> val) {
+    setsToUse = val;
+  }
+
+  /**
+   * Get which annotation set names to use.
+   *
+   * @return set of set names.
+   */
+  public Set<String> getSetsToUse() { return setsToUse; }
+  protected Set<String> setsToUse = new HashSet<>();
+
+
   /**
    * This field contains the currently active process for the python program.
    * Otherwise, the field should be null.
@@ -1126,7 +1153,11 @@ public class PythonPr
     // create the BdocDocument from our document   
     Map<String,Object> mdoc;
     try {
-      mdoc = (Map<String,Object>)rhBdocApi.call("bdocmap_from_doc", document);
+      if (setsToUse == null || setsToUse.contains("*")) {
+        mdoc = (Map<String, Object>) rhBdocApi.call("bdocmap_from_doc", document);
+      } else {
+        mdoc = (Map<String, Object>) rhBdocApi.call("bdocmap_from_doc", document, setsToUse, true);
+      }
     } catch (NoSuchMethodException | IllegalArgumentException |
             IllegalAccessException | InvocationTargetException ex) {
       throw new GateRuntimeException("Error when trying to convert document to map", ex);
