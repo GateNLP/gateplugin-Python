@@ -25,6 +25,7 @@ import gate.Corpus;
 import gate.Document;
 import gate.Factory;
 import gate.FeatureMap;
+import gate.Utils;
 import gate.ProcessingResource;
 import gate.creole.SerialAnalyserController;
 import gate.plugin.python.PythonPr;
@@ -32,6 +33,9 @@ import gate.plugin.python.PythonPr.LoggingLevel;
 import gate.test.GATEPluginTestCase;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.Executor;
@@ -271,5 +275,67 @@ public class PythonPrTest extends GATEPluginTestCase {
     assertEquals(13, (int)f1);
     assertEquals("asdf", (String)f2);
   }
-  
+
+  /**
+   * Test sending over a selection of annotation sets.
+   *
+   * @throws Exception  exception
+   */
+  public void testPythonPr03() throws Exception {
+    Document doc1 = Factory.newDocument("This is a small document");
+    // Create two sets: Set1 and Set2 and add one annotation to each set
+    AnnotationSet aset = doc1.getAnnotations("Set1");
+    Utils.addAnn(aset, 0L,1L, "Type1", Utils.featureMap());
+    aset = doc1.getAnnotations("Set2");
+    Utils.addAnn(aset, 0L,1L, "Type2", Utils.featureMap());
+    ProcessingResource pr;
+    FeatureMap params = Factory.newFeatureMap();
+    params.put("pythonBinary", "python");
+    params.put("pythonProgram", new File("./src/test/python/test3.py").toURI().toURL());
+    Set<String> ss =new HashSet<>();
+    ss.add("Set1");
+    params.put("setsToUse", ss);
+    pr = (ProcessingResource)Factory.createResource("gate.plugin.python.PythonPr",params);
+    Corpus corpus = Factory.newCorpus("test");
+    corpus.add(doc1);
+    SerialAnalyserController controller = (SerialAnalyserController) Factory.createResource(
+            "gate.creole.SerialAnalyserController");
+    controller.add(pr);
+    controller.setCorpus(corpus);
+    controller.execute();
+
+    aset = doc1.getAnnotations("Set1");
+    // Set1 was sent and should have the original with id 0 and a new one with id 1
+    assertEquals(2, aset.size());
+    Set<Integer> idset = new HashSet<>();
+    for(Annotation a : aset) {
+      idset.add(a.getId());
+    }
+    assert idset.contains(0);
+    assert idset.contains(1);
+    Annotation a0 = aset.get(0);
+    assert a0.getType().equals("Type1");
+    Annotation a1 = aset.get(1);
+    assert a1.getType().equals("Type3");
+
+    aset = doc1.getAnnotations("Set2");
+    // Set2 should have the original with id=1, plus the new merged in with id=2
+    assertEquals(2, aset.size());
+    idset.clear();
+    for(Annotation a : aset) {
+      idset.add(a.getId());
+    }
+    assert idset.contains(1);
+    assert idset.contains(2);
+    a1 = aset.get(1);
+    assert a1.getType().equals("Type2");
+    Annotation a3 = aset.get(2);
+    assert a3.getType().equals("Type4");
+
+    aset = doc1.getAnnotations("Set3");
+    assertEquals(1, aset.size());
+    a1 = aset.get(0);
+    assert a1.getType().equals("Type5");
+  }
+
 }

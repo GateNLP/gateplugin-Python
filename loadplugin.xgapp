@@ -1,0 +1,32 @@
+<gate.util.persistence.GateApplication>
+  <urlList class="gate.util.persistence.CollectionPersistence">
+    <localList>
+      <gate.creole.Plugin-Maven>
+        <group>uk.ac.gate.plugins</group>
+        <artifact>python</artifact>
+        <version>2.4-SNAPSHOT</version>
+      </gate.creole.Plugin-Maven>
+    </localList>
+    <collectionType>java.util.ArrayList</collectionType>
+  </urlList>
+  <application class="gate.util.persistence.ConditionalSerialAnalyserControllerPersistence">
+    <strategiesList class="gate.util.persistence.CollectionPersistence">
+      <localList/>
+      <collectionType>java.util.ArrayList</collectionType>
+    </strategiesList>
+    <prList class="gate.util.persistence.CollectionPersistence">
+      <localList/>
+      <collectionType>java.util.ArrayList</collectionType>
+    </prList>
+    <resourceType>gate.creole.ConditionalSerialAnalyserController</resourceType>
+    <resourceName>loadplugin</resourceName>
+    <initParams class="gate.util.persistence.MapPersistence">
+      <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+      <localMap/>
+    </initParams>
+    <features class="gate.util.persistence.MapPersistence">
+      <mapType>gate.util.SimpleFeatureMapImpl</mapType>
+      <localMap/>
+    </features>
+  </application>
+</gate.util.persistence.GateApplication>
