@@ -97,6 +97,7 @@ on the processing resource. See [PythonFileEditor]
 
 * `loggingLevel` (drop down selection, default: INFO): choose the logging level to use in python. If DEBUG is used, then
   some additional information is also logged as info on the Java side.
+* `outputResultResource` A ResultLr to store corpus processing results in.
 * `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the
   Python side, via the `**kwargs` of the invoked method. Though this is a `FeatureMap`, the type of the key should be `String`
   and the type of each value should be something that can be serialized as JSON. In addition to the parameters specified here, the following
@@ -109,6 +110,13 @@ on the processing resource. See [PythonFileEditor]
   the `python` command invokes Python version 2.x, the command `python3` can be used to invoke Python version 3.x.
 * `pythonBinaryUrl` (URL, default: empty): If this is specified, it takes precedence over `pythonBinary`. This should be
   the URL of a file that should be invoked as the Python interpreter.
+* `setsToUse`(Set, default: `[*]`): the names of annotation sets to include with the document when it is passed on to the Python
+  program. If any of the names is `*`, all sets are passed on. In order to specify the default annotation set, use null or 
+  a String of only spaces. If no names are specified, no annotations are passed on. NOTE: if a set is excluded but the Python program
+  adds annotations to a set with that name, the annotation ids will still be assinged so they are higher than the highest id in the 
+  existing set in the GATE document. In order to limit the sets to use, make sure the default `*` entry is first removed!
+  NOTE: leading and trailing spaces are removed from all names, and even if the dialog shows 
+  different names with leading or trailing spaces for the same set, internally only one cleaned name is used.
 * `useOwnGatenlpPackage` (Boolean, default: true): to make sure results are reliable between systems, the Python plugin
   contains its own copy of the Python `gatenlp` package and uses it if this parameter is set to `true` (by putting the location
   of the package first on the `PYTHONPATH`). If this is `false` then nothing is put on the `PYTHONPATH` and whatever version of

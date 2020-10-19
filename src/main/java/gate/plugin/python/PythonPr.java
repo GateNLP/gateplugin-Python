@@ -324,7 +324,19 @@ public class PythonPr
           comment = "Annotation set names to send and use in Python, *=all, null/space=default set",
           defaultValue = "*")
   public void setSetsToUse(Set<String> val) {
-    setsToUse = val;
+    // Make sure the default set is specified as an empty string, even if originally
+    // specified as as several spaces
+    // Also remove leading and trailing spaces from the names
+    Set<String> tmp = new HashSet<>();
+    System.err.println("DEBUG: got set: "+val);
+    for (String n : val) {
+      if(n==null || n.trim().isEmpty()) {
+        tmp.add(null);
+      } else {
+        tmp.add(n.trim());
+      }
+    }
+    setsToUse = tmp;
   }
 
   /**
