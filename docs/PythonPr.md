@@ -13,7 +13,7 @@ When a pipeline that contains the `PythonPr` processing resource is run, the fol
   All the changes are recorded.
 * The recorded changes are sent back to the `PythonPr` which applies the changes to the GATE document.
 
-Here is a simple example Python program which splits the document into white-space separated tokens and creates
+Here is a simple example Python program which splits the document into white-space separated tokens using a simple regular expression and creates
 an annotation with the type "Token" in the default annotation set for each token. For each token annotation,
 a feature "tokennr" is set to the sequence number of the token in the document.
 It also sets the total number of tokens as a document feature:
@@ -97,7 +97,7 @@ on the processing resource. See [PythonFileEditor]
 
 * `loggingLevel` (drop down selection, default: INFO): choose the logging level to use in python. If DEBUG is used, then
   some additional information is also logged as info on the Java side.
-* `outputResultResource` A ResultLr to store corpus processing results in.
+* `outputResultResource` A ResultLr to store corpus processing results in. See [PythonPrResult](PythonPrResult)
 * `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the
   Python side, via the `**kwargs` of the invoked method. Though this is a `FeatureMap`, the type of the key should be `String`
   and the type of each value should be something that can be serialized as JSON. In addition to the parameters specified here, the following
@@ -122,4 +122,3 @@ on the processing resource. See [PythonFileEditor]
   of the package first on the `PYTHONPATH`). If this is `false` then nothing is put on the `PYTHONPATH` and whatever version of
   the `gatenlp` package is installed on the system is used.
 
-NOTE: The document name is passed on to the Python code via the document feature `gate.plugin.python.docName`.

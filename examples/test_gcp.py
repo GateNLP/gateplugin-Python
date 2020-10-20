@@ -1,6 +1,8 @@
 """Test use with GCP"""
 
 import sys
+from collections import Counter
+import json
 from gatenlp import interact, GateNlpPr, Document, logger
 
 @GateNlpPr
@@ -20,6 +22,17 @@ class MyProcessor:
       print("PRINTING FROM FINISH to stderr, kwargs={}".format(kwargs), file=sys.stderr)
       logger.info("LOGGING FROM FINISH")
       print("GOT ndocs={}/len={}".format(self.ndocs, self.len))
+      return {"ndocs": self.ndocs, "len":self.len}
+  def reduce(self, resultlist):
+      print("PRINTING FROM REDUCE to stderr, result="+str(resultlist), file=sys.stderr)
+      logger.info("LOGGIN FROM REDUCE")
+      cnts = Counter()
+      for r in resultlist:
+          cnts.update(r)
+      # save the total counts as json to the current directory
+      with open("test_gcp.result.json", "wt") as outfp:
+          json.dump(cnts, outfp)
+      return cnts
   def __call__(self, doc, **kwargs):
       # self.logger.info("LOGGING FROM CALL")
       print("PRINTING FROM CALL to stderr, kwargs={}".format(kwargs), file=sys.stderr)

@@ -29,19 +29,16 @@ GATE version, Java version, Python version and whatever else might be relevant.
 
 ## Plugin components and help topics
 
-* [PythonPr](PythonPr) Processing Resource to process documents with Python,
-  using the [gatenlp](https://gatenlp.github.io/python-gatenlp/) package.
-* [PythonPrResult](PythonPrResult) Language Resource to store over-the-corpus
-  processing results as features
-* [Multiprocessing](multiprocessing) Running the `PythonPr` processing in
-  parallel and combining over-the-corpus results from all processes.
-* [PythonSlaveLr](PythonSlaveLr) Language Resource that allows `gatenlp` to
-  control GATE from Python and call the GATE API from Python.
-* [Pipeline python-spacy](pipeline-python-spacy) a ready made application that creates
-  annotations for a document from the result of running Python
-  [spaCy](https://spacy.io/) on the text.
-* [Pipeline python-stanfordnlp](pipeline-python-stanfordnlp) a ready made application that 
-  runs StanfordNLP and creates annotations from the result. NOTE: StanfordNLP has been
-  deprecated and has been superseded by Stanford Stanza (see below)
-* [Pipeline python-stanford-stanza](pipeline-python-stanza) a ready made application that
-  rauns Stanford Stanza and creates annotations from the result.
+Main help topics:
+
+* [PythonPr](PythonPr): Processing Resource to process documents with Python, using the [gatenlp](https://gatenlp.github.io/python-gatenlp/) package.
+* [Pipeline python-spacy](pipeline-python-spacy): a ready made application that creates  annotations for a document from the result of running Python   [spaCy](https://spacy.io/) on the text.
+* [Pipeline python-stanfordnlp](pipeline-python-stanfordnlp): a ready made application that   runs StanfordNLP and creates annotations from the result. NOTE: StanfordNLP has been  deprecated and has been superseded by Stanford Stanza (see below)
+* [Pipeline python-stanford-stanza](pipeline-python-stanza): a ready made application that runs Stanford Stanza and creates annotations from the result.
+* [Command Line Debugging of Python Scripts](debug-scripts): how to debug the scripts   outside of GATE from the command line
+
+Other help topics: 
+
+* [PythonPrResult](PythonPrResult): Language Resource to store over-the-corpus  processing results as features
+* [Multiprocessing](multiprocessing): Running the `PythonPr` processing in  parallel and combining over-the-corpus results from all processes.
+* [PythonSlaveLr](PythonSlaveLr): Language Resource that allows `gatenlp` to  control GATE from Python and call the GATE API from Python.

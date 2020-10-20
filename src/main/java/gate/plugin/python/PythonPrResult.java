@@ -140,16 +140,19 @@ public class PythonPrResult
   
   /**
    * Log the current features to the logger.
-   * @param level log level to use
    */
-  public void outputFeaturesToLog(org.apache.log4j.Level level) {
+  //public void outputFeaturesToLog(org.apache.log4j.Level level) {
+  public void outputFeaturesToLog() {
     TreeSet<String> keys = new TreeSet<>();
     FeatureMap fm = getFeatures();
     for(Object k : fm.keySet()) {
       keys.add(k.toString());
     }
+    // make sure we start at a new line
+    System.out.println();
     for(String k : keys) {
-      logger.log(level, k+": "+fm.get(k));
+      //logger.log(level, k+": "+fm.get(k));
+      System.out.println(k+": "+fm.get(k));
     }
   }
   
@@ -168,7 +171,8 @@ public class PythonPrResult
       getFeatures().putAll(resultData);
       saveToFile();
       if(getLogFeatures() != null && getLogFeatures()) {
-        outputFeaturesToLog(org.apache.log4j.Level.INFO);
+        // outputFeaturesToLog(org.apache.log4j.Level.INFO);
+        outputFeaturesToLog();
       }
     }
   }

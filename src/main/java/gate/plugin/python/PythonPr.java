@@ -999,24 +999,20 @@ public class PythonPr
         logger.debug("Not calling reduce, result list is empty");
       }
       // if we have a result resource, set the result in the resource      
-      // otherwise check if the result we got is a map and if yes, set
-      // the features of the PR. 
-      if (getOutputResultResource() != null) {
-        getOutputResultResource().setResultData(result);        
+      // otherwise set the features of the PR from it.
+      // Only do any of this if the result is a map
+      if (result instanceof Map) {
+        if (getOutputResultResource() != null) {
+          getOutputResultResource().setResultData(result);
+        } else {
+          if (result != null) {
+            this.getFeatures().putAll(result);
+          }
+        }
       } else {
-        if (result != null) {
-          this.getFeatures().putAll(result);
-        } 
+        logger.info("Result returned from the Python process is not a map, ignored");
       }
     }
-
-    // TODO: here or around here we need to do the python process result 
-    // processing at some point!
-    // If we have only one duplicate, call the result method with no
-    // argument, this should tell the method to use its own result only.
-    // If we have more than one duplicate, collect all the results from the
-    // finishing method and call the result method 
-    // TODO TODO TODO
     int exitValue = process.stop();
     if (exitValue != 0) {
       logger.info("Warning: python process ended with exit value " + exitValue);
