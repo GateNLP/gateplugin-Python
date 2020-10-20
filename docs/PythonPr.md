@@ -91,7 +91,7 @@ Parameters that have to get set when the processing resource is created:
   is created and filled with a python code template.
 
 If file URL is specified and the file is writable, the file can be changed and edited within GATE by double clicking
-on the processing resource. See [PythonFileEditor]
+the processing resource in the GUI. See [Python Editor](python-editor)
 
 ### PythonPr Runtime Parameters
 

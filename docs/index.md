@@ -35,6 +35,7 @@ Main help topics:
 * [PythonPr](PythonPr): Processing Resource to process documents with Python, using the [gatenlp](https://gatenlp.github.io/python-gatenlp/) package.
 * [Pipeline python-spacy](pipeline-python-spacy): a ready made application that creates  annotations for a document from the result of running Python   [spaCy](https://spacy.io/) on the text.
 * [Pipeline python-stanford-stanza](pipeline-python-stanza): a ready made application that runs Stanford Stanza and creates annotations from the result.
+* [Python Editor](python-editor.md)
 * [Command Line Debugging of Python Scripts](debug-scripts): how to debug the scripts   outside of GATE from the command line
 
 Other help topics: 
