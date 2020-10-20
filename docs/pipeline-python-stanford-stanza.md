@@ -13,7 +13,7 @@ In order to use this pipeline, the following requirements must be met:
 * The Stanza model for the desired language must be installed
 
 
-## Installing SpaCy
+## Installing Stanford Stanza
 
 Run the following command:
 
