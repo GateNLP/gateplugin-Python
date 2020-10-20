@@ -27,7 +27,7 @@ See the [Stanza documentation for this](https://stanfordnlp.github.io/stanza/ava
 For example to install the default English model run the following command:
 
 ```
-python  -c 'import stanza; stanza.download("en")'~~~~
+python  -c 'import stanza; stanza.download("en")'
 ```
 
 ## Running the Pipeline
