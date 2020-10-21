@@ -1001,16 +1001,12 @@ public class PythonPr
       // if we have a result resource, set the result in the resource      
       // otherwise set the features of the PR from it.
       // Only do any of this if the result is a map
-      if (result instanceof Map) {
-        if (getOutputResultResource() != null) {
-          getOutputResultResource().setResultData(result);
-        } else {
-          if (result != null) {
-            this.getFeatures().putAll(result);
-          }
-        }
+      if (getOutputResultResource() != null) {
+        getOutputResultResource().setResultData(result);
       } else {
-        logger.info("Result returned from the Python process is not a map, ignored");
+        if (result != null) {
+          this.getFeatures().putAll(result);
+        }
       }
     }
     int exitValue = process.stop();
