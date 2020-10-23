@@ -22,9 +22,7 @@ package gate.plugin.python;
 
 import gate.Resource;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -63,11 +61,10 @@ public class VersionLogger extends AbstractResource {
             = org.apache.log4j.Logger.getLogger(this.getClass());
 
     /**
-     * Read the content of the resource in the JAR or classes directory into a String.
+     * Read the gatenlp version information.
      *
-     * @param source the path of the resource
      */
-    public static String readResource(String source) {
+    public static String readGateNlpVersion() {
 
         URL artifactURL = PythonPr.class.getResource("/creole.xml");
         List<String> lines = new ArrayList<>();
@@ -80,22 +77,24 @@ public class VersionLogger extends AbstractResource {
         }
         if (artifactURL.toString().startsWith("file:/")) {
             try {
+                String pythonProgramPathName = PythonPr.getPythonpathInZip();
+                File theFile = new File(new File(pythonProgramPathName, "gatenlp"), "__init__.py");
+                String source = theFile.getAbsolutePath();
                 fromFile = new File(source);
                 lines = java.nio.file.Files.readAllLines(fromFile.toPath(), Charset.forName("UTF-8"));
             } catch (IOException ex) {
                 throw new GateRuntimeException("Error trying to read the resource "+fromFile, ex);
             }
         } else {
-            try (
-                    FileSystem zipFs
-                            = FileSystems.newFileSystem(artifactURL.toURI(), new HashMap<>());) {
-                pathInZip = zipFs.getPath(source);
-                if (java.nio.file.Files.isDirectory(pathInZip)) {
-                    throw new GateRuntimeException("ODD: is a directory " + pathInZip);
+            try {
+                URL fileURL = PythonPr.class.getResource("/resources/pythonpath/gatenlp/versioninfo.txt");
+                BufferedReader rdr = new BufferedReader(new InputStreamReader(fileURL.openStream()));
+                String line;
+                while ((line = rdr.readLine()) != null) {
+                    lines.add(line);
                 }
-                System.err.println("THE PATH IS "+pathInZip);
-                //lines = java.nio.file.Files.readAllLines(pathInZip, Charset.forName("UTF-8"));
-            } catch (IOException | URISyntaxException ex) {
+                rdr.close();
+            } catch (IOException  ex) {
                 throw new GateRuntimeException("Error trying to read the resource "+pathInZip, ex);
             }
         }
@@ -144,11 +143,7 @@ public class VersionLogger extends AbstractResource {
             } catch (IOException ex) {
                 logger.error("Could not obtain lib interaction version info: " + ex.getMessage(), ex);
             }
-            // Show the version of the included gatenlp package
-            String pythonProgramPathName = PythonPr.getPythonpathInZip();
-            File theFile = new File(new File(pythonProgramPathName, "gatenlp"), "__init__.py");
-            System.err.println("File is "+theFile);
-            System.err.println("gatenlp file tox.ini: "+readResource(theFile.getAbsolutePath()));
+            logger.info("Python gatenlp library version: "+readGateNlpVersion());
             versionInfoShown = true;
         }
 
