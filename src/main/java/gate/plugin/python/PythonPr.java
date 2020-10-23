@@ -63,7 +63,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
@@ -664,7 +663,7 @@ public class PythonPr
    * @param jarUrl expected to point to a python file inside a jar
    * @return array with two elements, the pythonpath and the module name
    */
-  public String[] jarUrl2PythonPathAndModule(URL jarUrl) {
+  public static String[] jarUrl2PythonPathAndModule(URL jarUrl) {
     // eg jar:file:/home/johann/.m2/repository/uk/ac/gate/plugins/python/2.0-SNAPSHOT/python-2.0-SNAPSHOT.jar!/resources/pipelines/python-spacy.py
     // should return /resources/pipelines/python-spacy.py
     if (!"jar".equals(jarUrl.getProtocol())) {
@@ -708,7 +707,7 @@ public class PythonPr
    * @param urlString the URL string
    * @return url string with protocols removed
    */
-  public String removeValidProtocols(String urlString) {
+  public static String removeValidProtocols(String urlString) {
     // file URL if of the form file://host/path where //host may be missing
     // or host may be empty, so we can have file:/path or file:///path
     // jar: can be prepended to identify this as a JAR file
@@ -747,7 +746,7 @@ public class PythonPr
    *
    * @return location of containing folder
    */
-  public String getPythonpathInZip() {
+  public static String getPythonpathInZip() {
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
     try {
       artifactURL = new URL(artifactURL, ".");
@@ -788,66 +787,6 @@ public class PythonPr
    */
   @Override
   public Resource init() throws ResourceInstantiationException {    
-    if (!versionInfoShown) {      
-      try {
-        Properties properties = new Properties();        
-        InputStream is = getClass().getClassLoader().getResourceAsStream("gateplugin-Python.git.properties");
-        if (is != null) {
-          properties.load(is);
-          String buildVersion = properties.getProperty("gitInfo.build.version");
-          String isDirty = properties.getProperty("gitInfo.dirty");
-          if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
-            logger.info("Plugin Python version=" + buildVersion
-                    + " commit="
-                    + properties.getProperty("gitInfo.commit.id.abbrev")
-                    + " dirty=" + isDirty
-            );
-          }
-        } else {
-          logger.error("Could not obtain plugin Python version info");
-        }
-      } catch (IOException ex) {
-        logger.error("Could not obtain plugin Python version info: " + ex.getMessage(), ex);
-      }
-      /*
-      try {
-        Properties properties = new Properties();        
-        
-        InputStream is = BdocDocument.class.getClassLoader().getResourceAsStream("gatelib-basicdocument.git.properties");
-        if (is != null) {
-          properties.load(is);
-          String buildVersion = properties.getProperty("gitInfo.build.version");
-          String isDirty = properties.getProperty("gitInfo.dirty");
-          if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
-            logger.info("Lib basicdocument version=" + buildVersion
-                    + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev")
-                    + " dirty=" + isDirty
-            );
-          }
-        }
-      } catch (IOException ex) {
-        logger.error("Could not obtain lib basicdocument version info: " + ex.getMessage(), ex);
-      }
-      */
-      try {
-        Properties properties = new Properties();        
-        InputStream is = Process4StringStream.class.getClassLoader().getResourceAsStream("gatelib-interaction.git.properties");
-        if (is != null) {
-          properties.load(is);
-          String buildVersion = properties.getProperty("gitInfo.build.version");
-          String isDirty = properties.getProperty("gitInfo.dirty");
-          if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
-            logger.info("Lib interaction version=" + buildVersion
-                    + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev")
-                    + " dirty=" + isDirty
-            );
-          }
-        }
-      } catch (IOException ex) {
-        logger.error("Could not obtain lib interaction version info: " + ex.getMessage(), ex);
-      }
-      versionInfoShown = true;
-    }
     // check the pythonProgram parameter: must be JAR or file URL
     if (pythonProgram == null) {
       throw new ResourceInstantiationException("Parameter pythonProgram must be set!");
@@ -1233,7 +1172,7 @@ public class PythonPr
    * @param source the path of the resource to copy
    * @param targetPath where to copy to, must not already exist
    */
-  public void copyResource(String source, File targetPath) {
+  public static void copyResource(String source, File targetPath) {
     
     URL artifactURL = PythonPr.class.getResource("/creole.xml");
     try {
@@ -1245,7 +1184,6 @@ public class PythonPr
       try {
         File containingDir = gate.util.Files.fileFromURL(artifactURL);
         File fromFile = new File(containingDir, source);
-        logger.info("Copying python file from " + fromFile + " to " + targetPath);
         java.nio.file.Files.copy(
                 fromFile.toPath(),
                 targetPath.toPath());
