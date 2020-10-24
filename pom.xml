@@ -121,23 +121,14 @@
         <artifactId>git-commit-id-plugin</artifactId>
         <version>4.0.0</version>
         <executions>
+        
           <execution>
-            <id>get-the-git-infos</id>
+            <id>get-the-python-git-infos</id>
             <goals>
               <goal>revision</goal>
             </goals>
             <!-- *NOTE*: The default phase of revision is initialize, but in case you want to change it, you can do so by adding the phase here -->
             <phase>initialize</phase>
-          </execution>
-          <execution>
-            <id>validate-the-git-infos</id>
-            <goals>
-              <goal>validateRevision</goal>
-            </goals>
-            <!-- *NOTE*: The default phase of validateRevision is verify, but in case you want to change it, you can do so by adding the phase here -->
-            <phase>package</phase>
-          </execution>
-        </executions>
         <configuration>
           <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
           <prefix>gitInfo</prefix>
@@ -151,6 +142,79 @@
             <dirty>-dirty</dirty>
           </gitDescribe>
         </configuration>
+          </execution>
+          
+          <execution>
+            <id>validate-the-python-git-infos</id>
+            <goals>
+              <goal>validateRevision</goal>
+            </goals>
+            <!-- *NOTE*: The default phase of validateRevision is verify, but in case you want to change it, you can do so by adding the phase here -->
+            <phase>package</phase>
+        <configuration>
+          <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+          <prefix>gitInfo</prefix>
+          <verbose>false</verbose>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>${project.build.outputDirectory}/gateplugin-Python.git.properties</generateGitPropertiesFilename>
+          <!-- <format>json</format> -->
+          <gitDescribe>
+            <skip>false</skip>
+            <always>false</always>
+            <dirty>-dirty</dirty>
+          </gitDescribe>
+        </configuration>
+          </execution>
+          
+          
+        
+          <execution>
+            <id>get-the-gatenlp-git-infos</id>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <!-- *NOTE*: The default phase of revision is initialize, but in case you want to change it, you can do so by adding the phase here -->
+            <phase>initialize</phase>
+        <configuration>
+          <dotGitDirectory>${project.basedir}/submodules/python-gatenlp/.git</dotGitDirectory>
+          <prefix>gitInfo</prefix>
+          <verbose>false</verbose>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>${project.build.outputDirectory}/python-gatenlp.git.properties</generateGitPropertiesFilename>
+          <!-- <format>json</format> -->
+          <gitDescribe>
+            <skip>false</skip>
+            <always>false</always>
+            <dirty>-dirty</dirty>
+          </gitDescribe>
+        </configuration>
+          </execution>
+          
+          <execution>
+            <id>validate-the-gatenlp-git-infos</id>
+            <goals>
+              <goal>validateRevision</goal>
+            </goals>
+            <!-- *NOTE*: The default phase of validateRevision is verify, but in case you want to change it, you can do so by adding the phase here -->
+            <phase>package</phase>
+        <configuration>
+          <dotGitDirectory>${project.basedir}/submodules/python-gatenlp/.git</dotGitDirectory>
+          <prefix>gitInfo</prefix>
+          <verbose>false</verbose>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>${project.build.outputDirectory}/python-gatenlp.git.properties</generateGitPropertiesFilename>
+          <!-- <format>json</format> -->
+          <gitDescribe>
+            <skip>false</skip>
+            <always>false</always>
+            <dirty>-dirty</dirty>
+          </gitDescribe>
+        </configuration>
+          </execution>
+          
+          
+          
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>

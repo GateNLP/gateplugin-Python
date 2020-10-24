@@ -55,9 +55,11 @@ public class VersionLogger extends AbstractResource {
     public transient org.apache.log4j.Logger logger
             = org.apache.log4j.Logger.getLogger(this.getClass());
 
-    /**
+
+/**
      * Read the gatenlp version information.
      *
+     * @return the version string or NONE if nothing found.
      */
     public static String readGateNlpVersion() {
 
@@ -81,7 +83,7 @@ public class VersionLogger extends AbstractResource {
                 throw new GateRuntimeException("Error trying to read the resource "+fromFile, ex);
             }
         } else {
-            URL fileURL = PythonPr.class.getResource("/resources/pythonpath/gatenlp/versioninfo.txt");
+            URL fileURL = PythonPr.class.getResource("/resources/pythonpath/gatenlp/__init__.py");
             try (BufferedReader rdr = new BufferedReader(new InputStreamReader(fileURL.openStream())))
             {
                 String line;
@@ -92,10 +94,17 @@ public class VersionLogger extends AbstractResource {
                 throw new GateRuntimeException("Error trying to read the resource "+pathInZip, ex);
             }
         }
-        return String.join("", lines);
-    }
-
-
+        // Find and extract the version number
+        String version = "UNKNOWN";
+        for(String line : lines) {
+          if (line.startsWith("__version__")) {
+            version = line.split("\"")[1];
+            break;
+          }
+        }
+        return version;
+    }    
+    
     @Override
     public Resource init() {
         if (!versionInfoShown) {
@@ -107,13 +116,11 @@ public class VersionLogger extends AbstractResource {
                     properties.load(is);
                     String buildVersion = properties.getProperty("gitInfo.build.version");
                     String isDirty = properties.getProperty("gitInfo.dirty");
-                    if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
-                        logger.info("Plugin Python version=" + buildVersion
-                                + " commit="
+                        logger.info("Plugin Python version: " + buildVersion
+                                + " commit: "
                                 + properties.getProperty("gitInfo.commit.id.abbrev")
-                                + " dirty=" + isDirty
+                                + " dirty: " + isDirty
                         );
-                    }
                 } else {
                     logger.error("Could not obtain plugin Python version info");
                 }
@@ -128,17 +135,30 @@ public class VersionLogger extends AbstractResource {
                     properties.load(is);
                     String buildVersion = properties.getProperty("gitInfo.build.version");
                     String isDirty = properties.getProperty("gitInfo.dirty");
-                    if (buildVersion != null && buildVersion.endsWith("-SNAPSHOT")) {
-                        logger.info("Lib interaction version=" + buildVersion
-                                + " commit=" + properties.getProperty("gitInfo.commit.id.abbrev")
-                                + " dirty=" + isDirty
+                        logger.info("Lib interaction version: " + buildVersion
+                                + " commit: " + properties.getProperty("gitInfo.commit.id.abbrev")
+                                + " dirty: " + isDirty
                         );
-                    }
                 }
             } catch (IOException ex) {
                 logger.error("Could not obtain lib interaction version info: " + ex.getMessage(), ex);
             }
-            logger.info("Python gatenlp library version: "+readGateNlpVersion());
+            // Show the version and commit of the python-gatenlp submodule
+            try {
+                Properties properties = new Properties();
+                InputStream is = getClass().getClassLoader().getResourceAsStream("python-gatenlp.git.properties");
+                if (is != null) {
+                    properties.load(is);
+                    String buildVersion = VersionLogger.readGateNlpVersion();
+                    String isDirty = properties.getProperty("gitInfo.dirty");
+                        logger.info("Python gatenlp version: " + buildVersion
+                                + " commit: " + properties.getProperty("gitInfo.commit.id.abbrev")
+                                + " dirty: " + isDirty
+                        );
+                }
+            } catch (IOException ex) {
+                logger.error("Could not obtain lib interaction version info: " + ex.getMessage(), ex);
+            }
             versionInfoShown = true;
         }
 
