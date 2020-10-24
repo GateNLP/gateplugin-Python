@@ -24,15 +24,10 @@ import gate.Resource;
 
 import java.io.*;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,8 +36,6 @@ import gate.creole.metadata.AutoInstance;
 import gate.creole.metadata.CreoleResource;
 import gate.lib.interaction.process.pipes.Process4StringStream;
 import gate.util.GateRuntimeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @CreoleResource(
         name = "PythonVersionLogger",
@@ -54,6 +47,8 @@ import org.slf4j.LoggerFactory;
 public class VersionLogger extends AbstractResource {
     protected boolean versionInfoShown = false;
 
+    private static final long serialVersionUID = 1288492373838L;
+    
     /**
      * Our logger instance.
      */
@@ -86,14 +81,13 @@ public class VersionLogger extends AbstractResource {
                 throw new GateRuntimeException("Error trying to read the resource "+fromFile, ex);
             }
         } else {
-            try {
-                URL fileURL = PythonPr.class.getResource("/resources/pythonpath/gatenlp/versioninfo.txt");
-                BufferedReader rdr = new BufferedReader(new InputStreamReader(fileURL.openStream()));
+            URL fileURL = PythonPr.class.getResource("/resources/pythonpath/gatenlp/versioninfo.txt");
+            try (BufferedReader rdr = new BufferedReader(new InputStreamReader(fileURL.openStream())))
+            {
                 String line;
                 while ((line = rdr.readLine()) != null) {
                     lines.add(line);
                 }
-                rdr.close();
             } catch (IOException  ex) {
                 throw new GateRuntimeException("Error trying to read the resource "+pathInZip, ex);
             }
@@ -102,6 +96,7 @@ public class VersionLogger extends AbstractResource {
     }
 
 
+    @Override
     public Resource init() {
         if (!versionInfoShown) {
             // Show the version of this plugin
