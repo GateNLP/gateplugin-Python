@@ -1,0 +1,15 @@
+
+# install: true
+language: java
+
+before_install:
+  - pyenv install 3.5
+  - pip install sortedcontainers
+script: 
+  - mvn test -B
+jdk:
+  - openjdk8
+git:
+  depth: 2
+
+
