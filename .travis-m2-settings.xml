@@ -1,0 +1,38 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <profiles>
+    <profile>
+      <id>gate-plugin-repo</id>
+      <pluginRepositories>
+        <pluginRepository>
+            <id>gate-repo-plugins</id>
+            <name>GATE Repo</name>
+            <url>http://repo.gate.ac.uk/content/groups/public/</url>
+            <layout>default</layout>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+          </pluginRepository>
+      </pluginRepositories>
+      <repositories>
+        <repository>
+            <id>gate-repo</id>
+            <name>GATE Repo</name>
+            <url>http://repo.gate.ac.uk/content/groups/public/</url>
+            <layout>default</layout>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+          </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>gate-plugin-repo</activeProfile>
+  </activeProfiles>
+<servers>
+</servers>
+
+</settings>

@@ -5,11 +5,17 @@ language: java
 before_install:
   - pyenv install 3.6.1
   - pip install sortedcontainers
+  - cp .travis-m2-settings.xml $HOME/.m2/settings.xml
 script: 
-  - mvn test -B
+  - mvn site -B
 jdk:
   - openjdk8
 git:
   depth: 2
 
+# for deploying we need to have the secret in settings
+# deploy:
+#   provider: script
+#   script: "mvn -B -V deploy"
+#   skip_cleanup: true
 
