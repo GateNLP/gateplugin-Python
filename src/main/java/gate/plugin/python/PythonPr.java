@@ -327,7 +327,6 @@ public class PythonPr
     // specified as as several spaces
     // Also remove leading and trailing spaces from the names
     Set<String> tmp = new HashSet<>();
-    System.err.println("DEBUG: got set: "+val);
     for (String n : val) {
       if(n==null || n.trim().isEmpty()) {
         tmp.add(null);
