@@ -3,7 +3,7 @@
 language: java
 
 before_install:
-  - pyenv install 3.5
+  - pyenv install 3.6.1
   - pip install sortedcontainers
 script: 
   - mvn test -B
