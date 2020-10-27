@@ -7,6 +7,10 @@ before_install:
   - pip install sortedcontainers
   - cp .travis-m2-settings.xml $HOME/.m2/settings.xml
 script: 
+  - pyenv versions
+  - pyenv virtualenvs
+  - pip list
+  - python --version 
   - mvn site -B
 jdk:
   - openjdk8
@@ -17,5 +21,8 @@ git:
 # deploy:
 #   provider: script
 #   script: "mvn -B -V deploy"
+#   on:
+#     all_branches: true
+#     condition: $TRAVIS_BRANCH =~ ^[0-9]+\.[0-9]+(?:\.[0-9]+)?$ 
 #   skip_cleanup: true
 
