@@ -1,4 +1,9 @@
-
+# IMPORTANT: this file is here for reference, we are not actually building
+# this project using travis!
+# The configuration below does not work: instead of python 3.6.1, python 2.7 is run in the 
+# script part.
+#
+# Commented out from an earlier version:
 # install: true
 language: java
 
