@@ -2,7 +2,7 @@
 
 In order to run the Python plugin on your system it is necessary:
 
-* to install Python version 3.5 or later, 3.7 or later recommended
+* to install Python version 3.6 or later, 3.7 or later recommended
 * to install the minimum Python packages required 
 
 The actual Python package used for integrating Python with 
@@ -15,7 +15,7 @@ and versions.
 If you have a preferred way for how to install python, the Python plugin
 will work if your installation satisfies the following conditions:
 
-* Python version 3.5 or later (3.7 or later highly recommended!)
+* Python version 3.6 or later (3.7 or later highly recommended!)
 * the required package `sortedcontainers` is installed
 * the python interpreter is on the PATH as "python", or you specify the  name or actual path to the interpreter via the `pythonBinary` or `pythonBinaryUrl` parameters
 
@@ -29,7 +29,7 @@ In order to use environments from the Python plugin, simply specify the  path th
 
 ## Windows
 
-* Install the 64 bit distribution for Python 3.5 or later (ideally 3.7 or later) from https://conda.io/miniconda.html
+* Install the 64 bit distribution for Python 3.6 or later (ideally 3.7 or later) from https://conda.io/miniconda.html
   * Download the file
   * Run it to start the installation process
   * At the prompt "Install for:" choose "Just Me"
@@ -52,7 +52,7 @@ In order to use environments from the Python plugin, simply specify the  path th
 
 ## MacOS
 
-* Install the 64 bit distribution for Python 3.5 or later (3.7 or later recommended) from https://conda.io/miniconda.html
+* Install the 64 bit distribution for Python 3.6 or later (3.7 or later recommended) from https://conda.io/miniconda.html
   * Download the file
   * Start a terminal and ...
   * Change permissions to make it executable:
@@ -69,7 +69,7 @@ In order to use environments from the Python plugin, simply specify the  path th
 
 ## Linux and Linux-like Operating Systems
 
-* Install the 64 bit distribution for Python 3.5 or later (3.7 or later recommended) from https://conda.io/miniconda.html
+* Install the 64 bit distribution for Python 3.6 or later (3.7 or later recommended) from https://conda.io/miniconda.html
   * Download the file
   * Start a terminal and ...
   * Change permissions to make it executable:
