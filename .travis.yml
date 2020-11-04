@@ -9,11 +9,13 @@ language: java
 
 before_install:
   - pyenv install 3.6.1
+  - pyenv global 3.6.1
   - pip install sortedcontainers
   - cp .travis-m2-settings.xml $HOME/.m2/settings.xml
 script: 
   - pyenv versions
   - pyenv virtualenvs
+  - pyenv install 3.6.1
   - pip list
   - python --version 
   - mvn site -B
