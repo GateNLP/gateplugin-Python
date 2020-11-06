@@ -10,7 +10,7 @@ instead use whatever version of the `gatenlp` package is installed on the system
 
 Before the plugin can be used Python must be installed:
 
-* Python version 3.4 or later (3.5 or later recommended)  must be installed
+* Python version 3.6 or later (3.7 or later recommended)  must be installed
 * The python package [sortedcontainers](https://pypi.org/project/sortedcontainers/) must be installed
 * [Detailed installation instructions](python-install.md)
 
