@@ -58,7 +58,7 @@ In order to use environments from the Python plugin, simply specify the  path th
   * Change permissions to make it executable:
     `chmod 700 Miniconda3-latest-Linux-x86_64.sh`
   * Run the file:
-    `./Miniconda3-latest-Linux-x86_64.sh`
+    `./Miniconda3-latest-MacOSX-x86_64.sh`
   * Agree to the license by typing in "yes" and ENTER
   * Confirm or change the location where to install to and take a note of that path (e.g. /Users//username/miniconda3)
   * Agree to initialize Miniconda3 in the .bashrc file (this will add everything to your binary path)
