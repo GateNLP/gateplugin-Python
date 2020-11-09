@@ -51,6 +51,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
+import gate.plugin.python.VersionLogger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -669,6 +670,42 @@ public class PythonSlave {
    */
   public boolean isClosable() {
     return !keepRunning;
+  }
+
+  /**
+   * Return version of the Python plugin.
+   * 
+   * @return  version
+   */
+  public String plugin_version() {
+    return VersionLogger.plugin_version;
+  }
+  
+  /**
+   * Return build (short commit id) of Python plugin. 
+   * 
+   * @return commit id
+   */
+  public String plugin_build() {
+    return VersionLogger.plugin_build;
+  }
+  
+  /**
+   * Return version of GATE.
+   * 
+   * @return  version
+   */
+  public String gate_version() {
+    return gate.Main.version;
+  }
+  
+  /**
+   * Return build (short commit id) of GATE.
+   * 
+   * @return commit id
+   */
+  public String gate_build() {
+    return gate.Main.build;
   }
 
 }
