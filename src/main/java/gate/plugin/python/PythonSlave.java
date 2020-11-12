@@ -677,8 +677,8 @@ public class PythonSlave {
    * 
    * @return  version
    */
-  public String plugin_version() {
-    return VersionLogger.plugin_version;
+  public String pluginVersion() {
+    return VersionLogger.getPluginVersion();
   }
   
   /**
@@ -686,8 +686,8 @@ public class PythonSlave {
    * 
    * @return commit id
    */
-  public String plugin_build() {
-    return VersionLogger.plugin_build;
+  public String pluginBuild() {
+    return VersionLogger.getPluginBuild();
   }
   
   /**

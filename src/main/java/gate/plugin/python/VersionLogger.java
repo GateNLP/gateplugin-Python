@@ -55,9 +55,24 @@ public class VersionLogger extends AbstractResource {
     public transient org.apache.log4j.Logger logger
             = org.apache.log4j.Logger.getLogger(this.getClass());
 
-    public static String plugin_version = "unknown";
-    public static String plugin_build = "unknown";
+    static String pluginVersion = "unknown";
+    static String pluginBuild = "unknown";
     
+    /**
+     * Get plugin version.
+     * @return  version
+     */
+    public static String getPluginVersion() {
+      return pluginVersion;
+    }
+    
+    /**
+     * Get plugin version.
+     * @return  version
+     */
+    public static String getPluginBuild() {
+      return pluginBuild;
+    }
 
 /**
      * Read the gatenlp version information.
@@ -124,8 +139,8 @@ public class VersionLogger extends AbstractResource {
                                 + properties.getProperty("gitInfo.commit.id.abbrev")
                                 + " dirty: " + isDirty
                         );
-                    plugin_version = properties.getProperty("gitInfo.build.version");
-                    plugin_build = properties.getProperty("gitInfo.commit.id.abbrev");
+                    pluginVersion = properties.getProperty("gitInfo.build.version");
+                    pluginBuild = properties.getProperty("gitInfo.commit.id.abbrev");
                 } else {
                     logger.error("Could not obtain plugin Python version info");
                 }
