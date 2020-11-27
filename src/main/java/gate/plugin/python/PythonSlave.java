@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import gate.plugin.python.VersionLogger;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -424,17 +425,16 @@ public class PythonSlave {
    */
   public Document getDocument4BdocJson(String bdocjson) 
           throws ResourceInstantiationException {
-    if (logActions) LOGGER.info("Slave run: create document from bdocjson");
-    Document theDoc = Factory.newDocument("");
-    ResourceHelper rh = (ResourceHelper)Gate.getCreoleRegister()
-                     .get("gate.plugin.format.bdoc.API")
-                     .getInstantiations().iterator().next();
     try {
-      rh.call("update_document_from_bdocjson", theDoc, bdocjson);
-    } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException | InvocationTargetException ex) {
-      throw new GateRuntimeException("Could not invoke bdoc_from_string", ex);
-    } 
-    return theDoc;
+      if (logActions) LOGGER.info("Slave run: create document from bdocjson");
+      ResourceHelper rh = (ResourceHelper)Gate.getCreoleRegister()
+              .get("gate.plugin.format.bdoc.API")
+              .getInstantiations().iterator().next();
+      Document theDoc = (Document)rh.call("doc_from_json", null, bdocjson);
+      return theDoc;
+    } catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException ex) {
+      throw new GateRuntimeException("Error invoking Format Bdoc API method doc_from_json", ex);
+    }
   }
 
   /**
