@@ -84,11 +84,16 @@ interact()
 ### PythonPr Init Parameters
 
 Parameters that have to get set when the processing resource is created:
-* `pythonProgram` (ResourceReference, default: empty): this specifies the Python program to run. Since this is
+* `pythonProgram` (ResourceReference, default: empty): this specifies the Python program, i.e. the Python source code, to run. 
+  Since this is
   a ResourceReference, the selection dialog can be used to select a file from file storage, or a plugin resource.
   If a plugin resource is used, or the file selected file is read-only, the editor is disabled.
   Only file or creole/jar URLs are allowed. If a file URL is specified for a file that does not exist, it
   is created and filled with a python code template.
+  NOTE: in order to specify a file URL, either first click the button to open the file selection dialog and enter
+  the name of the file there, or enter a full absolute `file:///` URL in the input field for this parameter? 
+  If a name is entered without the `file:` scheme a `creole:` scheme is assumed which will look for a file 
+  in the plugin, not on the file system. 
 
 If file URL is specified and the file is writable, the file can be changed and edited within GATE by double clicking
 the processing resource in the GUI. See [Python Editor](python-editor)
