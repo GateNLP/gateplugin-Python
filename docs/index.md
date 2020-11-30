@@ -6,6 +6,14 @@ GATE documents. The Python API for processing documents is the [Python `gatenlp`
 The plugin provides its own copy of a specific version of the `gatenlp` package which is used by default, but it is possible to
 instead use whatever version of the `gatenlp` package is installed on the system.
 
+## Using the Python Plugin
+
+* Requires GATE 8.6.1 or later
+* In the Plugin manager, click the "+" button then enter the following Maven coordinates
+  * uk.ac.gate.plugins
+  * python
+  * 2.4-SNAPSHOT
+
 ## Installing / Setting up Python
 
 Before the plugin can be used Python must be installed:
