@@ -4,11 +4,11 @@ The `PythonPr` processing resource can be used to run a Python program on docume
 
 When a pipeline that contains the `PythonPr` processing resource is run, the following main steps happens:
 
-* The Python program is run in a separate process. The Python program must implement a function or class that
-  uses the `@gatenlp.GateNlpPr` decorator and it must invoke the `gatenlp.interact()` function.
-  (see examples below)
+* The Python program is run in a separate process. The Python program must:
+  * implement a function or callable class that uses the `@gatenlp.GateNlpPr` decorator 
+  * invoke the `gatenlp.interact()` function  (see examples below)
 * The processing resource sends each document to the Python program
-* The implemented `@GateNlpPr` function or the `execute` or `__call__` method of the implemented `@GateNlpPr` class is
+* The implemented `@GateNlpPr` function or the `__call__` method of the implemented `@GateNlpPr` class is
   invoked and the document is passed to that function. The function can use the `gatenlp` API to modify the document.
   All the changes are recorded.
 * The recorded changes are sent back to the `PythonPr` which applies the changes to the GATE document.
@@ -16,7 +16,13 @@ When a pipeline that contains the `PythonPr` processing resource is run, the fol
 Here is a simple example Python program which splits the document into white-space separated tokens using a simple regular expression and creates
 an annotation with the type "Token" in the default annotation set for each token. For each token annotation,
 a feature "tokennr" is set to the sequence number of the token in the document.
-It also sets the total number of tokens as a document feature:
+It also sets the total number of tokens as a document feature.
+
+This example implements the code to run for each document as a function with the name `run` which must
+take the document to process as a parameter and allow arbitrary additional kwargs. 
+
+To actually invoke the function for each document the `interact()` function has to get invoked at the 
+end of the Python script!
 
 ```python
 import re
@@ -42,11 +48,13 @@ interact()
 The function gets the document passed (as its first argument) a `gatenlp.Document` and also gets all the
 parameters defined in the `PythonPr` `programParams` parameter.
 
-Instead of a function, a class can be implemented with the `@GateNlpPr` decorator.
-The class must implement an `execute` or `__call__` method, but in addition can also
+Instead of a function, a callable class can be implemented with the `@GateNlpPr` decorator.
+
+The class must implement the `__call__` method, but in addition can also
 implement the `start`, `finish`, `reduce` and `result` methods. The following
 example implements the same tokenizer as above in a class but also counts and prints out
-the total number of tokens over all documents:
+the total number of tokens over all documents. Again the `interact()` call must be 
+placed at the end of the Python script.
 
 
 ```python
@@ -79,6 +87,21 @@ class MyProcessor:
 
 interact()
 ```
+
+Advantages of using a callable class:
+
+* the `start(self, **kwargs)` method, when implemented, gets invoked when processing of a corpus is started
+  in Java GATE. The `**kwargs` are taken from the PythonPR `programParams` runtime parameter. 
+  This allows to parametrize and initialize the class depending on the `programParams` settings, and to 
+  initialize data to update or use during the processing of a whole corpus.
+* the `__call__(self, doc, **kwargs)` method is invoked for each document, and the same kwargs are passsed as to the `start` method.
+* the `finish(self, **kwargs)` method is invoked when processing the corpus ends or is aborted, the same kwargs are passed as to the 
+  `start` method. This can be used to calculate final over-the-corpus results after the corpus has been processed. 
+  If this method returns a dictionary, the key/value pairs of the dictionary are stored either in a PythonResult object or 
+  as the features for the PythonPr used. 
+* it is also possible to implement a `reduce(self, resultList)` method. This method is invoked if multiprocessing duplicates
+  are used and is used to combine the partial results from each process into one overal resalt. 
+  See [multiprocessing](multiprocessing).
 
 
 ### PythonPr Init Parameters
