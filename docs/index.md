@@ -27,10 +27,16 @@ should run on Windows, MacOS and Linux-like operating systems.
 
 ## Reporting problems
 
-If you encounter problems please use:
+If you encounter problems please:
 
-* the github [issue tracker](https://github.com/GateNLP/gateplugin-Python/issues)
-* for questions the [GATE mailing list](https://groups.io/g/gate-users/topics)
+* first check if your problem is described in the [Frequent Problems](frequent-problems) list
+* check github [issue tracker](https://github.com/GateNLP/gateplugin-Python/issues)
+  * also check if the problem is in the [list of closed issues](https://github.com/GateNLP/gateplugin-Python/issues?q=is%3Aissue+is%3Aclosed)
+  * please give as much detail as possible about your OS, GATE version, plugin version, Java version etc.
+  * please use the issue tracker only to report bugs, other problems and feature requests, for questions about how to use the plugin or other general questions use the GATE mailing list:
+* for more general questions the [GATE mailing list](https://groups.io/g/gate-users/topics)
+  * please mention "Python plugin" in the subject
+  * please give as much detail as possible about your OS, GATE version, plugin version, Java version etc.
 
 Please give as much details as possible about your operating system,
 GATE version, Java version, Python version and whatever else might be relevant.
@@ -45,6 +51,7 @@ Main help topics:
 * [Pipeline python-stanford-stanza](pipeline-python-stanford-stanza): a ready made application that runs Stanford Stanza and creates annotations from the result.
 * [Python Editor](python-editor.md)
 * [Command Line Debugging of Python Scripts](debug-scripts): how to debug the scripts   outside of GATE from the command line
+* [Frequent Problems](frequent-problems): if you encounter problems, please check here first!
 
 Other help topics: 
 
