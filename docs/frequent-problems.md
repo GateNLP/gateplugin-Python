@@ -26,4 +26,13 @@ Solution:
 * Some parts of the Python `gatenlp` package which is used for running Python code in the Python plugin require additional packages to be installed. Install them into the Python or Python environment you are using (similar to the previous problem)
 * You can also use a separate installation of the gatenlp package from the Python plugin by setting the PythonPr runtime parameter `usePluginGatenlpPackage` to false. 
   * See https://gatenlp.github.io/python-gatenlp/installation.html for how to install the gatenlp package in Python
-  
+ 
+### Exception `Cant't find model .... It doesn't seem to be a shortcut link ....`
+
+When running the prepared Spacy pipeline or your own pipeline that uses Spacy.
+
+Solution:
+* This happens because for each language, the Spacy model for that language must first get downloaded separately 
+* See https://spacy.io/usage/models
+* to install the default English Spacy model:
+  * in your Python and Python environment run: `python -m spacy download en_core_web_sm` 
