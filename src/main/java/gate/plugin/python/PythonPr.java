@@ -598,6 +598,7 @@ public class PythonPr
     executor.setProcessDestroyer(new ShutdownHookProcessDestroyer());
     Map<String, String> env = new HashMap<>();
     env.putAll(System.getenv());
+    env.put("FROMGATEPLUGIN", "1");
     env.put("PYTHONPATH", pythonPath);
     try {
       if (loggingLevel == LoggingLevel.DEBUG) {        
@@ -838,6 +839,7 @@ public class PythonPr
     // ok, actually run the python program so we can communicate with it. 
     // for now we use Process4StringStream from gatelib-interaction for this.
     Map<String, String> env = new HashMap<>();
+    env.put("FROMGATEPLUGIN", "1");
     String pythonPath = "";
     if (getUsePluginGatenlpPackage()) {
       pythonPath = usePythonPackagePath;
