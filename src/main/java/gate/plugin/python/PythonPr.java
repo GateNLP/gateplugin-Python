@@ -91,7 +91,9 @@ public class PythonPr
   private static final long serialVersionUID = -7294555647613502768L;
 
   /**
-   * Set the location of the python program. This parameter allows to set the
+   * Set the location of the python program. 
+   * 
+   * This parameter allows to set the
    * location of the python program as either a file URL for files on a local
    * disk or as an URL that points into the plugin's jar. If the URL points to a
    * file in a JAR or a local file that is not writable, the file cannot be
@@ -118,6 +120,33 @@ public class PythonPr
   }
   protected ResourceReference pythonProgram;
 
+  /**
+   * URL of a config file.
+   * The absolute path to the config file gets passed to the python start method
+   * as _config_file kw parameter. 
+   * 
+   * @param value the config file URL
+   */
+  @Optional
+  @RunTime
+  @CreoleParameter(
+          comment = "The (file or jar) URL of the Python program to run"
+  )
+  public void setConfigFile(URL value) {
+    configFile = value;
+  }
+
+  /**
+   * Get the config file URL.
+   * 
+   * @return config file URL
+   */
+  public URL getConfigFile() {
+    return configFile;
+  }  
+  protected URL configFile;
+   
+  
   // fields calculated from pythonProgram
   protected boolean pythonProgramIsJar;
   protected boolean pythonProgramIsReadonly;
@@ -1127,13 +1156,16 @@ public class PythonPr
       throw new GateRuntimeException("Could not create start request map", ex);
     }
     //Map<String, Object> params = BdocUtils.featureMap2Map(programParams, null);
-    params.put("gate_plugin_python_duplicateId", duplicateId);
-    params.put("gate_plugin_python_nrDuplicates", nrDuplicates.get());    
+    params.put("_duplicateId", duplicateId);
+    params.put("_nrDuplicates", nrDuplicates.get());    
     if (pythonProgramIsJar) {
-      params.put("gate_plugin_python_pythonPath", pythonProgramPathInJar);
-      params.put("gate_plugin_python_pythonModule", pythonProgramModuleInJar);
+      params.put("_pythonPath", pythonProgramPathInJar);
+      params.put("_pythonModule", pythonProgramModuleInJar);
     } else {
-      params.put("gate_plugin_python_pythonFile", pythonProgramFile.getAbsolutePath());
+      params.put("_pythonFile", pythonProgramFile.getAbsolutePath());
+    }
+    if(configFile != null) {
+      params.put("_config_file", gate.util.Files.fileFromURL(getConfigFile()).getAbsolutePath());
     }
     request.put("data", params);
     try {

@@ -13,8 +13,8 @@ between them.
 Each duplicate gets passed the following keyword arguments to
 the  `start`, `_call__` and `finish` methods:
 
-* `gate_plugin_python_duplicateId`: the duplicate number of the process
-* `gate_plugin_python_nrDuplicates`: the total number of duplicates
+* `_duplicateId`: the duplicate number of the process
+* `_nrDuplicates`: the total number of duplicates
 
 When each of the process finishes, the `finish` method is invoked. 
 If the `finish` method returns a map/dictionary, processing is a bit different if there are duplicates: since there are several duplicates, the maps returned by each of them are collected in a list and then passed on method `reduce` or the first duplicate, if that method is defined in the class. 

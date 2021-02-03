@@ -3,13 +3,13 @@
     <localList>
       <gate.creole.Plugin-Maven>
         <group>uk.ac.gate.plugins</group>
-        <artifact>python</artifact>
-        <version>2.4-SNAPSHOT</version>
+        <artifact>format-bdoc</artifact>
+        <version>1.9-SNAPSHOT</version>
       </gate.creole.Plugin-Maven>
       <gate.creole.Plugin-Maven>
         <group>uk.ac.gate.plugins</group>
-        <artifact>annie</artifact>
-        <version>8.7-SNAPSHOT</version>
+        <artifact>python</artifact>
+        <version>2.4-SNAPSHOT</version>
       </gate.creole.Plugin-Maven>
     </localList>
     <collectionType>java.util.ArrayList</collectionType>
@@ -19,20 +19,10 @@
       <docList>
         <gate.util.persistence.LRPersistence>
           <resourceType>gate.corpora.DocumentImpl</resourceType>
-          <resourceName>tiny1.xml_0002E</resourceName>
+          <resourceName>GATE Document_0001C</resourceName>
           <initParams class="gate.util.persistence.MapPersistence">
             <mapType>gate.util.SimpleFeatureMapImpl</mapType>
             <localMap>
-              <entry>
-                <string>encoding</string>
-                <string>utf-8</string>
-              </entry>
-              <entry>
-                <string>sourceUrl</string>
-                <gate.util.persistence.PersistenceManager-URLHolder>
-                  <urlString>$relpath$docs/tiny1.xml</urlString>
-                </gate.util.persistence.PersistenceManager-URLHolder>
-              </entry>
               <entry>
                 <string>stringContent</string>
                 <string></string>
@@ -42,7 +32,7 @@
         </gate.util.persistence.LRPersistence>
       </docList>
       <resourceType>gate.corpora.CorpusImpl</resourceType>
-      <resourceName>Corpus for tiny1.xml_0002E</resourceName>
+      <resourceName>Corpus for GATE Document_0001C</resourceName>
       <initParams class="gate.util.persistence.MapPersistence">
         <mapType>gate.util.SimpleFeatureMapImpl</mapType>
         <localMap/>
@@ -55,12 +45,18 @@
           <featureName></featureName>
           <featureValue></featureValue>
           <pr class="gate.util.persistence.LanguageAnalyserPersistence">
+            <corpus class="gate.util.persistence.CorpusPersistence" reference="../../../../../corpus"/>
             <runtimeParams class="gate.util.persistence.MapPersistence">
               <mapType>gate.util.SimpleFeatureMapImpl</mapType>
-              <localMap/>
+              <localMap>
+                <entry>
+                  <string>corpus</string>
+                  <gate.util.persistence.CorpusPersistence reference="../../../../../../../../corpus"/>
+                </entry>
+              </localMap>
             </runtimeParams>
             <resourceType>gate.plugin.python.PythonPr</resourceType>
-            <resourceName>PythonPr:debug1</resourceName>
+            <resourceName>PythonPr 00014</resourceName>
             <initParams class="gate.util.persistence.MapPersistence">
               <mapType>gate.util.SimpleFeatureMapImpl</mapType>
               <localMap>
@@ -88,7 +84,7 @@
       <collectionType>java.util.ArrayList</collectionType>
     </prList>
     <resourceType>gate.creole.ConditionalSerialAnalyserController</resourceType>
-    <resourceName>debug1</resourceName>
+    <resourceName>test_gcp</resourceName>
     <initParams class="gate.util.persistence.MapPersistence">
       <mapType>gate.util.SimpleFeatureMapImpl</mapType>
       <localMap/>

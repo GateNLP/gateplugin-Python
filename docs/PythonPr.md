@@ -46,7 +46,9 @@ interact()
 ```
 
 The function gets the document passed (as its first argument) a `gatenlp.Document` and also gets all the
-parameters defined in the `PythonPr` `programParams` parameter.
+parameters defined in the `PythonPr` `programParams` parameter as kwargs plus the `_config_file` parameter
+as additional kwarg if it was set in the PR. Not that if the function does not have `**kwargs` then 
+it gets called without any keyword arguments. 
 
 Instead of a function, a callable class can be implemented with the `@GateNlpPr` decorator.
 
@@ -72,7 +74,7 @@ class MyProcessor:
     def finish(self, **kwargs):
         logger.info("Total number of tokens: {}".format(self.tokens_total))
 
-    def __call__(self, doc, **kwargs):
+    def __call__(self, doc):
         set1 = doc.annset()
         set1.clear()
         text = doc.text
@@ -94,7 +96,8 @@ Advantages of using a callable class:
   in Java GATE. The `**kwargs` are taken from the PythonPR `programParams` runtime parameter. 
   This allows to parametrize and initialize the class depending on the `programParams` settings, and to 
   initialize data to update or use during the processing of a whole corpus.
-* the `__call__(self, doc, **kwargs)` method is invoked for each document, and the same kwargs are passsed as to the `start` method.
+* the `__call__(self, doc, **kwargs)` method is invoked for each document and gets the same kwargs as the start method. 
+  If the method is defined as `__call__(self, doc)` (no kwargs) then no kwargs are passed to the method. 
 * the `finish(self, **kwargs)` method is invoked when processing the corpus ends or is aborted, the same kwargs are passed as to the 
   `start` method. This can be used to calculate final over-the-corpus results after the corpus has been processed. 
   If this method returns a dictionary, the key/value pairs of the dictionary are stored either in a PythonResult object or 
@@ -126,14 +129,18 @@ the processing resource in the GUI. See [Python Editor](python-editor)
 * `loggingLevel` (drop down selection, default: INFO): choose the logging level to use in python. If DEBUG is used, then
   some additional information is also logged as info on the Java side.
 * `outputResultResource` A ResultLr to store corpus processing results in. See [PythonPrResult](PythonPrResult)
+* `configFile` (URL, default: empty): if this is set to some File, the absolute path to the file gets passed to the python 
+  `start(self, **kwargs)` method as kwarg `_config_file`. If the `configFile` parameter is not set, the kwarg
+  is not set either.
 * `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the
   Python side, via the `**kwargs` of the invoked method. Though this is a `FeatureMap`, the type of the key should be `String`
   and the type of each value should be something that can be serialized as JSON. In addition to the parameters specified here, the following
   default parameters will always get passed as well:
-  * `gate_plugin_python_nrDuplicates`: the number of duplicates if multiprocessing is done
-  * `gate_plugin_python_duplicateId` : the duplicate id (0 to nrDuplicates-1) of this PR.
-  * `gate_plugin_python_workingDir` : the effective working directory used by the PR
-  * `gate_plugin_python_pythonFile`: the effective Python program file used
+  * `_nrDuplicates`: the number of duplicates if multiprocessing is done
+  * `_duplicateId` : the duplicate id (0 to nrDuplicates-1) of this PR.
+  * `_workingDir` : the effective working directory used by the PR
+  * `_pythonFile`: the effective Python program file used if program was loaded from a file
+  * `_pythonPath` and `_pythonModule`: path and module in Jar, if the program was loaded from a JAR
 * `pythonBinary` (String, default: "python"): the name of the command (the Python interpreter) to invoke from the PATH. On some systems, where
   the `python` command invokes Python version 2.x, the command `python3` can be used to invoke Python version 3.x.
 * `pythonBinaryUrl` (URL, default: empty): If this is specified, it takes precedence over `pythonBinary`. This should be
