@@ -30,6 +30,8 @@ optional arguments:
   --format FORMAT    Exchange format: json|json.gz|cjson
   --path PATH        File/directory path for modes file/dir
   --out OUT          Output file/directory path for modes file/dir
+  --config_file      Path to pass on to the script as "_config_file" kwarg.
+  --parms_file       File to use as the parms file (usually the scriptname.py.parms file)
   -d                 Enable debugging: log to stderr
   --log_lvl LOG_LVL  Log level to use: DEBUG|INFO|WARNING|ERROR|CRITICAL
 ```
