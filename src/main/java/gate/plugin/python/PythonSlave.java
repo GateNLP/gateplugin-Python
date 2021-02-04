@@ -51,8 +51,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
-import gate.plugin.python.VersionLogger;
-import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

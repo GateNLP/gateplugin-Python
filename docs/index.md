@@ -9,10 +9,11 @@ instead use whatever version of the `gatenlp` package is installed on the system
 ## Using the Python Plugin
 
 * Requires GATE 8.6.1 or later
-* In the Plugin manager, click the "+" button then enter the following Maven coordinates
+* In the Plugin manager, locate the Python plugin and load it
+* Alternately, if you need a different version, in the plugin manager, click the "+" button and enter the Maven coordinates
   * uk.ac.gate.plugins
   * python
-  * 2.4-SNAPSHOT
+  * (the version you need)
 
 ## Installing / Setting up Python
 
