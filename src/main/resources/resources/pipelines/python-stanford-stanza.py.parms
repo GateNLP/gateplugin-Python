@@ -1,0 +1,8 @@
+{
+"outputAnnotationSet": "Stanza",
+"lang": "en",
+"dir": null,
+"logging_level": "ERROR",
+"verbose": false,
+"use_gpu": true
+}

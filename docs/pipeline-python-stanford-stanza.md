@@ -32,8 +32,11 @@ python  -c 'import stanza; stanza.download("en")'
 
 ## Running the Pipeline
 
-The following parameters in the  can be set in the programParams runtime parameter for the ready made pipeline.  This is a subset of what can be specified directly in Python when a Stanza Pipeline is created, see the [Stanza Documentation](https://stanfordnlp.github.io/stanza/pipeline.html)
+The following parameters can be set in the programParams runtime parameter for the ready made pipeline.  
+This contains a subset of what can be specified directly in Python when a Stanza Pipeline is created, 
+see the [Stanza Documentation](https://stanfordnlp.github.io/stanza/pipeline.html)
 
+* `outputAnnotationSet`: name of the annotation set where the Stanza annotations should be placed. Default is `Stanza`
 * `lang`: the language for the model to use, e.g. `en`. Default is: `en`
 * `dir`: directory where the downloaded model is stored. If not specified the default download location is used.
 * `logging_level`: one of "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL", "FATAL", default depends on `verbose`, see below

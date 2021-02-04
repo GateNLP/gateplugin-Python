@@ -133,7 +133,10 @@ the processing resource in the GUI. See [Python Editor](python-editor)
   `start(self, **kwargs)` method as kwarg `_config_file`. If the `configFile` parameter is not set, the kwarg
   is not set either.
 * `programParams` (FeatureMap, default: empy): this can be used to pass on arbitrary parameters to the functions run on the
-  Python side, via the `**kwargs` of the invoked method. Though this is a `FeatureMap`, the type of the key should be `String`
+  Python side, via the `**kwargs` of the invoked method. If there is a file with the same path as the Python program and ".parms"  added
+  to the file name, this file is read as a JSON parameter preconfiguration file (see below) to set default values for parameters when
+  the PR is created initially. 
+  This parameter is a `FeatureMap`, but limited in that the type of the key/feature name should be `String`
   and the type of each value should be something that can be serialized as JSON. In addition to the parameters specified here, the following
   default parameters will always get passed as well:
   * `_nrDuplicates`: the number of duplicates if multiprocessing is done
@@ -156,4 +159,30 @@ the processing resource in the GUI. See [Python Editor](python-editor)
   contains its own copy of the Python `gatenlp` package and uses it if this parameter is set to `true` (by putting the location
   of the package first on the `PYTHONPATH`). If this is `false` then nothing is put on the `PYTHONPATH` and whatever version of
   the `gatenlp` package is installed on the system is used.
+
+
+## Parameter Preconfiguration File
+
+When a PythonPr is created from a Python file and another file exists that has the same name as the Python file with ".parms" appended, 
+then this file is expected to be a JSON map which is used to pre-set the `programParms` for this script. 
+
+For example, when a PythonPr is created from the Python file `mydir/myscript.py` and a file `mydir/myscrip.py.parms` exists, then 
+this file is used to pre-set the `programParms`. The parms file should contain a JSON map and each key in the JSON map is used 
+as the name of an entry in the `programParms` FeatureMap and the value is used as the value in the feature map. 
+
+Note that both feature names and values can only be entered as String in the `programParms` FeatureMap, so the JSON map should 
+also contain String keys and values. If a value is "null" then the parameter added but assigned null/None. If the value is not 
+a string it is converted to a String using the objects `toString()` method before it is assigned to the FeatureMap. 
+
+For example if the file `mydir/myscript.py.parms` contains the following:
+```
+{
+  "parm1": "val1",
+  "parm2": false,
+  "parm3": null,
+  "parm4": 33
+}
+```
+then the `programParms` of the PythonPr for this script will be set to the following FeatureMap:
+"parm1"="val1", "parm2"="false", "parm3"=null, "parm4"="33". 
 

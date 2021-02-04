@@ -19,6 +19,7 @@
  */
 package gate.plugin.python;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jr.ob.JSON;
 import gate.plugin.python.gui.PythonEditorVr;
 import java.net.URL;
@@ -26,6 +27,7 @@ import java.net.URL;
 import gate.Resource;
 import gate.Controller;
 import gate.Document;
+import gate.Factory;
 import gate.FeatureMap;
 import gate.Gate;
 
@@ -39,16 +41,19 @@ import gate.creole.metadata.Optional;
 import gate.creole.metadata.RunTime;
 import gate.creole.metadata.Sharable;
 import gate.creole.ExecutionException;
+import gate.creole.metadata.HiddenCreoleParameter;
 import gate.gui.ResourceHelper;
 import gate.lib.interaction.process.pipes.Process4StringStream;
 import gate.util.GateRuntimeException;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -64,6 +69,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -153,6 +159,7 @@ public class PythonPr
   protected File pythonProgramFile;  // if not jar, the file on the disk
   protected String pythonProgramPathInJar;  // if jar, the parent dir of the file
   protected String pythonProgramModuleInJar; // if jar the module name 
+  protected String pythonProgramFileInJar; // if jar the module name 
   protected URL pythonProgramUrl;  // the python source as URL
 
   /**
@@ -165,7 +172,7 @@ public class PythonPr
    */
   @Optional
   @RunTime
-  @CreoleParameter(comment = "Extra parameters to pass on to the Python program", defaultValue = "")
+  @CreoleParameter(comment = "Extra parameters to pass on to the Python program")
   public void setProgramParams(FeatureMap parms) {
     programParams = parms;
   }
@@ -238,6 +245,16 @@ public class PythonPr
   
   protected String pythonBinaryCommand;
 
+  @CreoleParameter(defaultValue="false")
+  @HiddenCreoleParameter
+  public void setIsConfigured(Boolean value) {
+    isConfigured = value;
+  }
+  public Boolean getIsConfigured() {
+    return isConfigured;
+  }
+  protected Boolean isConfigured;
+  
   /**
    * Possible python side logging level values.
    */
@@ -513,6 +530,7 @@ public class PythonPr
       String[] info = jarUrl2PythonPathAndModule(pythonProgramUrl);
       pythonProgramPathInJar = info[0];
       pythonProgramModuleInJar = info[1];
+      pythonProgramFileInJar = info[2];
     }
   } // end figureOutPythonFile
 
@@ -718,15 +736,17 @@ public class PythonPr
     sepIdx = urlPath.lastIndexOf("/");
     String file = urlPath.substring(sepIdx + 1);
     String path = urlPath.substring(0, sepIdx);
+    String module = file;
     // if the file ends with .py, we remove that
     if (file.endsWith(".py")) {
-      file = file.substring(0, file.length() - 3);
+      module = file.substring(0, file.length() - 3);
     }
     // now prepend the file again
     path = urlFile + path;
-    String[] ret = new String[2];
+    String[] ret = new String[3];
     ret[0] = path;
-    ret[1] = file;
+    ret[1] = module;
+    ret[2] = file;
     return ret;
   }
 
@@ -803,6 +823,19 @@ public class PythonPr
 
   protected ResourceHelper rhBdocApi;
   
+  @SuppressWarnings("unchecked")
+  private Map<String,String> getParms(File parmFile) {
+    ObjectMapper om = new ObjectMapper();
+    Map<String,String> map;
+    try {
+      map = om.readValue(parmFile, Map.class);
+    } catch(IOException ex) {
+      logger.error("Could not parse the parms file", ex);
+      map = new HashMap<>();
+    }
+    return map;
+  }
+  
   
   //public boolean isJarUrl(URL url) {
   //  String scheme = url.toURI().getScheme();
@@ -847,7 +880,33 @@ public class PythonPr
     }
     rhBdocApi = (ResourceHelper)Gate.getCreoleRegister()
                      .get("gate.plugin.format.bdoc.API")
-                     .getInstantiations().iterator().next();    
+                     .getInstantiations().iterator().next();     
+    if(getIsConfigured() == null || !getIsConfigured()) {
+      if(getProgramParams() == null) {
+        if(pythonProgramIsJar) {
+          ResourceReference check;
+          try {
+            check = new ResourceReference(new URI(getPythonProgram().toURI().toString()+".parms"));
+            ObjectMapper om = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            Map<String,String> map = om.readValue(check.openStream(), Map.class);            
+            setProgramParams(gate.Utils.toFeatureMap(map));
+          } catch (FileNotFoundException ex) {
+            // ignore
+            logger.debug("Ignoring the FileNotFoundException");
+          } catch (IOException | URISyntaxException ex) {
+            logger.error("Got exception trying to find parms file", ex);
+          }
+            
+        } else {
+          File parmFile = new File(pythonProgramFile.getAbsolutePath()+".parms");
+          if(parmFile.exists()) {
+            setProgramParams(gate.Utils.toFeatureMap(getParms(parmFile)));
+          }
+        }
+      }
+      setIsConfigured(true);      
+    }
     return this;
   } // end init()
 
@@ -1148,9 +1207,10 @@ public class PythonPr
   protected String makeStartRequest() {
     Map<String, Object> request = new HashMap<>();
     request.put("command", "start");
+    FeatureMap programParamsToUse = programParams == null ? Factory.newFeatureMap() : programParams;
     Map<String, Object> params;
-    try {
-      params = (Map<String, Object>)rhBdocApi.call("fmap_to_map", null, programParams);
+    try {      
+      params = (Map<String, Object>)rhBdocApi.call("fmap_to_map", null, programParamsToUse);
     } catch (NoSuchMethodException | IllegalArgumentException | 
             IllegalAccessException | InvocationTargetException ex) {
       throw new GateRuntimeException("Could not create start request map", ex);
