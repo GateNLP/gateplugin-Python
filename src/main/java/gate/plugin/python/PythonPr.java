@@ -711,7 +711,7 @@ public class PythonPr
    * @return array with two elements, the pythonpath and the module name
    */
   public static String[] jarUrl2PythonPathAndModule(URL jarUrl) {
-    // eg jar:file:/home/johann/.m2/repository/uk/ac/gate/plugins/python/2.0-SNAPSHOT/python-2.0-SNAPSHOT.jar!/resources/pipelines/python-spacy.py
+    // eg jar:file:/home/johann/.m2/repository/uk/ac/gate/plugins/python/2.0/python-2.0.jar!/resources/pipelines/python-spacy.py
     // should return /resources/pipelines/python-spacy.py
     if (!"jar".equals(jarUrl.getProtocol())) {
       throw new RuntimeException("Expected JAR url but got: " + jarUrl);
