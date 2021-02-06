@@ -93,7 +93,7 @@ public class VersionLogger extends AbstractResource {
         if (artifactURL.toString().startsWith("file:/")) {
             try {
                 String pythonProgramPathName = PythonPr.getPythonpathInZip();
-                File theFile = new File(new File(pythonProgramPathName, "gatenlp"), "__init__.py");
+                File theFile = new File(new File(pythonProgramPathName, "gatenlp"), "version.py");
                 String source = theFile.getAbsolutePath();
                 fromFile = new File(source);
                 lines = java.nio.file.Files.readAllLines(fromFile.toPath(), Charset.forName("UTF-8"));
@@ -101,7 +101,7 @@ public class VersionLogger extends AbstractResource {
                 throw new GateRuntimeException("Error trying to read the resource "+fromFile, ex);
             }
         } else {
-            URL fileURL = PythonPr.class.getResource("/resources/pythonpath/gatenlp/__init__.py");
+            URL fileURL = PythonPr.class.getResource("/resources/pythonpath/gatenlp/version.py");
             try (BufferedReader rdr = new BufferedReader(new InputStreamReader(fileURL.openStream())))
             {
                 String line;
