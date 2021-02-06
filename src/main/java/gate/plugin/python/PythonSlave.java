@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import javax.xml.stream.XMLStreamException;
 
 import org.slf4j.Logger;
@@ -82,6 +83,13 @@ public class PythonSlave {
   public boolean keepRunning = true;
 
   private Corpus tmpCorpus;
+  
+  // For using the Format_Bdoc API
+  // Since the Python plugin run-time depends on the format bdoc plugin,
+  // this should ALWAYS SUCCEED without a problem!
+  protected ResourceHelper rhBdocApi = (ResourceHelper)Gate.getCreoleRegister()
+                     .get("gate.plugin.format.bdoc.API")
+                     .getInstantiations().iterator().next();    
   
   /**
    * Create an instance.
@@ -641,6 +649,21 @@ public class PythonSlave {
     return names;
   }
 
+  
+  public String jsonAnnsets4Doc(Document doc, List<List<String>> annsets) {
+    try {
+      return (String)rhBdocApi.call("jsonannsets_from_docanns", doc, annsets);
+    } catch (IllegalAccessException | IllegalArgumentException | 
+            NoSuchMethodException | InvocationTargetException ex) {
+      throw new GateRuntimeException("Problem retrieving the annotations", ex);
+    }
+  }
+  
+  public String jsonAnnsets4Doc(Document doc) {
+    return jsonAnnsets4Doc(doc, null);
+  }
+  
+  
   /**
    * Enable or disable logging the actions.
    *
