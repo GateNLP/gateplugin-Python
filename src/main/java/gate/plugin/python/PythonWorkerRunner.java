@@ -38,19 +38,19 @@ import javax.swing.Action;
 import py4j.GatewayServer;
 
 /**
- * Resource Helper for running the Python slave process.
+ * Resource Helper for running the Python worker process.
  * 
  * This is meant to get used by a python process that starts the GATE 
- * process in order to use the gate slave. It differs from the PythonSlaveLr
+ * process in order to use the gate worker. It differs from the PythonWorkerLr
  * in that it uses standard output to communicate success/failure of starting
  * the Gateway to Python and in that it will immediately terminate the 
  * Java process if something goes wrong or after a shutdown. 
  * 
  * @author Johann Petrak
  */
-@CreoleResource(name = "PythonSlaveRunner",
+@CreoleResource(name = "PythonWorkerRunner",
         tool = true,
-        comment = "Language Resource to represent a Python slave process.",        
+        comment = "Language Resource to represent a Python worker process.",        
         helpURL = "")
 public class PythonWorkerRunner extends ResourceHelper  {
   private static final long serialVersionUID = -1392982236343502768L;
@@ -107,7 +107,7 @@ public class PythonWorkerRunner extends ResourceHelper  {
   }
   protected String host = "127.0.0.1";
   
-  private transient PythonWorker slave = null;
+  private transient PythonWorker worker = null;
 
   /**
    * Set auth token to use.
@@ -160,11 +160,11 @@ public class PythonWorkerRunner extends ResourceHelper  {
         break;
       case "start":
         try {
-          slave = new PythonWorker();
+          worker = new PythonWorker();
         } catch(ResourceInstantiationException ex) {
-          throw new GateRuntimeException("Could not create PythonSlave", ex);
+          throw new GateRuntimeException("Could not create PythonWorker", ex);
         }
-        startServer(slave);
+        startServer(worker);
         break;
 
       default:
@@ -190,9 +190,9 @@ public class PythonWorkerRunner extends ResourceHelper  {
    * started or not which is used by the starting process to wait until the 
    * server is ready. 
    * 
-   * @param pslave the python slave instance that owns the server
+   * @param pworker the python worker instance that owns the server
    */
-  public void startServer(PythonWorker pslave){
+  public void startServer(PythonWorker pworker){
     InetAddress hostAddress;
     try {
       hostAddress = InetAddress.getByName(host);
@@ -202,34 +202,35 @@ public class PythonWorkerRunner extends ResourceHelper  {
     Thread.currentThread().setContextClassLoader(Gate.getClassLoader());
     // Try to find the auth token from the environment variable
     if (this.authToken == null || this.authToken.trim().isEmpty()) {
-      this.authToken = System.getenv("GATENLP_SLAVE_TOKEN_"+port);
+      this.authToken = System.getenv("GATENLP_WORKER_TOKEN_"+port);
     }
-    System.err.println("PythonSlaveRunning: starting server with "+port+"/"+host+"/"+authToken+"/"+logActions);
-    pslave.logActions = logActions;
-    pslave.keepRunning = keep;
+    System.err.println("PythonWorkerRunner.java: starting server with "+port+"/"+host+"/"+authToken+"/"+logActions);
+    pworker.logActions = logActions;
+    pworker.keepRunning = keep;
     GatewayServer  server;
     if (this.authToken == null || this.authToken.trim().isEmpty()) {
       server = new GatewayServer.GatewayServerBuilder()
-              .entryPoint(pslave)
+              .entryPoint(pworker)
               .javaPort(port)
               .javaAddress(hostAddress)
               .build();
     } else {
       //System.err.println("Using auth token: "+auth_token);
       server = new GatewayServer.GatewayServerBuilder()
-              .entryPoint(pslave)
+              .entryPoint(pworker)
               .authToken(this.authToken)
               .javaPort(port)
               .javaAddress(hostAddress)
               .build();
     }
-    pslave.server = server;
+    pworker.server = server;
     try {
       server.start();
-      System.err.println("PythonSlaveRunner.java: server start OK");
+      System.err.println("PythonWorkerRunner.java: server start OK");
+      System.err.flush();
     } catch(Exception ex) {
-      pslave.server = null;
-      System.err.println("PythonSlaveRunner.java: server start NOT OK");
+      pworker.server = null;
+      System.err.println("PythonWorkerRunner.java: server start NOT OK");
       throw new GateRuntimeException("Could not start GatewayServer",ex);
     }
   }
