@@ -62,7 +62,7 @@ import py4j.GatewayServer;
  * 
  * @author Johann Petrak
  */
-public class PythonSlave {
+public class PythonWorker {
 
   /**
    * Logger
@@ -77,8 +77,8 @@ public class PythonSlave {
   public boolean logActions = true;
 
   /**
-   * Indicate if the slave should be kept running. This is the case if it was started by the PythonSlaveLr
-   * or if the slave running does not clear this.
+   * Indicate if the worker should be kept running. This is the case if it was started by the PythonWorkerLr
+   * or if the worker running does not clear this.
    */
   public boolean keepRunning = true;
 
@@ -95,7 +95,7 @@ public class PythonSlave {
    * Create an instance.
    * @throws ResourceInstantiationException error
    */
-  public PythonSlave() throws ResourceInstantiationException {   
+  public PythonWorker() throws ResourceInstantiationException {   
     tmpCorpus = Factory.newCorpus("tmpCorpus");
   }
   
@@ -110,7 +110,7 @@ public class PythonSlave {
    */
   public void loadMavenPlugin(
           String group, String artifact, String version) throws GateException {
-    if (logActions) LOGGER.info("Slave run: load Maven plugin "+group+"/"+artifact+"/"+version);
+    if (logActions) LOGGER.info("Worker run: load Maven plugin "+group+"/"+artifact+"/"+version);
     Gate.getCreoleRegister().registerPlugin(new Plugin.Maven(
             group, artifact, version));
   }
@@ -122,7 +122,7 @@ public class PythonSlave {
    * @return the corpus controller
    */
   public CorpusController loadPipelineFromFile(String path) {
-    if (logActions) LOGGER.info("Slave run: load controller from "+path);
+    if (logActions) LOGGER.info("Worker run: load controller from "+path);
     try {
       return (CorpusController)PersistenceManager.loadObjectFromFile(new File(path));
     } catch (PersistenceException | IOException | ResourceInstantiationException ex) {
@@ -138,7 +138,7 @@ public class PythonSlave {
    * @return the plugin instance or null of nothing found
    */
   public Plugin.Maven findMavenPlugin(String group, String artifact) {
-    if (logActions) LOGGER.info("Slave run: find Maven plugin "+group+"/"+artifact);
+    if (logActions) LOGGER.info("Worker run: find Maven plugin "+group+"/"+artifact);
     Set<Plugin> allPlugins = new LinkedHashSet<>(Gate.getCreoleRegister().getPlugins());
     allPlugins.addAll(PluginUpdateManager.getDefaultPlugins());
     for (Plugin plugin : allPlugins) {
@@ -165,7 +165,7 @@ public class PythonSlave {
    * @throws java.net.URISyntaxException  exception
    */
   public CorpusController loadPipelineFromPlugin(String group, String artifact, String path) throws URISyntaxException {
-    if (logActions) LOGGER.info("Slave run: load pipeline "+path+" from plugin "+group+"/"+artifact);
+    if (logActions) LOGGER.info("Worker run: load pipeline "+path+" from plugin "+group+"/"+artifact);
     Plugin.Maven mp = findMavenPlugin(group, artifact);
     if(mp == null) {
       throw new GateRuntimeException("Could not find plugin, please load it first!");
@@ -197,7 +197,7 @@ public class PythonSlave {
    * @return document
    */
   public Document loadDocumentFromFile(String path) {
-    if (logActions) LOGGER.info("Slave run: load document from "+path);
+    if (logActions) LOGGER.info("Worker run: load document from "+path);
     return loadDocumentFromFile(path, null);
   }
   
@@ -208,7 +208,7 @@ public class PythonSlave {
    * @return the document
    */
   public Document createDocument(String content) {
-    if (logActions) LOGGER.info("Slave run: createDocument from content");
+    if (logActions) LOGGER.info("Worker run: createDocument from content");
     try {
       return Factory.newDocument(content);
     } catch (ResourceInstantiationException ex) {
@@ -222,7 +222,7 @@ public class PythonSlave {
    * @return  corpus
    */
   public Corpus newCorpus() {
-    if (logActions) LOGGER.info("Slave run: create new corpus");
+    if (logActions) LOGGER.info("Worker run: create new corpus");
     try {
       return Factory.newCorpus("Corpus_"+Gate.genSym());
     } catch (ResourceInstantiationException ex) {
@@ -236,7 +236,7 @@ public class PythonSlave {
    * @param res the resource to remove
    */
   public void deleteResource(Resource res) {
-    if (logActions) LOGGER.info("Slave run: remove resource"+res.getName());
+    if (logActions) LOGGER.info("Worker run: remove resource"+res.getName());
     Factory.deleteResource(res);
   }
   
@@ -247,7 +247,7 @@ public class PythonSlave {
    * @param doc  the document to process
    */
   public void run4Document(CorpusController pipeline, Document doc) {
-    if (logActions) LOGGER.info("Slave run: run controller "+pipeline.getName()+" for "+doc.getName());
+    if (logActions) LOGGER.info("Worker run: run controller "+pipeline.getName()+" for "+doc.getName());
     tmpCorpus.clear();
     tmpCorpus.add(doc);
     if(pipeline instanceof AbstractController) {
@@ -270,7 +270,7 @@ public class PythonSlave {
    * @param pipeline pipeline
    */
   public void runExecutionStarted(CorpusController pipeline) {
-    if (logActions) LOGGER.info("Slave run: run executionStarted for "+pipeline.getName());
+    if (logActions) LOGGER.info("Worker run: run executionStarted for "+pipeline.getName());
     if(pipeline instanceof AbstractController) {
       try {
         ((AbstractController)pipeline).invokeControllerExecutionStarted();
@@ -289,7 +289,7 @@ public class PythonSlave {
    * @param pipeline pipeline
    */
   public void runExecutionFinished(CorpusController pipeline) {
-    if (logActions) LOGGER.info("Slave run: run executionFinished for "+pipeline.getName());
+    if (logActions) LOGGER.info("Worker run: run executionFinished for "+pipeline.getName());
     if(pipeline instanceof AbstractController) {
       try {
         ((AbstractController)pipeline).invokeControllerExecutionFinished();
@@ -306,7 +306,7 @@ public class PythonSlave {
    * @param corpus  the corpus
    */
   public void run4Corpus(CorpusController pipeline, Corpus corpus) {
-    if (logActions) LOGGER.info("Slave run: run pipline "+pipeline.getName()+" for corpus "+corpus.getName());
+    if (logActions) LOGGER.info("Worker run: run pipline "+pipeline.getName()+" for corpus "+corpus.getName());
     if(pipeline instanceof AbstractController) {
       ((AbstractController)pipeline).setControllerCallbacksEnabled(true);
     }
@@ -325,7 +325,7 @@ public class PythonSlave {
    * @return document
    */
   public Document loadDocumentFromFile(String path, String mimeType) {
-    if (logActions) LOGGER.info("Slave run: load document from "+path+" mimetype:"+mimeType);
+    if (logActions) LOGGER.info("Worker run: load document from "+path+" mimetype:"+mimeType);
     FeatureMap params = Factory.newFeatureMap();
     try {
       params.put("sourceUrl", new File(path).toURI().toURL());      
@@ -362,7 +362,7 @@ public class PythonSlave {
    */
   public void saveDocumentToFile(Document doc, String path, String mimetype)
           throws IOException, XMLStreamException {
-    if (logActions) LOGGER.info("Slave run: save document to "+path+" mimetype:"+mimetype);
+    if (logActions) LOGGER.info("Worker run: save document to "+path+" mimetype:"+mimetype);
     if(mimetype==null || mimetype.isEmpty()) {
       DocumentStaxUtils.writeDocument(doc, new File(path));
     } else if("application/fastinfoset".equals(mimetype)) {
@@ -409,7 +409,7 @@ public class PythonSlave {
    * @return json
    */
   public String getBdocJson(Document doc) {
-    if (logActions) LOGGER.info("Slave run: get bdocjson for "+doc.getName());
+    if (logActions) LOGGER.info("Worker run: get bdocjson for "+doc.getName());
     ResourceHelper rh = (ResourceHelper)Gate.getCreoleRegister()
                      .get("gate.plugin.format.bdoc.API")
                      .getInstantiations().iterator().next();
@@ -432,7 +432,7 @@ public class PythonSlave {
   public Document getDocument4BdocJson(String bdocjson) 
           throws ResourceInstantiationException {
     try {
-      if (logActions) LOGGER.info("Slave run: create document from bdocjson");
+      if (logActions) LOGGER.info("Worker run: create document from bdocjson");
       ResourceHelper rh = (ResourceHelper)Gate.getCreoleRegister()
               .get("gate.plugin.format.bdoc.API")
               .getInstantiations().iterator().next();
@@ -472,7 +472,7 @@ public class PythonSlave {
    * 
    */
   public void showGui() {
-    if (logActions) LOGGER.info("Slave run: sho GUI");
+    if (logActions) LOGGER.info("Worker run: sho GUI");
     if (gate.gui.MainFrame.getInstance().isVisible()) {
       return;
     }
@@ -493,7 +493,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public List<Resource> getResources4Name(String name) throws GateException {
-    if (logActions) LOGGER.info("Slave run: get resource for name "+name);
+    if (logActions) LOGGER.info("Worker run: get resource for name "+name);
     return gate.Gate.getCreoleRegister().getAllInstances("gate.Resource");
   }
   
@@ -505,7 +505,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public List<Resource> getResources4Name(String name, String clazz) throws GateException {
-    if (logActions) LOGGER.info("Slave run: get resource for name "+name+" and class "+clazz);
+    if (logActions) LOGGER.info("Worker run: get resource for name "+name+" and class "+clazz);
     return gate.Gate.getCreoleRegister().getAllInstances(clazz);
   }
   
@@ -519,7 +519,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public Document getDocument4Name(String name) throws GateException {
-    if (logActions) LOGGER.info("Slave run: get document for name "+name);
+    if (logActions) LOGGER.info("Worker run: get document for name "+name);
     List<Resource> matching = getResources4Name(name, "gate.Document");
     if(matching.size() > 0) {
       return (Document)matching.get(0);
@@ -538,7 +538,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public Corpus getCorpus4Name(String name) throws GateException {
-    if (logActions) LOGGER.info("Slave run: get corpus with name "+name);
+    if (logActions) LOGGER.info("Worker run: get corpus with name "+name);
     List<Resource> matching = getResources4Name(name, "gate.Corpus");
     if(matching.size() > 0) {
       return (Corpus)matching.get(0);
@@ -557,7 +557,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public CorpusController getPipeline4Name(String name) throws GateException {
-    if (logActions) LOGGER.info("Slave run: get pipeline with name "+name);
+    if (logActions) LOGGER.info("Worker run: get pipeline with name "+name);
     List<Resource> matching = getResources4Name(name, "gate.CorpusController");
     if(matching.size() > 0) {
       return (CorpusController)matching.get(0);
@@ -576,7 +576,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public ProcessingResource getPr4Name(String name) throws GateException {
-    if (logActions) LOGGER.info("Slave run: get processing resource with name "+name);
+    if (logActions) LOGGER.info("Worker run: get processing resource with name "+name);
     List<Resource> matching = getResources4Name(name, "gate.ProcessingResource");
     if(matching.size() > 0) {
       return (ProcessingResource)matching.get(0);
@@ -592,7 +592,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public List<String> getDocumentNames() throws GateException {
-    if (logActions) LOGGER.info("Slave run: get known document names");
+    if (logActions) LOGGER.info("Worker run: get known document names");
     List<Resource> tmp = gate.Gate.getCreoleRegister().getAllInstances("gate.Document");
     List<String> names = new ArrayList<>();
     for(Resource r : tmp) {
@@ -608,7 +608,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public List<String> getCorpusNames() throws GateException {
-    if (logActions) LOGGER.info("Slave run: get known corpus names");
+    if (logActions) LOGGER.info("Worker run: get known corpus names");
     List<Resource> tmp = gate.Gate.getCreoleRegister().getAllInstances("gate.Corpus");
     List<String> names = new ArrayList<>();
     for(Resource r : tmp) {
@@ -624,7 +624,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public List<String> getPipelineNames() throws GateException {
-    if (logActions) LOGGER.info("Slave run: get known pipeline names");
+    if (logActions) LOGGER.info("Worker run: get known pipeline names");
     List<Resource> tmp = gate.Gate.getCreoleRegister().getAllInstances("gate.CorpusController");
     List<String> names = new ArrayList<>();
     for(Resource r : tmp) {
@@ -640,7 +640,7 @@ public class PythonSlave {
    * @throws GateException 
    */
   public List<String> getPrNames() throws GateException {
-    if (logActions) LOGGER.info("Slave run: get known resource names");
+    if (logActions) LOGGER.info("Worker run: get known resource names");
     List<Resource> tmp = gate.Gate.getCreoleRegister().getAllInstances("gate.ProcessingResource");
     List<String> names = new ArrayList<>();
     for(Resource r : tmp) {
@@ -670,13 +670,13 @@ public class PythonSlave {
    * @param flag true or false
    */
   public void logActions(boolean flag) {
-    if (logActions) LOGGER.info("Slave run: set logActions to "+flag);
+    if (logActions) LOGGER.info("Worker run: set logActions to "+flag);
     this.logActions = flag;
   }
 
   /**
-   * Kill the slave.
-   * This may cause data to get lost as the slave may not send something that is expected to the python master.
+   * Kill the worker.
+   * This may cause data to get lost as the worker may not send something that is expected to the python master.
    *
    */
   public void kill() {
@@ -684,7 +684,7 @@ public class PythonSlave {
   }
 
   /**
-   * Check if the slave is closable.
+   * Check if the worker is closable.
    * It is closable if not started by the Lr.
    *
    * @return flag

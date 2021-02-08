@@ -30,21 +30,21 @@ import java.io.IOException;
  * Class for testing.
  * @author Johann Petrak
  */
-public class PythonSlaveRunnerTest extends GATEPluginTestCase {
+public class PythonWorkerRunnerTest extends GATEPluginTestCase {
 
   /**
    * A test.
    * @throws IOException   exception
    * @throws gate.creole.ResourceInstantiationException exception
    */
-  public void testPythonSlaveRunner() throws IOException, ResourceInstantiationException {
-    // Try to instantiate the Slave runner
+  public void testPythonWorkerRunner() throws IOException, ResourceInstantiationException {
+    // Try to instantiate the Worker runner
     FeatureMap parms = Factory.newFeatureMap();
     parms.put("port", 25333);
     parms.put("host", "127.0.0.1");
-    ResourceHelper slave = 
-            (ResourceHelper)Factory.createResource("gate.plugin.python.PythonSlaveRunner", parms);
-    System.err.println("!!!!!!!!!SLAVE:"+slave);
+    ResourceHelper worker = 
+            (ResourceHelper)Factory.createResource("gate.plugin.python.PythonWorkerRunner", parms);
+    System.err.println("!!!!!!!!!WORKER:"+worker);
   }
   
 }

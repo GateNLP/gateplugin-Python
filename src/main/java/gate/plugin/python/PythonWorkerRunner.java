@@ -52,7 +52,7 @@ import py4j.GatewayServer;
         tool = true,
         comment = "Language Resource to represent a Python slave process.",        
         helpURL = "")
-public class PythonSlaveRunner extends ResourceHelper  {
+public class PythonWorkerRunner extends ResourceHelper  {
   private static final long serialVersionUID = -1392982236343502768L;
   
   /**
@@ -107,7 +107,7 @@ public class PythonSlaveRunner extends ResourceHelper  {
   }
   protected String host = "127.0.0.1";
   
-  private transient PythonSlave slave = null;
+  private transient PythonWorker slave = null;
 
   /**
    * Set auth token to use.
@@ -160,7 +160,7 @@ public class PythonSlaveRunner extends ResourceHelper  {
         break;
       case "start":
         try {
-          slave = new PythonSlave();
+          slave = new PythonWorker();
         } catch(ResourceInstantiationException ex) {
           throw new GateRuntimeException("Could not create PythonSlave", ex);
         }
@@ -192,7 +192,7 @@ public class PythonSlaveRunner extends ResourceHelper  {
    * 
    * @param pslave the python slave instance that owns the server
    */
-  public void startServer(PythonSlave pslave){
+  public void startServer(PythonWorker pslave){
     InetAddress hostAddress;
     try {
       hostAddress = InetAddress.getByName(host);

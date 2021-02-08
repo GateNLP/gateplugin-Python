@@ -35,15 +35,15 @@ import java.net.UnknownHostException;
 import java.util.UUID;
 
 /**
- * Language Resource for running the Python slave process.
+ * Language Resource for running the Python worker process.
  * This is a language resource so we can interact with the initialized resource
  * easier.
  * @author Johann Petrak
  */
-@CreoleResource(name = "PythonSlaveLr",
-        comment = "Language Resource to represent a Python slave process.",
+@CreoleResource(name = "PythonWorkerLr",
+        comment = "Language Resource to represent a Python worker process.",
         helpURL = "")
-public class PythonSlaveLr extends AbstractLanguageResource  {
+public class PythonWorkerLr extends AbstractLanguageResource  {
   private static final long serialVersionUID = -1392763456343502768L;
   
   /**
@@ -156,26 +156,26 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   protected Boolean useAuthToken = true;
 
 
-  protected transient PythonSlave pythonSlave;
+  protected transient PythonWorker pythonWorker;
   
   @Override
   public Resource init() throws ResourceInstantiationException {
-    logger.info("Creating PythonSlave instance");
+    logger.info("Creating PythonWorker instance");
     try {
-      pythonSlave = new PythonSlave();
-      pythonSlave.logActions = logActions;
+      pythonWorker = new PythonWorker();
+      pythonWorker.logActions = logActions;
     } catch (ResourceInstantiationException ex) {
-      throw new ResourceInstantiationException("Could not create PythonSlave", ex);
+      throw new ResourceInstantiationException("Could not create PythonWorker", ex);
     }
-    startServer(pythonSlave);
-    logger.info("Python slave started at port "+port);
+    startServer(pythonWorker);
+    logger.info("Python worker started at port "+port);
     return this;
   }
   
   @Override
   public void cleanup() {
     // logger.info("Trying to stop server");
-    stopServer(pythonSlave);
+    stopServer(pythonWorker);
     // logger.info("After stopping server");
     super.cleanup();
   }
@@ -183,9 +183,9 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   /**
    * Start the server.
    * 
-   * @param pslave the python slave instance that owns the server
+   * @param pworker the python worker instance that owns the server
    */
-  public void startServer(PythonSlave pslave) {
+  public void startServer(PythonWorker pworker) {
     InetAddress hostAddress;
     try {
       hostAddress = InetAddress.getByName(host);
@@ -201,23 +201,23 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
         System.out.println("Using auth token: "+authToken);
       }
       server = new GatewayServer.GatewayServerBuilder()
-              .entryPoint(pslave)
+              .entryPoint(pworker)
               .javaPort(port)
               .javaAddress(hostAddress)
               .authToken(this.authToken)
               .build();
     } else {
       server = new GatewayServer.GatewayServerBuilder()
-              .entryPoint(pslave)
+              .entryPoint(pworker)
               .javaPort(port)
               .javaAddress(hostAddress)
               .build();
     }
-    pslave.server = server;
+    pworker.server = server;
     try {
       server.start();
     } catch(Exception ex) {
-      pslave.server = null;
+      pworker.server = null;
       throw new GateRuntimeException("Could not start GatewayServer",ex);
     }
   }
@@ -225,11 +225,11 @@ public class PythonSlaveLr extends AbstractLanguageResource  {
   /**
    * Stop the server.
    * 
-   * @param pslave the PythonSlave instance that owns the server.
+   * @param pworker the PythonWorker instance that owns the server.
    */
-  public void stopServer(PythonSlave pslave) {
-    if(pslave.server != null)
-      pslave.server.shutdown();
+  public void stopServer(PythonWorker pworker) {
+    if(pworker.server != null)
+      pworker.server.shutdown();
   }
   
   
