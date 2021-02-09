@@ -58,4 +58,4 @@ Other help topics:
 
 * [PythonPrResult](PythonPrResult): Language Resource to store over-the-corpus  processing results as features
 * [Multiprocessing](multiprocessing): Running the `PythonPr` processing in  parallel and combining over-the-corpus results from all processes.
-* [PythonSlaveLr](PythonSlaveLr): Language Resource that allows `gatenlp` to  control GATE from Python and call the GATE API from Python.
+* [PythonWorkerLr](PythonWorkerLr): Language Resource that allows `gatenlp` to  control GATE from Python and call the GATE API from Python.
