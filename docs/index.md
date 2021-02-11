@@ -54,6 +54,7 @@ Main topics:
 * [Python Editor](python-editor.md)
 * [Command Line Debugging of Python Scripts](debug-scripts): how to debug the scripts   outside of GATE from the command line
 * [Frequent Problems](frequent-problems): if you encounter problems, please check here first!
+* [JavaDocs](https://javadoc.io/doc/uk.ac.gate.plugins/python): API documentation
 
 Other help topics: 
 
