@@ -44,7 +44,7 @@ public class PythonWorkerRunnerTest extends GATEPluginTestCase {
     parms.put("host", "127.0.0.1");
     ResourceHelper worker = 
             (ResourceHelper)Factory.createResource("gate.plugin.python.PythonWorkerRunner", parms);
-    System.err.println("!!!!!!!!!WORKER:"+worker);
+    // System.err.println("!!!!!!!!!WORKER:"+worker);
   }
   
 }

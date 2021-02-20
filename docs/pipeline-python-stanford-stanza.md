@@ -42,3 +42,5 @@ see the [Stanza Documentation](https://stanfordnlp.github.io/stanza/pipeline.htm
 * `logging_level`: one of "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL", "FATAL", default depends on `verbose`, see below
 * `verbose`: if `True`, but now logging level is specified,  loggin level is set to `INFO`, otherwise to`ERROR`
 * `use_gpu`: if `True`, attemt to use the GPU, if available. Set to `False` to avoid using the GPU if one is available.
+
+NOTE: any parameter which is included in `programParams` but not set / empty, is ignored.

@@ -13,14 +13,14 @@ class MyProcessor:
     self.nlp = None
   def start(self, **kwargs):
     args = dict()
-    # TODO: we need to add some mechanism to parametrize the Pipeline
-    # and all modules, either by some special LR or by a config file (or both)
     for k in ["lang", "dir", "package", "processors", "logging_level", "verbose", "use_gpu"]:
         if k in kwargs:
             if k in ["verbose", "use_gpu"]:
-                args[k] = bool(kwargs[k])
+                if kwargs[k]:
+                    args[k] = bool(kwargs[k])
             else:
-                args[k] = kwargs[k]
+                if kwargs[k]:
+                  args[k] = kwargs[k]
     self.nlp = stanza.Pipeline(**args)
   def finish(self, **kwargs):
     pass

@@ -3,6 +3,11 @@
     <localList>
       <gate.creole.Plugin-Maven>
         <group>uk.ac.gate.plugins</group>
+        <artifact>format-bdoc</artifact>
+        <version>1.10</version>
+      </gate.creole.Plugin-Maven>
+      <gate.creole.Plugin-Maven>
+        <group>uk.ac.gate.plugins</group>
         <artifact>python</artifact>
         <version>3.0.3-SNAPSHOT</version>
       </gate.creole.Plugin-Maven>
@@ -26,8 +31,24 @@
                     <mapType>gate.util.SimpleFeatureMapImpl</mapType>
                     <localMap>
                       <entry>
+                        <string>lang</string>
+                        <string>en</string>
+                      </entry>
+                      <entry>
+                        <string>dir</string>
+                        <string></string>
+                      </entry>
+                      <entry>
+                        <string>logging_level</string>
+                        <string></string>
+                      </entry>
+                      <entry>
                         <string>outputAnnotationSet</string>
                         <string>Stanza</string>
+                      </entry>
+                      <entry>
+                        <string>use_gpu</string>
+                        <string></string>
                       </entry>
                     </localMap>
                   </gate.util.persistence.MapPersistence>
