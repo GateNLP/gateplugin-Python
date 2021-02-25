@@ -922,7 +922,8 @@ public class PythonPr
     // or the corresponding path for the pythonbinaryurl, which must be a file url    
     isCompileOk = tryCompileProgram();
     if (!isCompileOk) {
-      throw new GateRuntimeException("Cannot run the python program, my have a syntax error");
+      throw new GateRuntimeException(
+              "Cannot run the python program, may have a syntax error or other compile-time problem.");
     }
     // ok, actually run the python program so we can communicate with it. 
     // for now we use Process4StringStream from gatelib-interaction for this.
