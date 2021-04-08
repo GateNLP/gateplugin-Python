@@ -231,6 +231,7 @@ public class PythonWorkerRunner extends ResourceHelper  {
     } catch(Exception ex) {
       pworker.server = null;
       System.err.println("PythonWorkerRunner.java: server start NOT OK");
+      System.err.flush();
       throw new GateRuntimeException("Could not start GatewayServer",ex);
     }
   }
