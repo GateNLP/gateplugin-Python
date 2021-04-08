@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -121,11 +122,26 @@ public class PythonWorker {
    * @return the corpus controller
    */
   public CorpusController loadPipelineFromFile(String path) {
-    if (logActions) LOGGER.info("Worker run: load controller from "+path);
+    if (logActions) LOGGER.info("Worker run: load controller from file "+path);
     try {
       return (CorpusController)PersistenceManager.loadObjectFromFile(new File(path));
     } catch (PersistenceException | IOException | ResourceInstantiationException ex) {
-      throw new GateRuntimeException("Could not load pipeline from "+path, ex);
+      throw new GateRuntimeException("Could not load pipeline from file "+path, ex);
+    } 
+  }
+  
+  /**
+   * Load a pipeline from a URI.
+   * 
+   * @param uri gapp/xgapp URI
+   * @return the corpus controller
+   */
+  public CorpusController loadPipelineFromUri(String uri) throws URISyntaxException {
+    if (logActions) LOGGER.info("Worker run: load controller from URI "+uri);
+    try {
+      return (CorpusController)PersistenceManager.loadObjectFromUri(new URI(uri));
+    } catch (PersistenceException | IOException | ResourceInstantiationException ex) {
+      throw new GateRuntimeException("Could not load pipeline from URI "+uri, ex);
     } 
   }
   
