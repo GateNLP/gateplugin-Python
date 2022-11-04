@@ -369,7 +369,6 @@ public class PythonWorker {
    * only recognizes a few hard-coded mime types and rejects all others.
    *
    * The mime types are: "" (empty string) for the default GATE xml serialization;
-   * xml for the GATE inline xml serialization;
    * all mime types supported by the Format_Bdoc plugin and all mime types
    * supported by the Format_FastInfoset plugin.
    *
@@ -377,14 +376,12 @@ public class PythonWorker {
    * loadMavenPlugin("uk.ac.gate.plugins","format-fastinfoset","8.5") or
    * whatever the wanted version is.
    *
-   * NOTE: Annotation types parameter works only for GATE inline xml mime type.
-   *
    * @param path file
    * @param mimetype  mime type
    * @throws java.io.IOException if something goes wrong saving
    * @throws javax.xml.stream.XMLStreamException if something goes wrong when saving
    */
-  public void saveDocumentToFile(Document doc, String path, String mimetype, List<String> annotationTypes)
+  public void saveDocumentToFile(Document doc, String path, String mimetype)
           throws IOException, XMLStreamException {
     if (logActions) LOGGER.info("Worker run: save document to "+path+" mimetype:"+mimetype);
     if(mimetype==null || mimetype.isEmpty()) {
@@ -424,14 +421,39 @@ public class PythonWorker {
                      .get("gate.plugin.format.bdoc.BdocMsgPack")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    } else if("xml".equals(mimetype)) {
-      AnnotationSet allAnnots = doc.getAnnotations();
+    }
+  }
+
+  /**
+   * Save document to a file.
+   *
+   * Mime type text/xml for the GATE inline xml serialization;
+   *
+   * NOTE: Annotation types parameter works only for GATE inline text/xml mime type.
+   *
+   * @param path file
+   * @param mimetype mime type
+   * @param inlineAnntypes inline annotation types
+   * @param inlineAnnset inline annotation set
+   * @param inlineFeatures inline features
+   * @throws java.io.IOException if something goes wrong saving
+   * @throws javax.xml.stream.XMLStreamException if something goes wrong when saving
+   */
+  public saveDocumentToFile(Document doc, String path, String mimetype, List<String> inlineAnntypes, String inlineAnnset, boolean inlineFeatures) {
+    if("text/xml".equals(mimetype)) {
+      if (inlineAnnset==null || inlineAnnset.isEmpty()) {
+        inlineAnnset = "";
+      }
+      if (inlineFeatures==null || inlineFeatures.isEmpty()) {
+        inlineFeatures = true;
+      }
+      AnnotationSet allAnnots = doc.getAnnotations(inlineAnnset);
       AnnotationSet withRoot = new AnnotationSetImpl(doc);
 
-      if (!annotationTypes.isEmpty()) {
+      if (inlineAnntypes!=null && !inlineAnntypes.isEmpty()) {
         // first transfer the annotation types from a list to a set
         @SuppressWarnings("unchecked")
-        Set<String> types2Export = new HashSet<String>(annotationTypes);
+        Set<String> types2Export = new HashSet<String>(inlineAnntypes);
 
         // then get the annotations for export
         AnnotationSet annots2Export = allAnnots.get(types2Export);
@@ -443,11 +465,13 @@ public class PythonWorker {
       OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8");
 
       // write the document
-      writer.write(doc.toXml(withRoot, true));
+      writer.write(doc.toXml(withRoot, inlineFeatures));
 
       // make sure it gets written
       writer.flush();
       outputStream.close();
+    } else {
+      saveDocumentToFile(doc, path, mimetype)
     }
   }
 
