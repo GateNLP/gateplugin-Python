@@ -421,34 +421,40 @@ public class PythonWorker {
                      .get("gate.corpora.FastInfosetExporter")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    } else if("text/bdocsjson".equals(mimetype)) {
+    } else if("text/bdocjs".equals(mimetype) || 
+              "bdocjs".equals(mimetype) 
+             ) {
       DocumentExporter docExporter = (DocumentExporter)Gate.getCreoleRegister()
-                     .get("gate.plugin.format.bdoc.FormatBdocSimpleJson")
+                     .get("gate.plugin.format.bdoc.ExporterBdocJson")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    } else if("text/bdocsjson".equals(mimetype) || "text/bdocsjs".equals(mimetype)) {
+    } else if("text/bdocjs+gzip".equals(mimetype) || 
+              "bdocjs+gzip".equals(mimetype)
+             ) {
       DocumentExporter docExporter = (DocumentExporter)Gate.getCreoleRegister()
-                     .get("gate.plugin.format.bdoc.FormatBdocSimpleJson")
+                     .get("gate.plugin.format.bdoc.ExporterBdocJsonGzip")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    } else if("text/bdocjson".equals(mimetype) || "text/bdocjs".equals(mimetype)) {
+    } else if("text/bdocym".equals(mimetype) || 
+              "bdocym".equals(mimetype) 
+             ) {
       DocumentExporter docExporter = (DocumentExporter)Gate.getCreoleRegister()
-                     .get("gate.plugin.format.bdoc.FormatBdocJson")
+                     .get("gate.plugin.format.bdoc.ExporterBdocYaml")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    } else if("text/bdocsjson+gzip".equals(mimetype) || "text/bdocsjs+gzip".equals(mimetype)) {
+    } else if("text/bdocym+gzip".equals(mimetype) || 
+              "bdocym+gzip".equals(mimetype)
+             ) {
       DocumentExporter docExporter = (DocumentExporter)Gate.getCreoleRegister()
-                     .get("gate.plugin.format.bdoc.FormatBdocSimpleJsonGzip")
+                     .get("gate.plugin.format.bdoc.ExporterBdocYamlGzip")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    } else if("text/bdocjson+gzip".equals(mimetype) || "text/bdocjs+gzip".equals(mimetype)) {
+    } else if("application/bdocmp".equals(mimetype) || 
+              "text/bdocmp".equals(mimetype) ||
+              "bdocmp".equals(mimetype)
+             ) {
       DocumentExporter docExporter = (DocumentExporter)Gate.getCreoleRegister()
-                     .get("gate.plugin.format.bdoc.FormatBdocJsonGzip")
-                     .getInstantiations().iterator().next();
-      docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    } else if("application/bdocmp".equals(mimetype)) {
-      DocumentExporter docExporter = (DocumentExporter)Gate.getCreoleRegister()
-                     .get("gate.plugin.format.bdoc.BdocMsgPack")
+                     .get("gate.plugin.format.bdoc.ExporterBdocMsgPack")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
     } else if("text/xml".equals(mimetype)) {
@@ -464,7 +470,7 @@ public class PythonWorker {
       if (inlineAnntypes!=null && !inlineAnntypes.isEmpty()) {
         // first transfer the annotation types from a list to a set
         @SuppressWarnings("unchecked")
-        Set<String> types2Export = new HashSet<String>(inlineAnntypes);
+        Set<String> types2Export = new HashSet<>(inlineAnntypes);
 
         // then get the annotations for export
         AnnotationSet annots2Export = allAnnots.get(types2Export);
