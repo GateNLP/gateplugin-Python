@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 The University of Sheffield.
  *
- * This file is part of gateplugin-Python 
+ * This file is part of gateplugin-Python
  * (see https://github.com/GateNLP/gateplugin-Python).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 
 package gate.plugin.python;
 
+import gate.AnnotationSet;
 import gate.Corpus;
 import gate.CorpusController;
 import gate.Document;
@@ -29,6 +30,7 @@ import gate.FeatureMap;
 import gate.Gate;
 import gate.ProcessingResource;
 import gate.Resource;
+import gate.annotation.AnnotationSetImpl;
 import gate.corpora.DocumentStaxUtils;
 import gate.creole.AbstractController;
 import gate.creole.ExecutionException;
@@ -43,11 +45,15 @@ import gate.util.GateRuntimeException;
 import gate.util.persistence.PersistenceManager;
 import java.io.File;
 import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,7 +65,7 @@ import py4j.GatewayServer;
 
 /**
  * Run Java/GATE from python through this class.
- * 
+ *
  * @author Johann Petrak
  */
 public class PythonWorker {
@@ -83,30 +89,30 @@ public class PythonWorker {
   public boolean keepRunning = true;
 
   private Corpus tmpCorpus;
-  
+
   // For using the Format_Bdoc API
   // Since the Python plugin run-time depends on the format bdoc plugin,
   // this should ALWAYS SUCCEED without a problem!
   protected ResourceHelper rhBdocApi = (ResourceHelper)Gate.getCreoleRegister()
                      .get("gate.plugin.format.bdoc.API")
-                     .getInstantiations().iterator().next();    
-  
+                     .getInstantiations().iterator().next();
+
   /**
    * Create an instance.
    * @throws ResourceInstantiationException error
    */
-  public PythonWorker() throws ResourceInstantiationException {   
+  public PythonWorker() throws ResourceInstantiationException {
     tmpCorpus = Factory.newCorpus("tmpCorpus");
   }
-  
+
   /**
    * Load a maven plugin.
-   * 
+   *
    * @param group maven group
    * @param artifact maven artifact
    * @param version maven version
    * @throws gate.util.GateException if error
-   * 
+   *
    */
   public void loadMavenPlugin(
           String group, String artifact, String version) throws GateException {
@@ -114,10 +120,10 @@ public class PythonWorker {
     Gate.getCreoleRegister().registerPlugin(new Plugin.Maven(
             group, artifact, version));
   }
-  
+
   /**
    * Load a pipeline from a file.
-   * 
+   *
    * @param path gapp/xgapp file
    * @return the corpus controller
    */
@@ -127,12 +133,12 @@ public class PythonWorker {
       return (CorpusController)PersistenceManager.loadObjectFromFile(new File(path));
     } catch (PersistenceException | IOException | ResourceInstantiationException ex) {
       throw new GateRuntimeException("Could not load pipeline from file "+path, ex);
-    } 
+    }
   }
-  
+
   /**
    * Load a pipeline from a URI.
-   * 
+   *
    * @param uri gapp/xgapp URI
    * @return the corpus controller
    */
@@ -142,12 +148,12 @@ public class PythonWorker {
       return (CorpusController)PersistenceManager.loadObjectFromUri(new URI(uri));
     } catch (PersistenceException | IOException | ResourceInstantiationException ex) {
       throw new GateRuntimeException("Could not load pipeline from URI "+uri, ex);
-    } 
+    }
   }
-  
+
   /**
-   * Find and return a loaded Maven plugin instance. 
-   * 
+   * Find and return a loaded Maven plugin instance.
+   *
    * @param group plugin group
    * @param artifact plugin artifact
    * @return the plugin instance or null of nothing found
@@ -166,13 +172,13 @@ public class PythonWorker {
     }
     return null;
   }
-  
-  
+
+
   /**
    * Load a pipeline from the maven plugin resources.
-   * 
+   *
    * Example: "uk.ac.gate.plugins", "annie", "/resources/ANNIE_with_defaults.gapp"
-   * 
+   *
    * @param group the plugin group
    * @param artifact the plugin artifact
    * @param path the path in the plugin resources
@@ -198,16 +204,16 @@ public class PythonWorker {
       return (CorpusController)PersistenceManager.loadObjectFromUri(rr.toURI());
     } catch (PersistenceException | IOException | ResourceInstantiationException ex) {
       throw new GateRuntimeException("Could not load pipeline from "+path, ex);
-    } 
+    }
   }
-  
+
   /**
    * Load document from the file.
-   * 
-   * This will load the document in the same way as if only the document 
+   *
+   * This will load the document in the same way as if only the document
    * URL had been specified in the GUI, if a document format is registered
-   * for the extension, it is used. 
-   * 
+   * for the extension, it is used.
+   *
    * @param path file path of the document to load
    * @return document
    */
@@ -215,10 +221,10 @@ public class PythonWorker {
     if (logActions) LOGGER.info("Worker run: load document from "+path);
     return loadDocumentFromFile(path, null);
   }
-  
+
   /**
    * Create a new document from the text.
-   * 
+   *
    * @param content the document content
    * @return the document
    */
@@ -230,10 +236,10 @@ public class PythonWorker {
       throw new GateRuntimeException("Could not create document", ex);
     }
   }
-  
+
   /**
    * Create a new corpus.
-   * 
+   *
    * @return  corpus
    */
   public Corpus newCorpus() {
@@ -242,22 +248,22 @@ public class PythonWorker {
       return Factory.newCorpus("Corpus_"+Gate.genSym());
     } catch (ResourceInstantiationException ex) {
       throw new GateRuntimeException("Could not create document", ex);
-    }    
+    }
   }
-  
+
   /**
    * Delete a GATE resource and release memory.
-   * 
+   *
    * @param res the resource to remove
    */
   public void deleteResource(Resource res) {
     if (logActions) LOGGER.info("Worker run: remove resource"+res.getName());
     Factory.deleteResource(res);
   }
-  
+
   /**
    * Run a pipeline for a single document.
-   * 
+   *
    * @param pipeline the pipeline to run
    * @param doc  the document to process
    */
@@ -275,13 +281,13 @@ public class PythonWorker {
       throw new GateRuntimeException("Exception when running the pipeline", ex);
     }
   }
-  
+
   /**
    * Invoke the controller execution started code.
-   * 
+   *
    * This should be run before documents are run individually using the run4doc
    * method.
-   * 
+   *
    * @param pipeline pipeline
    */
   public void runExecutionStarted(CorpusController pipeline) {
@@ -292,15 +298,15 @@ public class PythonWorker {
       } catch (ExecutionException ex) {
         throw new GateRuntimeException("Problem running ExecutionStarted", ex);
       }
-    }    
+    }
   }
 
   /**
    * Invoke the controller execution finished code.
-   * 
+   *
    * This should be run after all documents are run individually using the run4doc
    * method.
-   * 
+   *
    * @param pipeline pipeline
    */
   public void runExecutionFinished(CorpusController pipeline) {
@@ -311,12 +317,12 @@ public class PythonWorker {
       } catch (ExecutionException ex) {
         throw new GateRuntimeException("Problem running ExecutionFinished", ex);
       }
-    }    
+    }
   }
-  
+
   /**
    * Run the pipeline on the given corpus.
-   * 
+   *
    * @param pipeline the pipeline
    * @param corpus  the corpus
    */
@@ -330,9 +336,9 @@ public class PythonWorker {
       pipeline.execute();
     } catch (ExecutionException ex) {
       throw new GateRuntimeException("Exception when running the pipeline", ex);
-    }  
+    }
   }
-  
+
   /**
    * Load document from the file, using mime type
    * @param path file
@@ -343,7 +349,7 @@ public class PythonWorker {
     if (logActions) LOGGER.info("Worker run: load document from "+path+" mimetype:"+mimeType);
     FeatureMap params = Factory.newFeatureMap();
     try {
-      params.put("sourceUrl", new File(path).toURI().toURL());      
+      params.put("sourceUrl", new File(path).toURI().toURL());
       if(mimeType != null) {
         params.put("mimeType", mimeType);
       }
@@ -354,22 +360,22 @@ public class PythonWorker {
       throw new GateRuntimeException("Could not load document from "+path, ex);
     }
   }
-  
+
   /**
    * Save document to a file.
-   * 
+   *
    * NOTE: currently there is no way in GATE to register a document format
    * for saving a document with a specific mime type.So this function currently
    * only recognizes a few hard-coded mime types and rejects all others.
-   * 
+   *
    * The mime types are: "" (empty string) for the default GATE xml serialization;
-   * all mime types supported by the Format_Bdoc plugin and all mime types 
+   * all mime types supported by the Format_Bdoc plugin and all mime types
    * supported by the Format_FastInfoset plugin.
-   * 
-   * NOTE: for fastinfoset the plugin must first have been loaded with 
-   * loadMavenPlugin("uk.ac.gate.plugins","format-fastinfoset","8.5") or 
+   *
+   * NOTE: for fastinfoset the plugin must first have been loaded with
+   * loadMavenPlugin("uk.ac.gate.plugins","format-fastinfoset","8.5") or
    * whatever the wanted version is.
-   * 
+   *
    * @param path file
    * @param mimetype  mime type
    * @throws java.io.IOException if something goes wrong saving
@@ -415,9 +421,60 @@ public class PythonWorker {
                      .get("gate.plugin.format.bdoc.BdocMsgPack")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    }    
+    }
   }
-  
+
+  /**
+   * Save document to a file.
+   *
+   * Mime type text/xml for the GATE inline xml serialization;
+   *
+   * NOTE: Annotation types parameter works only for GATE inline text/xml mime type.
+   *
+   * @param path file
+   * @param mimetype mime type
+   * @param inlineAnntypes inline annotation types
+   * @param inlineAnnset inline annotation set
+   * @param inlineFeatures inline features
+   * @throws java.io.IOException if something goes wrong saving
+   * @throws javax.xml.stream.XMLStreamException if something goes wrong when saving
+   */
+  public saveDocumentToFile(Document doc, String path, String mimetype, List<String> inlineAnntypes, String inlineAnnset, boolean inlineFeatures) {
+    if("text/xml".equals(mimetype)) {
+      if (inlineAnnset==null || inlineAnnset.isEmpty()) {
+        inlineAnnset = "";
+      }
+      if (inlineFeatures==null || inlineFeatures.isEmpty()) {
+        inlineFeatures = true;
+      }
+      AnnotationSet allAnnots = doc.getAnnotations(inlineAnnset);
+      AnnotationSet withRoot = new AnnotationSetImpl(doc);
+
+      if (inlineAnntypes!=null && !inlineAnntypes.isEmpty()) {
+        // first transfer the annotation types from a list to a set
+        @SuppressWarnings("unchecked")
+        Set<String> types2Export = new HashSet<String>(inlineAnntypes);
+
+        // then get the annotations for export
+        AnnotationSet annots2Export = allAnnots.get(types2Export);
+        withRoot.addAll(annots2Export);
+      }
+
+      // create a writer using the specified encoding
+      OutputStream outputStream = new FileOutputStream(new File(path));
+      OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8");
+
+      // write the document
+      writer.write(doc.toXml(withRoot, inlineFeatures));
+
+      // make sure it gets written
+      writer.flush();
+      outputStream.close();
+    } else {
+      saveDocumentToFile(doc, path, mimetype)
+    }
+  }
+
   /**
    * Get the JSON serialization of the Bdoc representation of a document.
    * @param doc document
@@ -431,20 +488,20 @@ public class PythonWorker {
     try {
       String json = (String)rh.call("json_from_doc", doc);
       return json;
-    } catch (NoSuchMethodException | IllegalArgumentException | 
+    } catch (NoSuchMethodException | IllegalArgumentException |
             IllegalAccessException | InvocationTargetException ex) {
       throw new GateRuntimeException("Could not convert GATE document to json", ex);
     }
   }
-  
+
   /**
    * Create a new GATE document from the Bdoc JSON serialization.
-   * 
-   * @param bdocjson the JSON 
+   *
+   * @param bdocjson the JSON
    * @return a new GATE document built from the bdoc json
    * @throws gate.creole.ResourceInstantiationException should never occur
    */
-  public Document getDocument4BdocJson(String bdocjson) 
+  public Document getDocument4BdocJson(String bdocjson)
           throws ResourceInstantiationException {
     try {
       if (logActions) LOGGER.info("Worker run: create document from bdocjson");
@@ -460,9 +517,9 @@ public class PythonWorker {
 
   /**
    * Copy string to standard output.
-   * 
+   *
    * Note: no new line character is appended.
-   * 
+   *
    * @param txt the string to copy
    */
   public void print2out(String txt) {
@@ -471,20 +528,20 @@ public class PythonWorker {
 
   /**
    * Copy string to standard error.
-   * 
+   *
    * Note: no new line character is appended.
-   * 
+   *
    * @param txt the string to copy
    */
   public void print2err(String txt) {
     System.err.print(txt);
   }
-  
+
   /**
    * Activate the GUI.
-   * 
+   *
    * Caution: experimental!
-   * 
+   *
    */
   public void showGui() {
     if (logActions) LOGGER.info("Worker run: sho GUI");
@@ -496,42 +553,42 @@ public class PythonWorker {
       public void run() {
         gate.Main.applyUserPreferences();
         gate.gui.MainFrame.getInstance().setVisible(true);
-      }      
+      }
     };
     javax.swing.SwingUtilities.invokeLater(r);
   }
-  
+
   /**
    * Return a list of all resources with the given name.
    * @param name resource name
    * @return list of matching resources
-   * @throws GateException 
+   * @throws GateException
    */
   public List<Resource> getResources4Name(String name) throws GateException {
     if (logActions) LOGGER.info("Worker run: get resource for name "+name);
     return gate.Gate.getCreoleRegister().getAllInstances("gate.Resource");
   }
-  
+
   /**
    * Return a list of all resources with the given name and class.
    * @param name resource name
    * @param clazz resource class name
    * @return list of matching resources
-   * @throws GateException 
+   * @throws GateException
    */
   public List<Resource> getResources4Name(String name, String clazz) throws GateException {
     if (logActions) LOGGER.info("Worker run: get resource for name "+name+" and class "+clazz);
     return gate.Gate.getCreoleRegister().getAllInstances(clazz);
   }
-  
+
   /**
    * Return the document with the given name.
-   * 
+   *
    * If there are more than one, return an arbitrary one of those.
-   * 
+   *
    * @param name the document name
    * @return document matching the name
-   * @throws GateException 
+   * @throws GateException
    */
   public Document getDocument4Name(String name) throws GateException {
     if (logActions) LOGGER.info("Worker run: get document for name "+name);
@@ -545,12 +602,12 @@ public class PythonWorker {
 
   /**
    * Return the corpus with the given name.
-   * 
+   *
    * If there are more than one, return an arbitrary one of those.
-   * 
+   *
    * @param name the corpus name
    * @return corpus matching the name
-   * @throws GateException 
+   * @throws GateException
    */
   public Corpus getCorpus4Name(String name) throws GateException {
     if (logActions) LOGGER.info("Worker run: get corpus with name "+name);
@@ -564,12 +621,12 @@ public class PythonWorker {
 
   /**
    * Return the pipeline with the given name.
-   * 
+   *
    * If there are more than one, return an arbitrary one of those.
-   * 
+   *
    * @param name the pipeline name
    * @return pipeline matching the name
-   * @throws GateException 
+   * @throws GateException
    */
   public CorpusController getPipeline4Name(String name) throws GateException {
     if (logActions) LOGGER.info("Worker run: get pipeline with name "+name);
@@ -583,12 +640,12 @@ public class PythonWorker {
 
   /**
    * Return the processing resource with the given name.
-   * 
+   *
    * If there are more than one, return an arbitrary one of those.
-   * 
+   *
    * @param name the pr name
    * @return pr matching the name
-   * @throws GateException 
+   * @throws GateException
    */
   public ProcessingResource getPr4Name(String name) throws GateException {
     if (logActions) LOGGER.info("Worker run: get processing resource with name "+name);
@@ -599,12 +656,12 @@ public class PythonWorker {
       return null;
     }
   }
-  
+
   /**
    * Return list of all known document names.
-   * 
+   *
    * @return list of names
-   * @throws GateException 
+   * @throws GateException
    */
   public List<String> getDocumentNames() throws GateException {
     if (logActions) LOGGER.info("Worker run: get known document names");
@@ -618,9 +675,9 @@ public class PythonWorker {
 
   /**
    * Return list of all known corpus names.
-   * 
+   *
    * @return list of names
-   * @throws GateException 
+   * @throws GateException
    */
   public List<String> getCorpusNames() throws GateException {
     if (logActions) LOGGER.info("Worker run: get known corpus names");
@@ -631,12 +688,12 @@ public class PythonWorker {
     }
     return names;
   }
-  
+
   /**
    * Return list of all known pipeline names.
-   * 
+   *
    * @return list of names
-   * @throws GateException 
+   * @throws GateException
    */
   public List<String> getPipelineNames() throws GateException {
     if (logActions) LOGGER.info("Worker run: get known pipeline names");
@@ -650,9 +707,9 @@ public class PythonWorker {
 
   /**
    * Return list of all known processing resource names.
-   * 
+   *
    * @return list of names
-   * @throws GateException 
+   * @throws GateException
    */
   public List<String> getPrNames() throws GateException {
     if (logActions) LOGGER.info("Worker run: get known resource names");
@@ -664,21 +721,21 @@ public class PythonWorker {
     return names;
   }
 
-  
+
   public String jsonAnnsets4Doc(Document doc, List<List<String>> annsets) {
     try {
       return (String)rhBdocApi.call("jsonannsets_from_docanns", doc, annsets);
-    } catch (IllegalAccessException | IllegalArgumentException | 
+    } catch (IllegalAccessException | IllegalArgumentException |
             NoSuchMethodException | InvocationTargetException ex) {
       throw new GateRuntimeException("Problem retrieving the annotations", ex);
     }
   }
-  
+
   public String jsonAnnsets4Doc(Document doc) {
     return jsonAnnsets4Doc(doc, null);
   }
-  
-  
+
+
   /**
    * Enable or disable logging the actions.
    *
@@ -710,34 +767,34 @@ public class PythonWorker {
 
   /**
    * Return version of the Python plugin.
-   * 
+   *
    * @return  version
    */
   public String pluginVersion() {
     return VersionLogger.getPluginVersion();
   }
-  
+
   /**
-   * Return build (short commit id) of Python plugin. 
-   * 
+   * Return build (short commit id) of Python plugin.
+   *
    * @return commit id
    */
   public String pluginBuild() {
     return VersionLogger.getPluginBuild();
   }
-  
+
   /**
    * Return version of GATE.
-   * 
+   *
    * @return  version
    */
   public String gate_version() {
     return gate.Main.version;
   }
-  
+
   /**
    * Return build (short commit id) of GATE.
-   * 
+   *
    * @return commit id
    */
   public String gate_build() {
