@@ -398,7 +398,7 @@ public class PythonWorker {
    * @param path file
    * @param mimetype mime type
    * @param inlineAnntypes inline annotation types: if None, include all,
-   *    otherwise a list of types to include
+   *    otherwise (possibly empty) list of types to include
    * @param inlineAnnset inline annotation set, if the empty string, use
    *    the default annotation set
    * @param inlineFeatures inline features if true (default), include the features
@@ -465,9 +465,13 @@ public class PythonWorker {
         inlineFeatures = true;
       }
       AnnotationSet allAnnots = doc.getAnnotations(inlineAnnset);
-      AnnotationSet withRoot = new AnnotationSetImpl(doc);
-
-      if (inlineAnntypes!=null && !inlineAnntypes.isEmpty()) {
+      AnnotationSet withRoot;
+      if (inlineAnntypes == null) {
+        withRoot = allAnnots;
+      } else if (inlineAnntypes.isEmpty()) {
+        withRoot = new AnnotationSetImpl(doc);
+      } else {
+        withRoot = new AnnotationSetImpl(doc);
         // first transfer the annotation types from a list to a set
         @SuppressWarnings("unchecked")
         Set<String> types2Export = new HashSet<>(inlineAnntypes);
@@ -476,7 +480,6 @@ public class PythonWorker {
         AnnotationSet annots2Export = allAnnots.get(types2Export);
         withRoot.addAll(annots2Export);
       }
-
       try ( OutputStream outputStream = new FileOutputStream(new File(path));
             OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8")
           ) {
