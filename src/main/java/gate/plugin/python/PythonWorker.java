@@ -471,7 +471,7 @@ public class PythonWorker {
       writer.flush();
       outputStream.close();
     } else {
-      saveDocumentToFile(doc, path, mimetype)
+      saveDocumentToFile(doc, path, mimetype);
     }
   }
 
