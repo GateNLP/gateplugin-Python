@@ -363,19 +363,22 @@ public class PythonWorker {
 
   /**
    * Save document to a file.
-   *
+   * 
    * NOTE: currently there is no way in GATE to register a document format
    * for saving a document with a specific mime type.So this function currently
    * only recognizes a few hard-coded mime types and rejects all others.
    *
-   * The mime types are: "" (empty string) for the default GATE xml serialization;
-   * all mime types supported by the Format_Bdoc plugin and all mime types
-   * supported by the Format_FastInfoset plugin.
-   *
+   * The mime types are: "" (empty string) for the default GATE xml 
+   * serialization; all mime types supported by the Format_Bdoc plugin 
+   * and all mime types supported by the Format_FastInfoset plugin. 
+   * In addition, "text/xml" will save as XML inline, with all annotation
+   * types in the default annotation set getting used. 
+   * 
    * NOTE: for fastinfoset the plugin must first have been loaded with
    * loadMavenPlugin("uk.ac.gate.plugins","format-fastinfoset","8.5") or
    * whatever the wanted version is.
    *
+   * @param doc document
    * @param path file
    * @param mimetype  mime type
    * @throws java.io.IOException if something goes wrong saving
@@ -383,6 +386,33 @@ public class PythonWorker {
    */
   public void saveDocumentToFile(Document doc, String path, String mimetype)
           throws IOException, XMLStreamException {
+    saveDocumentToFile(doc, path, mimetype, null, "", false);
+  }
+
+  /**
+   * Save document to a file.This method adds parameters which give finer control if mimetype
+ text/xml is used to specify saving as inline XML.
+   *
+   *
+   * @param doc document
+   * @param path file
+   * @param mimetype mime type
+   * @param inlineAnntypes inline annotation types: if None, include all,
+   *    otherwise a list of types to include
+   * @param inlineAnnset inline annotation set, if the empty string, use
+   *    the default annotation set
+   * @param inlineFeatures inline features if true (default), include the features
+   * @throws java.io.IOException if something goes wrong saving
+   * @throws javax.xml.stream.XMLStreamException if something goes wrong when saving
+   */
+  public void saveDocumentToFile(
+          Document doc, 
+          String path, 
+          String mimetype, 
+          List<String> inlineAnntypes, 
+          String inlineAnnset, 
+          Boolean inlineFeatures
+  ) throws XMLStreamException, IOException {
     if (logActions) LOGGER.info("Worker run: save document to "+path+" mimetype:"+mimetype);
     if(mimetype==null || mimetype.isEmpty()) {
       DocumentStaxUtils.writeDocument(doc, new File(path));
@@ -421,30 +451,11 @@ public class PythonWorker {
                      .get("gate.plugin.format.bdoc.BdocMsgPack")
                      .getInstantiations().iterator().next();
       docExporter.export(doc, new File(path), Factory.newFeatureMap());
-    }
-  }
-
-  /**
-   * Save document to a file.
-   *
-   * Mime type text/xml for the GATE inline xml serialization;
-   *
-   * NOTE: Annotation types parameter works only for GATE inline text/xml mime type.
-   *
-   * @param path file
-   * @param mimetype mime type
-   * @param inlineAnntypes inline annotation types
-   * @param inlineAnnset inline annotation set
-   * @param inlineFeatures inline features
-   * @throws java.io.IOException if something goes wrong saving
-   * @throws javax.xml.stream.XMLStreamException if something goes wrong when saving
-   */
-  public void saveDocumentToFile(Document doc, String path, String mimetype, List<String> inlineAnntypes, String inlineAnnset, boolean inlineFeatures) {
-    if("text/xml".equals(mimetype)) {
+    } else if("text/xml".equals(mimetype)) {
       if (inlineAnnset==null || inlineAnnset.isEmpty()) {
         inlineAnnset = "";
       }
-      if (inlineFeatures==null || inlineFeatures.isEmpty()) {
+      if (null==inlineFeatures) {
         inlineFeatures = true;
       }
       AnnotationSet allAnnots = doc.getAnnotations(inlineAnnset);
@@ -460,18 +471,14 @@ public class PythonWorker {
         withRoot.addAll(annots2Export);
       }
 
-      // create a writer using the specified encoding
-      OutputStream outputStream = new FileOutputStream(new File(path));
-      OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8");
-
-      // write the document
-      writer.write(doc.toXml(withRoot, inlineFeatures));
-
-      // make sure it gets written
-      writer.flush();
-      outputStream.close();
+      try ( OutputStream outputStream = new FileOutputStream(new File(path));
+            OutputStreamWriter writer = new OutputStreamWriter(outputStream, "UTF-8")
+          ) {
+        writer.write(doc.toXml(withRoot, inlineFeatures));
+        writer.flush();
+      }
     } else {
-      saveDocumentToFile(doc, path, mimetype);
+      throw new IOException("Mime type "+mimetype+" not supported");
     }
   }
 
