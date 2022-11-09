@@ -439,7 +439,7 @@ public class PythonWorker {
    * @throws java.io.IOException if something goes wrong saving
    * @throws javax.xml.stream.XMLStreamException if something goes wrong when saving
    */
-  public saveDocumentToFile(Document doc, String path, String mimetype, List<String> inlineAnntypes, String inlineAnnset, boolean inlineFeatures) {
+  public void saveDocumentToFile(Document doc, String path, String mimetype, List<String> inlineAnntypes, String inlineAnnset, boolean inlineFeatures) {
     if("text/xml".equals(mimetype)) {
       if (inlineAnnset==null || inlineAnnset.isEmpty()) {
         inlineAnnset = "";
