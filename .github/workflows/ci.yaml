@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+# Prevent concurrent builds of the same branch - a new push will cancel the
+# running workflow and start another
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "1"
+
+      - name: Update submodules
+        run: |
+          if [ -f '.gitmodules' ]; then
+            git submodule update --init --recursive --depth=1
+          else
+            echo "Repository does not have submodules - nothing to do"
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'zulu'
+          cache: maven
+
+      # Override http://repo.gate.ac.uk to use https:// instead
+      - name: Configure Maven settings
+        uses: whelk-io/maven-settings-xml-action@v20
+        with:
+          mirrors: >
+            [
+              {
+                "id": "gate.ac.uk-https",
+                "name": "GATE repo (secure)",
+                "mirrorOf": "gate.ac.uk",
+                "url": "https://repo.gate.ac.uk/content/groups/public/"
+              }
+            ]
+          repositories: >
+            [
+              {
+                "id": "central",
+                "name": "Maven Central",
+                "url": "https://repo1.maven.org/maven2",
+                "releases": {
+                  "enabled": "true"
+                },
+                "snapshots": {
+                  "enabled": "false"
+                }
+              }
+            ]
+          plugin_repositories: > 
+            [
+              {
+                "id": "central",
+                "name": "Maven Central",
+                "url": "https://repo1.maven.org/maven2",
+                "releases": {
+                  "enabled": "true"
+                },
+                "snapshots": {
+                  "enabled": "false"
+                }
+              }
+            ]
+          servers: >
+            [
+              {
+                "id": "gate.snapshots",
+                "username": "${{ secrets.GATE_REPO_USERNAME }}",
+                "password": "${{ secrets.GATE_REPO_PASSWORD }}"
+              }
+            ]
+
+      - name: Set up python venv
+        run: |
+          python3 -mvenv tmpenv
+          echo "$PWD/tmpenv/bin" >> $GITHUB_PATH
+          tmpenv/bin/pip install -r python-requirements.txt
+
+      - name: Build with Maven
+        run: mvn --batch-mode -e clean install 
+
+      - name: Publish Test Report
+        uses: scacap/action-surefire-report@v1
+        with:
+          fail_if_no_tests: false
+          
+      - name: Build site
+        run: mvn --batch-mode -e -DskipTests site
+
+      # Only do the deploy to repo.gate.ac.uk if we're in the main GateNLP
+      # repo, not a fork
+      - name: Deploy to repo.gate.ac.uk
+        if: github.ref == 'refs/heads/main' && github.repository_owner == 'GateNLP'
+        run: mvn --batch-mode -e -Dmaven.test.skip=true source:jar javadoc:jar deploy
+
+      # We want to avoid cacheing -SNAPSHOT dependencies from our local maven
+      # cache, to ensure that we always go out and check for them again at the
+      # next build in case they have changed.
+      - name: Delete snapshots from m2 repository
+        if: always()
+        run: |
+          find ~/.m2/repository -name \*-SNAPSHOT -type d -exec rm -rf {} \+ || :
